@@ -2,7 +2,7 @@
 
 Learning games for kids. Each player gets lessons picked for their age and interests, and points from every game go into their bank and turn into allowance.
 
-**Play it here:** https://rvannederynen18.github.io/kids-learning-games/
+**Play it here:** https://rvannederynen18.github.io/Learning-Den/
 
 ## Lessons
 
