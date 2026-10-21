@@ -275,9 +275,9 @@ if (!P){
   document.title = H.titleOf(lesson, P);
   const lvl = lesson.levels.find(l => l.id === LEVEL);
   $("#who").textContent = `${H.first(P)} · ${lvl ? lvl.name : ""} level`;
-  $("#fisher").innerHTML = GIRL ? `🐱<small>🎣</small>` : `🎣<small>🪣</small>`;
+  $("#fisher").innerHTML = (GIRL ? `🐱<small>🎣</small>` : `🎣<small>🪣</small>`) + `<small style="font-size:34px;transform:none;margin-left:4px">🐕</small>`;
   $("#sun").textContent = GIRL ? "🌅" : "☀️";
-  $("#plants").innerHTML = (GIRL ? ["🪸","🌸","🪸","🌸"] : ["🌿","🪨","🌿","🐚","🌿"]).map(x => `<span>${x}</span>`).join("");
+  $("#plants").innerHTML = (GIRL ? ["🪸","🌸",Math.random() < .5 ? "🐢" : "🪸","🌸"] : ["🌿","🪨",Math.random() < .5 ? "🐢" : "🌿","🐚","🌿"]).map(x => `<span>${x}</span>`).join("");
   H.mountWallet($("#wallet"), P);
   $("#dialog").innerHTML = `<div class="big">${GIRL ? "🐱" : "🎣"}</div>
     <h2>${GIRL ? "Kitty's going fishing!" : "Let's go fishing!"}</h2>

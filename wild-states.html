@@ -427,7 +427,7 @@ function openDetail(name, speak){
   if (isNew){ const c = document.querySelector(`.acard[data-s="${name}"]`); if (c) c.classList.add("justfound"); }
 }
 /* blue-green (or pink) confetti burst */
-const CONF_EMO = P && H.style(P) === "girl" ? ["🐾","🐱","🎀","📣","🏒"] : ["🦔","🐞","🐟","🚀","🪐","♟️","🏒"];
+const CONF_EMO = P && H.style(P) === "girl" ? ["🐾","🐱","🐕","🐢","🎀","📣"] : ["🦔","🐕","🐢","🐞","🐟","🚀","🪐","♟️"];
 function confetti(){
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   let c = $("#confetti");

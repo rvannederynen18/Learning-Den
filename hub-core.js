@@ -115,6 +115,17 @@ FUN.boy.push(...OCEAN, "Sharks don't have bones. Their skeletons are made of car
   "Sloths can hold their breath underwater for a long time, up to about 40 minutes.",
   "A hedgehog has thousands of spines, about 5,000 to 7,000!","Hedgehogs roll into a spiky ball to stay safe.","Baby hedgehogs are called hoglets.",
   "Hedgehogs snuffle and grunt like tiny pigs while they hunt for bugs.","Hedgehogs love to eat beetles, caterpillars and worms.");
+/* Family pets, sprinkled in quietly: two tabby cats, a little golden retriever, a hedgehog, and Donnie the tortoise who visits the yard. */
+const PETS = ["Tabby isn't a breed of cat. It's a coat pattern of stripes, swirls or spots.","Most tabby cats have a marking shaped like the letter M on their forehead.",
+  "Boy cats are often a little bigger than girl cats.","Cats knead with their paws, like kneading dough, when they feel happy and safe.","Cats love high perches where they can nap and watch the world.",
+  "Golden retrievers were first raised in Scotland to fetch birds for hunters.","Golden retrievers have a waterproof double coat, and most of them love to swim.",
+  "Girl golden retrievers are usually smaller than boys.","Golden retrievers have such gentle mouths they can carry an egg without cracking it.",
+  "A dog's nose can smell thousands of times better than yours.","Golden retrievers are one of the most popular family dogs in America.",
+  "Tortoises live on land, while most turtles live in water.","A tortoise's shell is part of its skeleton, so it can never climb out of it.",
+  "Gopher tortoises dig long burrows, some more than 40 feet long!","More than 350 kinds of animals use gopher tortoise burrows as a home or hiding spot.",
+  "Gopher tortoises are protected in Florida, so they stay wild and free.","Gopher tortoises can live 40 to 60 years in the wild.",
+  "Tortoises love to munch on grasses, leaves and flowers.","Slow and steady: a tortoise walks less than half a mile an hour."];
+FUN.girl.push(...PETS); FUN.boy.push(...PETS);
 function newId(){ return "p" + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 function newProfile(name, age, gender){
   return { id:newId(), name, age, gender:gender || "girl", color:COLORS[Math.floor(Math.random()*COLORS.length)],
@@ -289,8 +300,8 @@ const Hub = {
     if (!m){ m = document.createElement("div"); m.id = "den-mascot"; m.className = "den-mascot"; m.setAttribute("aria-live", "polite"); document.body.append(m); }
     m.classList.toggle("girl", girl);
     const nm = Hub.first(p);
-    const lines = girl ? ["Awoo! Purr-fect!","Great job!","Meow-velous!",`Go, ${nm}, go!`,`Two, four, six, eight, who do we appreciate? ${nm}!`,"Gimme a YAY!","She shoots, she scores!","Hat trick!"]
-                       : ["Awoo! Nice one!","Great catch!","Bug-tastic!","Out of this world!","Checkmate!","Great move!","Blast off!","He shoots, he scores!","Hat trick!"];
+    const lines = girl ? ["Awoo! Purr-fect!","Great job!","Meow-velous!",`Go, ${nm}, go!`,`Two, four, six, eight, who do we appreciate? ${nm}!`,"Gimme a YAY!","She shoots, she scores!","Hat trick!","The tabby kitties are purring for you!","Your pup is wagging her tail!","Slow and steady, like Donnie the tortoise!"]
+                       : ["Awoo! Nice one!","Great catch!","Bug-tastic!","Out of this world!","Checkmate!","Great move!","Blast off!","He shoots, he scores!","Hat trick!","Your hedgehog is doing a happy snuffle!","Donnie the tortoise says great job!","Your pup is wagging her tail!"];
     m.innerHTML = Hub.WOLF + (girl ? Hub.CAT : "") + `<div class="bubble">${Hub.esc(text || lines[Math.floor(Math.random() * lines.length)])}</div>`;
     void m.offsetWidth; m.classList.add("show");
     clearTimeout(Hub._cheerT); Hub._cheerT = setTimeout(() => m.classList.remove("show"), ms || 1800);
