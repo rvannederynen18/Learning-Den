@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top, 0px);padding-bottom:env(safe-area-inset-bottom, 0px)}html,body{margin:0}[hidden]{display:none!important}</style>
+<title>The Learning Den</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Learning Den">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Fredoka:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: a classroom cubby wall — one card per child, then that child's lesson tiles. Light, bright, single look; boy/girl restyles the kid board. */
+:root{
+  --bg:#eef3ff; --paper:#ffffff; --ink:#1c2340; --muted:#5d6687; --line:#d6ddf2;
+  --accent:#5b5bf0; --accent-ink:#ffffff; --gold:#f5a400; --good:#16a34a; --bad:#e5484d; --soft:#e4e9fb;
+  --display:"Lilita One", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Fredoka", "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  color-scheme:light;
+}
+:root[data-style="girl"]{ --bg:#fff0f8; --line:#f6cfe6; --accent:#e0479e; --soft:#fde3f2; --muted:#7d5a72; }
+:root[data-style="boy"]{ --bg:#e6f7f4; --line:#bfe3e6; --accent:#1d74e8; --soft:#d9f3ee; --muted:#4a6b7a; }
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;transition:background .3s;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+*{box-sizing:border-box}
+button,select,input{font-family:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+#app{max-width:1060px;margin:0 auto;padding-block:14px 32px;display:flex;flex-direction:column;gap:18px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.logo{background:none;border:0;padding:0;font-family:var(--display);font-size:26px;color:var(--ink);display:flex;align-items:center;gap:10px}
+.logo .wolf{width:42px;height:42px;flex:none;filter:drop-shadow(0 2px 0 rgba(0,0,0,.12))}
+h1,h2,h3{margin:0;text-wrap:balance}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(30px,6vw,44px);line-height:1.05}
+h2{font-family:var(--display);font-weight:400;font-size:24px}
+.lead{color:var(--muted);margin:6px 0 0;max-width:62ch;line-height:1.45;font-size:16px}
+.btn{background:var(--paper);border:2px solid var(--line);border-bottom-width:5px;border-radius:12px;padding:9px 16px;font-size:16px;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:8px;justify-content:center}
+.btn:active{border-bottom-width:2px;translate:0 3px}
+.btn.primary{background:var(--accent);border-color:color-mix(in srgb,var(--accent) 70%,#000);color:var(--accent-ink)}
+.btn.good{background:var(--good);border-color:#0f7a37;color:#fff}
+.btn.danger{border-color:var(--bad);color:var(--bad)}
+.btn.small{padding:6px 12px;font-size:14px;border-bottom-width:4px}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.screen{display:flex;flex-direction:column;gap:18px}
+
+/* player picker */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.pcard{background:var(--paper);border:3px solid var(--line);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:12px;text-align:left;position:relative;overflow:hidden}
+.pcard::before{content:"";position:absolute;inset:0 0 auto;height:8px;background:var(--c)}
+.pcard .who{display:flex;gap:12px;align-items:center}
+.avatar{width:60px;height:60px;border-radius:16px;background:var(--c);display:grid;place-items:center;font-size:34px;flex:none;box-shadow:inset -4px -4px 0 rgba(0,0,0,.12)}
+.pcard h2{font-size:26px}
+.sub{color:var(--muted);font-size:14px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{background:var(--soft);border-radius:999px;padding:3px 10px;font-size:13px;font-weight:600}
+.pcard .money{font-weight:700;color:var(--gold)}
+.pcard .go{margin-top:auto}
+.guest{border-style:dashed}
+.guest .row{display:flex;gap:8px;flex-wrap:wrap}
+.guest select{flex:1;min-width:110px;background:var(--bg);border:2px solid var(--line);border-radius:10px;padding:8px;font-size:15px}
+.seg{display:flex;gap:6px;flex:1}
+.seg button{flex:1;background:var(--bg);border:2px solid var(--line);border-radius:10px;padding:8px;font-weight:600;font-size:15px}
+.seg button[aria-pressed="true"]{border-color:var(--accent);background:var(--soft)}
+
+/* kid board */
+.hello{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.hello .avatar{width:76px;height:76px;font-size:44px;border-radius:20px}
+.hello .grow{flex:1;min-width:200px}
+.bankpill{background:var(--paper);border:3px solid var(--line);border-radius:16px;padding:10px 16px;display:flex;gap:14px;align-items:center}
+.bankpill b{font-family:var(--display);font-weight:400;font-size:30px;color:var(--gold);line-height:1}
+.lessons{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.lesson{background:var(--paper);border:3px solid var(--line);border-bottom-width:8px;border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:10px;text-decoration:none;color:inherit}
+.lesson:hover{border-color:var(--accent)}
+.lesson:active{border-bottom-width:3px;translate:0 5px}
+.lesson .ic{font-size:60px;line-height:1}
+.lesson h3{font-family:var(--display);font-weight:400;font-size:30px}
+.lesson p{margin:0;color:var(--muted);line-height:1.4}
+.lesson .play{margin-top:auto;align-self:flex-start;background:var(--accent);color:var(--accent-ink);border-radius:12px;padding:8px 18px;font-weight:700}
+.note{font-size:14px;color:var(--muted)}
+.empty{background:var(--paper);border:2px dashed var(--line);border-radius:16px;padding:20px;color:var(--muted)}
+
+/* bank */
+.panel{background:var(--paper);border:2px solid var(--line);border-radius:16px;padding:14px}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600;margin-bottom:4px}
+.bigmoney{font-family:var(--display);font-size:clamp(44px,10vw,68px);color:var(--gold);line-height:1}
+.statrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.statrow b{font-size:24px;font-variant-numeric:tabular-nums}
+.history{display:flex;flex-direction:column;gap:6px}
+.hrow{display:grid;grid-template-columns:1fr auto auto;gap:12px;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-variant-numeric:tabular-nums;font-size:15px}
+.hrow .d{color:var(--muted)}
+.hrow.pay{border-left:5px solid var(--gold)}
+
+/* parent settings */
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tab{background:transparent;border:2px solid var(--line);border-radius:999px;padding:8px 16px;font-weight:600;font-size:15px;color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.sgrid{display:grid;grid-template-columns:220px minmax(0,1fr);gap:16px;align-items:start}
+.plist{display:flex;flex-direction:column;gap:8px}
+.pchip{display:flex;align-items:center;gap:10px;background:var(--paper);border:2px solid var(--line);border-radius:12px;padding:8px 10px;text-align:left;font-weight:600;font-size:16px}
+.pchip[aria-current="true"]{border-color:var(--accent)}
+.pchip .dot{width:24px;height:24px;border-radius:7px;background:var(--c);flex:none;display:grid;place-items:center;font-size:14px}
+.form{background:var(--paper);border:2px solid var(--line);border-radius:18px;padding:18px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.form h3{grid-column:1/-1;font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600;border-bottom:1px solid var(--line);padding-bottom:6px;margin-top:4px}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field.wide{grid-column:1/-1}
+.field label,.field .lab{font-weight:600;font-size:15px}
+.hint{font-size:13px;color:var(--muted);line-height:1.35}
+.field input[type=text],.field input[type=number],.field input[type=password],.field select,.field textarea{background:var(--bg);border:2px solid var(--line);border-radius:10px;padding:9px 10px;font-size:16px;width:100%}
+.field textarea{min-height:90px;font-size:12px;font-family:ui-monospace,Menlo,monospace}
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.swatch{width:36px;height:36px;border-radius:9px;border:3px solid transparent;background:var(--c)}
+.swatch[aria-pressed="true"]{border-color:var(--ink)}
+.lessonrow{grid-column:1/-1;display:grid;grid-template-columns:auto minmax(0,1fr) minmax(150px,220px);gap:12px;align-items:center;background:var(--bg);border-radius:14px;padding:10px 12px}
+.lessonrow .ic{font-size:32px}
+.lessonrow b{display:block}
+.check{display:flex;align-items:center;gap:10px;font-weight:600}
+.check input{width:22px;height:22px}
+.form-actions{grid-column:1/-1;display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center}
+.toast{font-size:14px;color:var(--good);font-weight:600}
+.ttbox{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(20,24,50,.55);display:grid;place-items:center;
+  padding:max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
+.dialog{background:var(--paper);border-radius:20px;padding:22px;width:min(400px,100%);display:flex;flex-direction:column;gap:14px;text-align:center}
+.dialog p{margin:0;color:var(--muted)}
+.dialog .row{display:flex;gap:10px}
+.dialog .row .btn{flex:1}
+.pin-input{font-size:28px;text-align:center;letter-spacing:.4em;padding:10px;border-radius:10px;border:2px solid var(--line);background:var(--bg);width:100%}
+.err{color:var(--bad);font-size:14px;min-height:1.2em}
+
+@media (max-width:759px){
+  .sgrid{grid-template-columns:1fr}
+  .plist{flex-direction:row;flex-wrap:wrap}
+  .form,.ttbox{grid-template-columns:1fr;padding:14px}
+  .lessonrow{grid-template-columns:auto minmax(0,1fr)}
+  .lessonrow select{grid-column:1/-1}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header class="top">
+    <button class="logo" id="homeBtn"><svg class="wolf" viewBox="0 0 64 64" aria-hidden="true"><polygon points="9,3 25,21 7,27" fill="#3e4f6b"/><polygon points="55,3 39,21 57,27" fill="#3e4f6b"/><polygon points="12,9 21,20 11,23" fill="#f3b7a6"/><polygon points="52,9 43,20 53,23" fill="#f3b7a6"/><polygon points="7,23 32,14 57,23 53,41 32,61 11,41" fill="#566b8c"/><polygon points="20,31 32,24 44,31 40,47 32,57 24,47" fill="#e3e9f2"/><polygon points="17,29 27,32 20,35" fill="#ffcf3f"/><polygon points="47,29 37,32 44,35" fill="#ffcf3f"/><polygon points="27,47 37,47 32,53" fill="#1c2340"/></svg>The Learning Den</button>
+    <button class="btn small" id="parentBtn">Parent settings</button>
+  </header>
+  <section class="screen" id="who"></section>
+  <section class="screen" id="board" hidden></section>
+  <section class="screen" id="bank" hidden></section>
+  <section class="screen" id="parent" hidden></section>
+</div>
+<div class="overlay" id="overlay" hidden><div class="dialog" id="dialog"></div></div>
+
+<script src="hub-core.js"></script>
+<script>
+(function(){
+"use strict";
+const H = window.Hub, esc = H.esc;
+const $ = s => document.querySelector(s);
+const db = () => H.db;
+const fmt = n => Math.round(n).toLocaleString();
+const date = d => new Date(d).toLocaleDateString(undefined, { month:"short", day:"numeric" });
+const lessonTitle = id => (H.LESSONS.find(l => l.id === id) || { title:id }).title;
+const avatar = p => H.STYLES[H.style(p)].avatar;
+
+function show(name, style){
+  ["who","board","bank","parent"].forEach(s => $("#" + s).hidden = s !== name);
+  if (style) document.documentElement.dataset.style = style; else delete document.documentElement.dataset.style;
+  window.scrollTo(0, 0);
+}
+function dialog(html){ $("#dialog").innerHTML = html; $("#overlay").hidden = false; }
+function closeDialog(){ $("#overlay").hidden = true; }
+
+let unlockedUntil = 0;
+function requirePin(then){
+  const pin = db().settings.pin;
+  if (!pin || Date.now() < unlockedUntil) return then();
+  dialog(`<h2>Parent PIN</h2><p>Enter the PIN to continue.</p>
+    <input class="pin-input" id="pinIn" type="password" inputmode="numeric" maxlength="8" autocomplete="off">
+    <div class="err" id="pinErr"></div>
+    <div class="row"><button class="btn" id="pinNo">Cancel</button><button class="btn primary" id="pinOk">Unlock</button></div>`);
+  const inp = $("#pinIn"); inp.focus();
+  const ok = () => { if (inp.value === pin){ unlockedUntil = Date.now() + 10*60*1000; closeDialog(); then(); } else { $("#pinErr").textContent = "That PIN doesn't match. Try again."; inp.value = ""; inp.focus(); } };
+  $("#pinOk").onclick = ok; inp.onkeydown = e => { if (e.key === "Enter") ok(); };
+  $("#pinNo").onclick = closeDialog;
+}
+
+/* ---------- Who's learning ---------- */
+function renderWho(){
+  const g = db().guest;
+  const ages = Array.from({length:10}, (_, i) => i + 4);
+  $("#who").innerHTML = `
+    <div><h1>Who's learning today?</h1>
+      <p class="lead">Each player gets lessons picked for their age. Points from the games go into their bank and turn into allowance.</p></div>
+    <div class="cards">
+      ${db().profiles.map(p => `
+        <button class="pcard" data-pick="${p.id}" style="--c:${p.color}">
+          <div class="who"><div class="avatar">${avatar(p)}</div><div><h2>${esc(H.first(p))}</h2><div class="sub">${esc(p.name)}<br>Age ${esc(p.age)} · ${H.STYLES[H.style(p)].theme}</div></div></div>
+          <div class="chips">${H.curriculum(p).map(c => `<span class="chip">${H.iconOf(c.lesson, p)} ${H.titleOf(c.lesson, p)}: ${c.level.name}</span>`).join("") || `<span class="chip">No lessons for this age yet</span>`}</div>
+          <div class="money">${H.money(p.points)} · ${fmt(p.points)} pts in the bank</div>
+        </button>`).join("")}
+      <div class="pcard guest" style="--c:#a8b3c7">
+        <div class="who"><div class="avatar">👋</div><div><h2>Guest</h2><div class="sub">For friends and visitors. Nothing is saved.</div></div></div>
+        <div class="row">
+          <select id="gAge" aria-label="Guest age">${ages.map(a => `<option value="${a}" ${a === g.age ? "selected" : ""}>Age ${a}</option>`).join("")}</select>
+          <div class="seg"><button type="button" data-g="girl" aria-pressed="${g.gender === "girl"}">🐱 Girl</button><button type="button" data-g="boy" aria-pressed="${g.gender === "boy"}">🐞 Boy</button></div>
+        </div>
+        <button class="btn primary go" id="guestGo">Play as guest</button>
+      </div>
+    </div>`;
+  document.querySelectorAll("[data-pick]").forEach(b => b.onclick = () => { H.setActive(b.dataset.pick); openBoard(); });
+  $("#gAge").onchange = e => { g.age = Number(e.target.value); H.save(); };
+  document.querySelectorAll("[data-g]").forEach(b => b.onclick = () => { g.gender = b.dataset.g; H.save(); renderWho(); });
+  $("#guestGo").onclick = () => { H.setActive("guest"); openBoard(); };
+  show("who");
+}
+
+/* ---------- Kid board ---------- */
+function openBoard(){
+  const p = H.active(); if (!p) return renderWho();
+  const list = H.curriculum(p);
+  $("#board").innerHTML = `
+    <div class="hello">
+      <div class="avatar" style="--c:${p.color}">${avatar(p)}</div>
+      <div class="grow"><h1>Hi, ${esc(H.first(p))}!</h1><p class="lead">${p.guest ? "Playing as a guest, so scores won't be saved." : "Pick a game to play."}</p></div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:stretch"><div id="boardWallet"></div>${p.guest ? "" : `<button class="btn small" id="toBank">Open my bank ›</button>`}</div>
+    </div>
+    <div class="lessons">
+      ${list.length ? list.map(c => `
+        <a class="lesson" href="${c.lesson.file}">
+          <span class="ic">${H.iconOf(c.lesson, p)}</span>
+          <div class="chips"><span class="chip">${c.lesson.subject}</span><span class="chip">${c.level.name} level</span></div>
+          <h3>${H.titleOf(c.lesson, p)}</h3>
+          <p>${c.level.blurb}</p>
+          <span class="play">Play ▶</span>
+        </a>`).join("") : `<div class="empty">No lessons are set for this age yet. A parent can turn lessons on in Parent settings.</div>`}
+    </div>
+    <div><button class="btn" id="switchBtn">Switch player</button></div>`;
+  const tb = $("#toBank"); if (tb) tb.onclick = () => openBank(p.id);
+  H.wallets = []; H.sessionPts = 0; H.mountWallet($("#boardWallet"), p);
+  setTimeout(() => H.cheer(`Hi ${H.first(p)}! Fun fact: ${H.funFact(p)}`, p, 6000), 400);
+  $("#switchBtn").onclick = renderWho;
+  show("board", H.style(p));
+}
+
+/* ---------- Bank ---------- */
+function openBank(id){
+  const p = H.profile(id); if (!p || p.guest) return;
+  const pays = db().payouts.filter(x => x.pid === id);
+  const paid = pays.reduce((s, x) => s + x.dollars, 0);
+  $("#bank").innerHTML = `
+    <div class="hello"><div class="avatar" style="--c:${p.color}">${avatar(p)}</div>
+      <div class="grow"><h1>${esc(H.first(p))}'s bank</h1><p class="lead">Every ${fmt(db().settings.pointsPerDollar)} points = $1.00. ${fmt(p.points)} points ÷ ${fmt(db().settings.pointsPerDollar)} = ${H.money(p.points)}.</p></div></div>
+    <div class="panel" style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between">
+      <div><div class="label">Ready to cash in</div><div class="bigmoney">${H.money(p.points)}</div><div class="sub">${fmt(p.points)} points</div></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" id="bankBack">Back</button><button class="btn primary" id="payOut" ${H.dollars(p.points) < .01 ? "disabled" : ""}>Pay out (parent)</button></div>
+    </div>
+    <div class="statrow">
+      <div class="panel"><div class="label">Points earned ever</div><b>${fmt(p.lifetime)}</b></div>
+      <div class="panel"><div class="label">Paid out so far</div><b>$${paid.toFixed(2)}</b></div>
+      <div class="panel"><div class="label">Times Tower best</div><b>${fmt(p.tt.best)}</b></div>
+      <div class="panel"><div class="label">Animals found</div><b>${p.ws.found.length} of 50</b></div>
+      <div class="panel"><div class="label">Planets visited</div><b>${(p.ph ? p.ph.visited.length : 0)} of 8</b></div>
+    </div>
+    <h2>Earned by game</h2>
+    <div class="history">${H.LESSONS.map(l => { const pts = (p.earnedBy || {})[l.id] || 0; return `<div class="hrow"><span>${l.icon} ${l.title}</span><span class="d">${fmt(pts)} pts</span><b>${H.money(pts)}</b></div>`; }).join("")}
+      <div class="hrow" style="font-weight:700"><span>All games, ever</span><span class="d">${fmt(p.lifetime)} pts</span><b>${H.money(p.lifetime)}</b></div></div>
+    <h2>Payouts</h2>
+    <div class="history">${pays.length ? pays.slice().reverse().slice(0,20).map(x => `<div class="hrow pay"><span>Paid out</span><span class="d">${date(x.date)}</span><b>$${x.dollars.toFixed(2)}</b></div>`).join("") : `<p class="note">No payouts yet.</p>`}</div>
+    <h2>Recent points</h2>
+    <div class="history">${p.history.length ? p.history.slice(0,15).map(h => `<div class="hrow"><span>${esc(lessonTitle(h.lesson))}${h.note ? " · " + esc(h.note) : ""}</span><span class="d">${date(h.d)}</span><b>+${fmt(h.pts)} pts · ${H.money(h.pts)}</b></div>`).join("") : `<p class="note">No points yet. Play a game to start earning.</p>`}</div>`;
+  show("bank", H.style(p));
+  $("#bankBack").onclick = openBoard;
+  $("#payOut").onclick = () => requirePin(() => {
+    const d = Math.floor(H.dollars(p.points) * 100) / 100;
+    const used = Math.min(p.points, Math.round(d * db().settings.pointsPerDollar));
+    dialog(`<h2>Pay $${d.toFixed(2)}?</h2><p>This takes ${fmt(used)} points out of ${esc(p.name)}'s bank and records the payout.</p>
+      <div class="row"><button class="btn" id="payNo">Cancel</button><button class="btn good" id="payYes">Paid $${d.toFixed(2)}</button></div>`);
+    $("#payNo").onclick = closeDialog;
+    $("#payYes").onclick = () => { p.points -= used; p.paidPoints += used; db().payouts.push({ pid:p.id, date:Date.now(), dollars:d, points:used }); H.save(); closeDialog(); openBank(p.id); };
+  });
+}
+
+/* ---------- Parent settings ---------- */
+let sTab = "players", sEdit = null;
+const opts = (vals, cur, lab = v => v) => vals.map(v => `<option value="${v}" ${String(v) === String(cur) ? "selected" : ""}>${lab(v)}</option>`).join("");
+const range = (a, b) => Array.from({length:b-a+1}, (_, i) => a + i);
+function openParent(tab){
+  sTab = tab || sTab;
+  $("#parent").innerHTML = `
+    <div><h1>Parent settings</h1><p class="lead">Add each child with their age and boy/girl style. Lessons and difficulty are picked automatically from their age, and you can change any of them here.</p></div>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="players">Players &amp; lessons</button>
+      <button class="tab" role="tab" data-tab="allowance">Allowance &amp; PIN</button>
+      <button class="tab" role="tab" data-tab="backup">Backup</button>
+    </div>
+    <div id="sBody"></div>
+    <div><button class="btn" id="sDone">Done</button></div>`;
+  document.querySelectorAll(".tab").forEach(t => { t.setAttribute("aria-selected", t.dataset.tab === sTab); t.onclick = () => openParent(t.dataset.tab); });
+  $("#sDone").onclick = renderWho;
+  show("parent");
+  if (sTab === "players") renderPlayers(); else if (sTab === "allowance") renderAllowance(); else renderBackup();
+}
+function toast(id, m){ const t = $(id); if (!t) return; t.textContent = m; clearTimeout(toast[id]); toast[id] = setTimeout(() => { const x = $(id); if (x) x.textContent = ""; }, 1500); }
+
+const ttAuto = p => H.ttAuto(p);
+function renderPlayers(){
+  const body = $("#sBody");
+  if (!H.profile(sEdit) || sEdit === "guest") sEdit = db().profiles[0] && db().profiles[0].id;
+  const p = H.profile(sEdit);
+  const list = db().profiles.map(x => `<button class="pchip" data-edit="${x.id}" aria-current="${x.id === sEdit}"><span class="dot" style="--c:${x.color}">${avatar(x)}</span>${esc(H.first(x))}</button>`).join("")
+    + `<button class="btn small" id="sAdd">+ Add player</button>`;
+  if (!p){ body.innerHTML = `<div class="plist">${list}</div>`; bindList(); return; }
+  const tt = p.tt.custom || ttAuto(p);
+  body.innerHTML = `<div class="sgrid"><div class="plist">${list}</div>
+  <form class="form" id="pform" autocomplete="off">
+    <h3>Player</h3>
+    <div class="field"><label for="f-name">Full name</label><input type="text" id="f-name" maxlength="60" value="${esc(p.name)}"></div>
+    <div class="field"><label for="f-age">Age</label><input type="number" id="f-age" min="3" max="18" value="${esc(p.age)}"><span class="hint">Lessons and difficulty follow the age.</span></div>
+    <div class="field"><span class="lab">Boy or girl</span>
+      <div class="seg"><button type="button" data-gender="girl" aria-pressed="${p.gender === "girl"}">🐱 Girl</button><button type="button" data-gender="boy" aria-pressed="${p.gender === "boy"}">🐞 Boy</button></div>
+      <span class="hint">Girl: pink and kitties. Boy: bugs, fish, blue and green.</span></div>
+    <div class="field"><span class="lab">Card color</span><div class="swatches">${H.COLORS.map(c => `<button type="button" class="swatch" data-color="${c}" style="--c:${c}" aria-label="Color ${c}" aria-pressed="${c === p.color}"></button>`).join("")}</div></div>
+    <h3>Lessons</h3>
+    ${H.LESSONS.map(l => {
+      const choice = p.lessons[l.id] || "auto";
+      const auto = H.autoLevel(l, Number(p.age) || 0, p);
+      const autoName = auto ? l.levels.find(v => v.id === auto).name : (l.autoFor ? "off for this player" : "not assigned at this age");
+      const cur = H.levelFor(p, l.id), curLvl = cur && l.levels.find(v => v.id === cur);
+      return `<div class="lessonrow"><span class="ic">${H.iconOf(l, p)}</span>
+        <div><b>${H.titleOf(l, p)}</b><span class="hint">${curLvl ? curLvl.name + ": " + curLvl.blurb : "Turned off for this player"}</span></div>
+        <select data-lesson="${l.id}" aria-label="${l.title} level">
+          <option value="auto" ${choice === "auto" ? "selected" : ""}>Automatic (${autoName})</option>
+          ${l.levels.map(v => `<option value="${v.id}" ${choice === v.id ? "selected" : ""}>${v.name}</option>`).join("")}
+          <option value="off" ${choice === "off" ? "selected" : ""}>Off</option>
+        </select></div>`; }).join("")}
+    <h3>Times Tower details</h3>
+    <label class="check field wide" for="f-ttcustom"><input type="checkbox" id="f-ttcustom" ${p.tt.custom ? "checked" : ""}> Customize instead of using the level's settings</label>
+    <div class="ttbox" ${p.tt.custom ? "" : "hidden"}>
+      <div class="field"><label for="f-mode">Problems</label><select id="f-mode">${opts(["auto","mult","div","mix"], tt.mode, v => ({auto:"Multiplication, then add division",mult:"Multiplication only",div:"Division only",mix:"Mixed"}[v]))}</select></div>
+      <div class="field"><label for="f-divlevel">Division starts at level</label><select id="f-divlevel">${opts(range(2,15), Math.min(15, tt.divLevel))}</select></div>
+      <div class="field"><label for="f-start">Start with tables</label><select id="f-start">${opts(range(1,12), tt.startMax, v => "1 to " + v)}</select></div>
+      <div class="field"><label for="f-top">Grow up to tables</label><select id="f-top">${opts(range(1,12), tt.topMax, v => "1 to " + v)}</select></div>
+      <div class="field"><label for="f-speed">Starting speed</label><select id="f-speed">${opts(["slow","normal","fast"], tt.speed, v => v[0].toUpperCase() + v.slice(1))}</select></div>
+      <div class="field"><label for="f-size">Right answers per level</label><select id="f-size">${opts([5,8,10,12,15,20], tt.levelSize)}</select></div>
+      <div class="field wide"><label for="f-fade">Times table chart</label><select id="f-fade">${opts([99,2,3,4,5,6,7,8,10,12], tt.fadeBy, v => v === 99 ? "Always show the full chart" : "Fades out, gone by level " + v)}</select></div>
+    </div>
+    <div class="form-actions"><button type="button" class="btn danger" id="sDel">Remove player</button><span class="toast" id="sToast"></span></div>
+  </form></div>`;
+  bindList();
+  const set = (fn, rerender) => { fn(); H.save(); toast("#sToast", "Saved"); if (rerender) renderPlayers(); };
+  $("#f-name").oninput = e => { p.name = e.target.value.trim() || "Player"; H.save(); toast("#sToast", "Saved"); const c = document.querySelector(`[data-edit="${p.id}"]`); if (c) c.lastChild.textContent = H.first(p); };
+  $("#f-age").onchange = e => set(() => p.age = Math.max(3, Math.min(18, Number(e.target.value) || 6)), true);
+  document.querySelectorAll("[data-gender]").forEach(b => b.onclick = () => set(() => p.gender = b.dataset.gender, true));
+  document.querySelectorAll(".swatch").forEach(b => b.onclick = () => set(() => p.color = b.dataset.color, true));
+  document.querySelectorAll("[data-lesson]").forEach(s => s.onchange = () => set(() => p.lessons[s.dataset.lesson] = s.value, true));
+  $("#f-ttcustom").onchange = e => set(() => p.tt.custom = e.target.checked ? Object.assign({}, ttAuto(p)) : null, true);
+  const tset = (k, v) => set(() => { p.tt.custom[k] = v; if (k === "startMax" && p.tt.custom.topMax < v) p.tt.custom.topMax = v; if (k === "topMax" && p.tt.custom.startMax > v) p.tt.custom.startMax = v; }, k === "startMax" || k === "topMax");
+  if (p.tt.custom){
+    $("#f-mode").onchange = e => tset("mode", e.target.value);
+    $("#f-divlevel").onchange = e => tset("divLevel", Number(e.target.value));
+    $("#f-start").onchange = e => tset("startMax", Number(e.target.value));
+    $("#f-top").onchange = e => tset("topMax", Number(e.target.value));
+    $("#f-speed").onchange = e => tset("speed", e.target.value);
+    $("#f-size").onchange = e => tset("levelSize", Number(e.target.value));
+    $("#f-fade").onchange = e => tset("fadeBy", Number(e.target.value));
+  }
+  $("#pform").onsubmit = e => e.preventDefault();
+  const del = $("#sDel");
+  del.onclick = () => {
+    if (del.dataset.armed){ db().profiles = db().profiles.filter(x => x.id !== p.id); db().payouts = db().payouts.filter(x => x.pid !== p.id); if (db().active === p.id) db().active = null; H.save(); sEdit = null; renderPlayers(); return; }
+    del.dataset.armed = "1"; del.textContent = `Tap again to remove ${p.name} and their points`;
+    setTimeout(() => { if (del.isConnected){ delete del.dataset.armed; del.textContent = "Remove player"; } }, 4000);
+  };
+}
+function bindList(){
+  document.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => { sEdit = b.dataset.edit; renderPlayers(); });
+  const add = $("#sAdd"); if (add) add.onclick = () => { const p = H.newProfile("New player", 6, "boy"); db().profiles.push(p); H.save(); sEdit = p.id; renderPlayers(); };
+}
+function renderAllowance(){
+  const s = db().settings;
+  $("#sBody").innerHTML = `<form class="form" id="aform" autocomplete="off">
+    <h3>Allowance</h3>
+    <div class="field"><label for="f-ppd">Points for $1.00</label><input type="number" id="f-ppd" min="50" step="50" value="${s.pointsPerDollar}"><span class="hint" id="ppdHint"></span></div>
+    <div class="field"><span class="lab">Current balances</span><span class="hint">${db().profiles.map(p => `${esc(p.name)}: ${H.money(p.points)}`).join(" · ") || "No players yet"}</span></div>
+    <h3>Parent PIN</h3>
+    <div class="field"><label for="f-pin">PIN (4 to 8 digits)</label><input type="password" id="f-pin" inputmode="numeric" maxlength="8" value="${esc(s.pin)}" placeholder="No PIN set"><span class="hint">Needed to open settings and pay out. Leave blank for no PIN.</span></div>
+    <div class="field"><span class="lab">&nbsp;</span><button type="button" class="btn" id="savePin">Save PIN</button></div>
+    <h3>Sound</h3>
+    <label class="check field" for="f-sound"><input type="checkbox" id="f-sound" ${s.sound ? "checked" : ""}> Game sounds</label>
+    <label class="check field" for="f-voice"><input type="checkbox" id="f-voice" ${s.voice ? "checked" : ""}> Read words out loud</label>
+    <div class="form-actions"><span class="toast" id="aToast"></span></div>
+  </form>`;
+  const hint = () => $("#ppdHint").textContent = `A good Times Tower game of about 600 points pays ${H.money(600)}.`;
+  hint();
+  $("#f-ppd").onchange = e => { s.pointsPerDollar = Math.max(50, Number(e.target.value) || 1000); H.save(); hint(); toast("#aToast", "Saved"); };
+  $("#savePin").onclick = () => { const v = $("#f-pin").value.trim(); if (v && !/^\d{4,8}$/.test(v)) return toast("#aToast", "Use 4 to 8 digits."); s.pin = v; H.save(); unlockedUntil = Date.now() + 10*60*1000; toast("#aToast", v ? "PIN saved" : "PIN turned off"); };
+  $("#f-sound").onchange = e => { s.sound = e.target.checked; H.save(); };
+  $("#f-voice").onchange = e => { s.voice = e.target.checked; H.save(); };
+  $("#aform").onsubmit = e => e.preventDefault();
+}
+function renderBackup(){
+  $("#sBody").innerHTML = `<form class="form" autocomplete="off">
+    <h3>Save a backup</h3>
+    <div class="field wide"><span class="hint">Players, lessons and points are saved in this browser on this device. Copy this text into a note or email to keep a backup, or paste it on another device below.</span>
+      <textarea id="f-backup" readonly>${esc(JSON.stringify(db()))}</textarea><div><button type="button" class="btn" id="copyB">Copy backup</button></div></div>
+    <h3>Restore</h3>
+    <div class="field wide"><label for="f-restore">Paste backup text</label><textarea id="f-restore"></textarea>
+      <div><button type="button" class="btn danger" id="doRestore">Replace everything with this backup</button></div></div>
+    <div class="form-actions"><span class="toast" id="bToast"></span></div>
+  </form>`;
+  $("#copyB").onclick = () => { const ta = $("#f-backup"); const fb = () => { ta.focus(); ta.select(); toast("#bToast", "Selected. Use your device's Copy."); };
+    try { navigator.clipboard.writeText(ta.value).then(() => toast("#bToast", "Copied"), fb); } catch(e){ fb(); } };
+  const btn = $("#doRestore");
+  btn.onclick = () => {
+    let d; try { d = JSON.parse($("#f-restore").value); } catch(e){ return toast("#bToast", "That text isn't a valid backup."); }
+    if (!d || !Array.isArray(d.profiles)) return toast("#bToast", "That text isn't a Learning Den backup.");
+    if (!btn.dataset.armed){ btn.dataset.armed = "1"; btn.textContent = "Tap again to confirm"; return; }
+    H.db = d; H.save(); location.reload();
+  };
+}
+
+$("#homeBtn").onclick = renderWho;
+$("#parentBtn").onclick = () => requirePin(() => openParent("players"));
+
+/* Coming back from a game goes straight to that player's lessons. */
+const act = H.active();
+if (act && sessionStorage && (() => { try { return sessionStorage.getItem("hub-return") === "1"; } catch(e){ return false; } })()){
+  try { sessionStorage.removeItem("hub-return"); } catch(e){}
+  openBoard();
+} else renderWho();
+})();
+</script>
+</body>
+</html>

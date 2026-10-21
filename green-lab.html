@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Green Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800;900&display=swap">
+<style>
+/* Shared lesson shell: top bar with wallet, mode tabs, a stage card for the question, answer buttons beside it. */
+:root{
+  --bg:#e6f4ff; --paper:#ffffff; --ink:#0d2a3d; --muted:#4a6b7a; --line:#c6dcec; --soft:#eef6fc;
+  --accent:#1d74e8; --accent-2:#0e9f6e; --gold:#f5a400; --good:#16a34a; --bad:#e5484d;
+  --display:"Lilita One", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Nunito", "Trebuchet MS", system-ui, sans-serif;
+  color-scheme:light;
+  padding-top:env(safe-area-inset-top, 0px);padding-bottom:env(safe-area-inset-bottom, 0px);
+}
+:root[data-style="girl"]{ --bg:#fff0f8; --line:#f3cfe4; --soft:#fde8f3; --accent:#e0479e; --accent-2:#a855f7; --muted:#7d5a72; }
+html,body{margin:0;min-height:100%}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-weight:800;font-size:17px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+button{font-family:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:4px solid var(--gold);outline-offset:2px}
+#app{max-width:1060px;margin:0 auto;padding-block:12px 28px;display:flex;flex-direction:column;gap:14px}
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.bar h1{font-family:var(--display);font-weight:400;font-size:clamp(26px,5vw,38px);margin:0;color:var(--accent)}
+.who{color:var(--muted)}
+#wallet{margin-left:auto}
+.btn{background:var(--paper);border:3px solid var(--line);border-bottom-width:6px;border-radius:14px;padding:9px 16px;font-size:16px;font-weight:800}
+.btn:active{border-bottom-width:3px;translate:0 3px}
+.btn.go{background:var(--accent);border-color:color-mix(in srgb,var(--accent) 70%,#000);color:#fff}
+.btn.small{padding:6px 12px;font-size:15px;border-bottom-width:4px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tab{background:var(--paper);border:3px solid var(--line);border-radius:999px;padding:8px 16px;font-weight:900;font-size:16px;color:var(--muted);display:flex;gap:8px;align-items:center}
+.tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.game{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+.stagecard{background:var(--paper);border:3px solid var(--line);border-radius:24px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.dots{display:flex;gap:5px}
+.dots i{width:13px;height:13px;border-radius:50%;background:var(--line)}
+.dots i.done{background:var(--accent-2)}
+.dots i.now{background:var(--gold)}
+#stage{display:flex;justify-content:center;align-items:center;min-height:240px;position:relative}
+.prompt{font-family:var(--display);font-size:clamp(24px,5vw,34px);line-height:1.15;text-align:center;margin:0}
+.side{display:flex;flex-direction:column;gap:12px}
+.choices{display:grid;gap:10px}
+.choice{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--paper);border:3px solid var(--line);border-bottom-width:7px;border-radius:18px;padding:12px 14px;font-size:22px;font-weight:900;font-variant-numeric:tabular-nums}
+.choice:active{border-bottom-width:3px;translate:0 4px}
+.choice.right{border-color:var(--good);background:#e3f7ec}
+.choice.wrong{border-color:var(--bad);opacity:.45;pointer-events:none}
+.cheer{text-align:center;font-family:var(--display);font-size:28px;min-height:1.2em;color:var(--good)}
+.cheer.no{color:var(--bad)}
+.cheer small{display:block;font-family:var(--body);font-size:16px;color:var(--ink);margin-top:4px;font-weight:800}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(10,30,50,.55);display:grid;place-items:center;
+  padding:max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
+.dialog{background:var(--paper);border-radius:24px;border:4px solid var(--accent);padding:22px;width:min(460px,100%);display:flex;flex-direction:column;gap:12px;text-align:center;max-height:100%;overflow:auto}
+.dialog h2{font-family:var(--display);font-weight:400;font-size:32px;margin:0;color:var(--accent)}
+.dialog p{margin:0;color:var(--muted);line-height:1.4}
+.dialog .big{font-size:60px;line-height:1}
+.dialog .row .btn{flex:1}
+.fact{background:var(--soft);border-radius:14px;padding:10px 12px;color:var(--ink)!important}
+canvas#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
+@media (max-width:759px){ .game{grid-template-columns:1fr} #stage{min-height:200px} }
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+:root{ --bg:#eaf8ee; --line:#c4e6cd; --soft:#e2f5e7; --accent:#16a34a; --accent-2:#0ea5e9; }
+:root[data-style="girl"]{ --bg:#fff1f7; --line:#f4cfe1; --soft:#fde6f1; --accent:#db2777; --accent-2:#16a34a; }
+body{background-image:radial-gradient(circle at 0% 0%, rgba(253,224,71,.25), transparent 35%),radial-gradient(circle at 100% 100%, rgba(74,222,128,.2), transparent 40%)}
+.diagram{width:100%;max-width:520px;height:auto}
+.diagram text{font-family:var(--body);font-weight:800}
+.kitchen{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
+.leafbox{position:relative;width:200px;height:150px}
+.leafbox svg{width:100%;height:100%}
+.leafbox .in{position:absolute;font-size:30px;animation:popin .4s ease-out}
+@keyframes popin{from{transform:scale(0)}}
+.ings{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%;max-width:520px}
+.ing{background:var(--paper);border:3px solid var(--line);border-bottom-width:6px;border-radius:14px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:14px;font-weight:900}
+.ing span{font-size:32px;line-height:1}
+.ing.used{opacity:.3;pointer-events:none;border-color:var(--good)}
+.ing.no{border-color:var(--bad);animation:wig .35s}
+@keyframes wig{25%{translate:-5px 0}75%{translate:5px 0}}
+.plant{width:min(80vw,300px);height:auto}
+.plant .part{transition:filter .2s, opacity .2s}
+.plant .part.glow{filter:drop-shadow(0 0 6px #facc15) drop-shadow(0 0 12px #facc15);animation:glow 1s ease-in-out infinite}
+@keyframes glow{50%{opacity:.7}}
+.tf{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;max-width:520px}
+.tf .bigemo{font-size:72px;line-height:1}
+.tf .stmt{font-size:clamp(20px,4.5vw,26px);line-height:1.35}
+@media (max-width:600px){ .ings{grid-template-columns:repeat(4,1fr)} .ing{font-size:12px} .ing span{font-size:26px} }
+
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="bar">
+    <button class="btn small" id="backBtn">‹ Lessons</button>
+    <h1 id="title">Green Lab</h1>
+    <span class="who" id="who"></span>
+    <div id="wallet"></div>
+  </div>
+  <div class="tabs" role="tablist" id="modeTabs"></div>
+  <div class="game">
+    <div class="stagecard">
+      <div class="qhead"><div class="dots" id="dots"></div><button class="btn small" id="hearBtn">🔊 Hear it</button></div>
+      <p class="prompt" id="prompt"></p>
+      <div id="stage"></div>
+    </div>
+    <div class="side">
+      <div class="choices" id="choices"></div>
+      <div class="cheer" id="cheer"></div>
+      <div class="row"><button class="btn go" id="nextBtn" hidden>Next ▶</button></div>
+      
+    </div>
+  </div>
+</div>
+<div class="overlay" id="overlay" hidden><div class="dialog" id="dialog"></div></div>
+
+<script src="hub-core.js"></script>
+<script>
+(function(){
+"use strict";
+const H = window.Hub, esc = H.esc;
+const $ = s => document.querySelector(s);
+const rnd = n => Math.floor(Math.random() * n);
+const pick = a => a[rnd(a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const LESSON_ID = "green-lab";
+const P = H.active();
+const LESSON = H.LESSONS.find(l => l.id === LESSON_ID);
+const LEVEL = P ? (H.levelFor(P, LESSON_ID) || (Number(P.age) >= 8 ? LESSON.levels[1].id : LESSON.levels[0].id)) : LESSON.levels[0].id;
+const HARD = LEVEL === LESSON.levels[1].id;
+const GIRL = P && H.style(P) === "girl";
+const ROUND = 10;
+const PTS = HARD ? 15 : 10;
+
+/* ---- shared round engine ---- */
+const Game = { mode:null, q:null, R:null, modes:[], stage:1 };
+function confetti(emojis){
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  let c = $("#confetti"); if (!c){ c = document.createElement("canvas"); c.id = "confetti"; document.body.append(c); }
+  const ctx = c.getContext("2d"), W = c.width = innerWidth, Hh = c.height = innerHeight;
+  const em = emojis || Game.confetti || ["⭐","✨"];
+  const Pc = Array.from({length:60}, () => ({ x:W/2, y:Hh*.4, vx:(Math.random()-.5)*14, vy:-Math.random()*12-4, s:16+Math.random()*16, e:pick(em) }));
+  let t = 0;
+  (function tick(){ ctx.clearRect(0,0,W,Hh); t++;
+    Pc.forEach(p => { p.vy += .35; p.x += p.vx; p.y += p.vy; ctx.font = `${p.s}px sans-serif`; ctx.fillText(p.e, p.x, p.y); });
+    if (t < 95) requestAnimationFrame(tick); else ctx.clearRect(0,0,W,Hh); })();
+}
+function renderDots(){ $("#dots").innerHTML = Array.from({length:ROUND}, (_, i) => `<i class="${i < Game.R.n ? "done" : i === Game.R.n ? "now" : ""}"></i>`).join(""); }
+function renderTabs(){
+  const list = Game.modes.filter(m => !m.only || m.only.includes(LEVEL));
+  $("#modeTabs").innerHTML = list.map(m => `<button class="tab" role="tab" data-m="${m.id}" aria-selected="${Game.mode && Game.mode.id === m.id}"><span>${m.icon}</span>${m.name}</button>`).join("");
+  $("#modeTabs").querySelectorAll(".tab").forEach(b => b.onclick = () => startMode(b.dataset.m));
+}
+function startMode(id){
+  Game.mode = Game.modes.find(m => m.id === id); renderTabs();
+  Game.R = { n:0, first:0, pts:0 }; H.sessionPts = 0; H.refreshWallet(true);
+  Game.stage = H.stage(P, LESSON_ID);
+  const lvl = LESSON.levels.find(l => l.id === LEVEL);
+  $("#who").textContent = `${H.first(P)} · ${lvl ? lvl.name : ""} · stage ${Game.stage} of 5`;
+  H.hush();
+  if (Game.mode.setup) Game.mode.setup();
+  next();
+}
+function next(){
+  if (Game.R.n >= ROUND) return endRound();
+  $("#cheer").textContent = ""; $("#cheer").className = "cheer"; $("#nextBtn").hidden = true;
+  renderDots();
+  Game.mode.next();
+}
+/* q = { prompt, say, stage (html), choices:[{v,label}], answer, onShow(stageEl) } */
+Game.ask = function(q){
+  Game.q = Object.assign({ tries:0, done:false }, q);
+  $("#prompt").innerHTML = q.prompt || "";
+  $("#stage").innerHTML = q.stage || "";
+  $("#choices").innerHTML = (q.choices || []).map(c => `<button class="choice" data-v="${esc(c.v)}">${c.label}</button>`).join("");
+  $("#choices").querySelectorAll(".choice").forEach(b => b.onclick = () => {
+    if (Game.q.done) return;
+    if (b.dataset.v === String(Game.q.answer)){ b.classList.add("right"); Game.right(); }
+    else { b.classList.add("wrong"); Game.wrong(); }
+  });
+  if (q.onShow) q.onShow($("#stage"));
+  H.say(q.say || (q.prompt || "").replace(/<[^>]+>/g, ""));
+};
+Game.right = function(msg){
+  const q = Game.q; if (!q || q.done) return; q.done = true;
+  const pts = q.tries === 0 ? PTS : Math.ceil(PTS / 2);
+  if (q.tries === 0) Game.R.first++;
+  Game.R.pts += pts; Game.R.n++;
+  H.earn(P, pts, LESSON_ID, `${Game.mode.name}`);
+  const cheer = pick(Game.cheers);
+  $("#cheer").innerHTML = `${cheer} +${pts}${msg || q.explain ? `<small>${msg || q.explain}</small>` : ""}`; $("#cheer").className = "cheer";
+  confetti();
+  if (Game.R.n % 4 === 0) H.cheer(`Fun fact: ${H.funFact(P)}`, P, 5500); else H.cheer(cheer, P, 1400);
+  H.say(`${cheer} ${(msg || q.explain || "").replace(/<[^>]+>/g, "")}`);
+  renderDots();
+  if (q.autoNext) setTimeout(next, q.autoNext); else $("#nextBtn").hidden = false;
+};
+Game.wrong = function(msg){
+  const q = Game.q; if (!q || q.done) return;
+  q.tries++;
+  $("#cheer").innerHTML = `Try again!${msg ? `<small>${msg}</small>` : ""}`; $("#cheer").className = "cheer no";
+  H.say("Try again! " + (msg || "").replace(/<[^>]+>/g, ""));
+};
+function endRound(){
+  const bonus = Game.R.first >= 8 ? 25 : 0;
+  if (bonus) H.earn(P, bonus, LESSON_ID, "round bonus");
+  const change = H.recordRound(P, LESSON_ID, Game.R.first, ROUND);
+  const note = H.stageNote(change, H.stage(P, LESSON_ID));
+  const fact = H.funFact(P);
+  $("#dialog").innerHTML = `<div class="big">${Game.R.first >= 8 ? "🏆" : Game.mode.icon}</div>
+    <h2>${Game.R.first >= 8 ? Game.winTitle : Game.doneTitle}</h2>
+    <p>${Game.R.first} of ${ROUND} right on the first try. You earned ${Game.R.pts + bonus} points${bonus ? ", with a 25 point bonus" : ""}${P.guest ? "." : ` (${H.money(Game.R.pts + bonus)}).`}</p>
+    <p style="color:var(--ink)">${note}</p>
+    <p class="fact">${GIRL ? "🐱" : "🐞"} Fun fact: ${fact}</p>
+    <div class="row"><button class="btn" id="homeB">Back to lessons</button><button class="btn" id="otherB">Pick another game</button><button class="btn go" id="againB">Play again</button></div>`;
+  $("#overlay").hidden = false;
+  H.say(`${Game.R.first >= 8 ? Game.winTitle : Game.doneTitle}! Fun fact: ${fact}`);
+  $("#againB").onclick = () => { $("#overlay").hidden = true; if (P.guest) P.points = 0; startMode(Game.mode.id); };
+  $("#otherB").onclick = () => { $("#overlay").hidden = true; chooser(); };
+  $("#homeB").onclick = H.goHome;
+}
+function chooser(){
+  const list = Game.modes.filter(m => !m.only || m.only.includes(LEVEL));
+  $("#dialog").innerHTML = `<div class="big">${H.iconOf(LESSON, P)}</div><h2>${esc(H.titleOf(LESSON, P))}</h2><p>Pick a game. Each one has ${ROUND} questions.</p>
+    <div style="display:grid;gap:10px">${list.map(m => `<button class="btn" data-pickm="${m.id}" style="text-align:left;display:flex;gap:12px;align-items:center"><span style="font-size:32px">${m.icon}</span><span><b>${m.name}</b><br><span style="font-weight:700;color:var(--muted);font-size:14px">${m.blurb()}</span></span></button>`).join("")}</div>
+    <div class="row"><button class="btn small" id="homeB">Back to lessons</button></div>`;
+  $("#overlay").hidden = false;
+  $("#dialog").querySelectorAll("[data-pickm]").forEach(b => b.onclick = () => { $("#overlay").hidden = true; startMode(b.dataset.pickm); });
+  $("#homeB").onclick = H.goHome;
+}
+$("#nextBtn").onclick = next;
+$("#hearBtn").onclick = () => Game.q && H.say(Game.q.say || ($("#prompt").textContent));
+$("#backBtn").onclick = H.goHome;
+try { speechSynthesis.getVoices(); } catch(e){}
+
+/* ---- this lesson's games ---- */
+Game.cheers = GIRL ? ["Blooming great!","Petal-perfect!","Purr-fect!","Go team!","You're growing!"] : ["Tree-mendous!","Un-be-leaf-able!","Fungi-tastic!","Great move!","Nature pro!"];
+Game.confetti = GIRL ? ["🌸","🌼","🌷","🐝","🐱"] : ["🌳","🍄","🍃","🌲","🐞"];
+Game.winTitle = GIRL ? "Super gardener!" : "Forest ranger!"; Game.doneTitle = "Lab complete";
+
+/* ---------- photosynthesis diagram ---------- */
+function photoSVG(){
+  const L = HARD ? { sun:"Sunlight (energy)", water:"Water (H₂O) from roots", air:"Carbon dioxide (CO₂) in", oxy:"Oxygen (O₂) out", food:"Glucose (sugar)", green:"Chlorophyll makes leaves green" }
+                 : { sun:"Sunlight", water:"Water from the roots", air:"Air goes in", oxy:"Oxygen comes out (we breathe it!)", food:"Food (sugar)", green:"" };
+  return `<svg class="diagram" viewBox="0 0 520 320" role="img" aria-label="How photosynthesis works">
+    <rect x="0" y="0" width="520" height="250" fill="#e0f2fe"/><rect x="0" y="250" width="520" height="70" fill="#a16207"/>
+    <circle cx="60" cy="55" r="34" fill="#facc15"/>${[0,45,90,135,180,225,270,315].map(a => `<line x1="${60 + Math.cos(a * Math.PI / 180) * 42}" y1="${55 + Math.sin(a * Math.PI / 180) * 42}" x2="${60 + Math.cos(a * Math.PI / 180) * 54}" y2="${55 + Math.sin(a * Math.PI / 180) * 54}" stroke="#facc15" stroke-width="5" stroke-linecap="round"/>`).join("")}
+    <path d="M255 250 C255 200 258 170 262 130" stroke="#15803d" stroke-width="10" fill="none"/>
+    <path d="M262 135 C300 80 380 80 400 120 C370 160 300 165 262 135 Z" fill="#22c55e" stroke="#15803d" stroke-width="4"/>
+    <path d="M262 135 L395 118" stroke="#15803d" stroke-width="3"/>
+    <path d="M258 180 C220 150 170 160 160 190 C190 210 240 205 258 180 Z" fill="#4ade80" stroke="#15803d" stroke-width="4"/>
+    <path d="M255 250 l-30 40 M255 250 l0 50 M255 250 l30 40 M240 270 l-25 10 M270 270 l25 10" stroke="#fde68a" stroke-width="4" stroke-linecap="round"/>
+    <defs><marker id="ar" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="currentColor"/></marker></defs>
+    <g style="color:#ca8a04"><line x1="95" y1="75" x2="285" y2="110" stroke="#ca8a04" stroke-width="5" stroke-dasharray="10 6" marker-end="url(#ar)"/></g>
+    <text x="110" y="62" font-size="16" fill="#854d0e">☀️ ${L.sun}</text>
+    <g style="color:#0284c7"><line x1="300" y1="300" x2="300" y2="165" stroke="#0284c7" stroke-width="5" marker-end="url(#ar)"/></g>
+    <text x="310" y="290" font-size="15" fill="#e0f2fe">💧 ${L.water}</text>
+    <g style="color:#6b7280"><line x1="500" y1="160" x2="408" y2="130" stroke="#6b7280" stroke-width="5" marker-end="url(#ar)"/></g>
+    <text x="400" y="185" font-size="14" fill="#374151">💨 ${L.air}</text>
+    <g style="color:#16a34a"><line x1="390" y1="90" x2="470" y2="40" stroke="#16a34a" stroke-width="5" marker-end="url(#ar)"/></g>
+    <text x="300" y="28" font-size="14" fill="#166534">🫧 ${L.oxy}</text>
+    <text x="292" y="132" font-size="14" fill="#14532d" font-weight="900">🍬 ${L.food}</text>
+    ${L.green ? `<text x="20" y="235" font-size="13" fill="#166534">🟢 ${L.green}</text>` : ""}
+  </svg>`;
+}
+const LEAF = `<svg viewBox="0 0 200 150" aria-hidden="true"><path d="M20 120 C40 30 140 10 185 25 C175 90 110 140 20 120 Z" fill="#22c55e" stroke="#15803d" stroke-width="5"/><path d="M20 120 L170 35" stroke="#15803d" stroke-width="4"/><path d="M60 98 L80 70 M95 78 L110 55 M125 60 L140 42" stroke="#15803d" stroke-width="3"/></svg>`;
+
+/* 1. SUNLIGHT KITCHEN — what a plant needs to make food, plus photosynthesis questions */
+const PHOTO_Q = {
+  sprout:[
+    ["Where does a plant make its food?","Leaves",["Leaves","Roots","Flowers"],"Leaves are the plant's kitchen!"],
+    ["What do plants give off that we breathe?","Oxygen",["Oxygen","Smoke","Juice"],"Plants make the oxygen we breathe."],
+    ["What do roots drink up from the ground?","Water",["Water","Milk","Sand"],"Roots soak up water."],
+    ["What does a plant need from the sky to make food?","Sunlight",["Sunlight","Rain clouds","Wind"],"Sunlight gives plants the energy to make food."],
+    ["What kind of food does a plant make?","Sugar",["Sugar","Pizza","Salt"],"Plants make a kind of sugar to grow."],
+    ["What makes leaves green?","Chlorophyll",["Chlorophyll","Paint","Grass"],"A green helper called chlorophyll catches sunlight."]],
+  botanist:[
+    ["What gas do plants take in from the air?","Carbon dioxide",["Carbon dioxide","Oxygen","Helium"],"Plants take in carbon dioxide through their leaves."],
+    ["What gas do plants give off?","Oxygen",["Oxygen","Carbon dioxide","Nitrogen"],"Oxygen is a leftover from photosynthesis."],
+    ["What is the sugar plants make called?","Glucose",["Glucose","Protein","Starch"],"Plants make glucose, then store some of it as starch."],
+    ["What are the tiny holes in leaves that let air in and out?","Stomata",["Stomata","Petals","Roots"],"Stomata open and close to let gases in and out."],
+    ["What does the word part \"photo\" in photosynthesis mean?","Light",["Light","Plant","Water"],"Photo means light, and synthesis means putting together."],
+    ["What green material in leaves catches sunlight?","Chlorophyll",["Chlorophyll","Pollen","Bark"],"Chlorophyll absorbs sunlight to power photosynthesis."],
+    ["Which part of a plant cell does photosynthesis happen in?","Chloroplast",["Chloroplast","Nucleus","Cell wall"],"Chloroplasts are tiny green parts inside leaf cells."],
+    ["Which of these is NOT needed for photosynthesis?","Soil",["Soil","Sunlight","Water"],"Plants need sunlight, water and carbon dioxide. Some plants grow without soil!"]]
+};
+const ING = [["☀️","Sunlight",true],["💧","Water",true],["💨","Air",true],["🍕","Pizza",false],["🧃","Juice",false],["🪨","Rocks",false],["🍬","Candy",false],["🔥","Fire",false]];
+Game.modes.push({ id:"kitchen", name:"Sunlight Kitchen", icon:"☀️",
+  blurb:() => HARD ? "Learn photosynthesis: carbon dioxide, glucose, chlorophyll and more" : "Help a leaf make food from sunlight, water and air",
+  next(){
+    const S = Game.stage;
+    const kitchenTurn = Game.R.n === 0 || (S <= 1 ? Game.R.n % 2 === 0 : Game.R.n % 4 === 0);
+    if (kitchenTurn){
+      const set = shuffle(ING.filter(x => x[2]).concat(shuffle(ING.filter(x => !x[2])).slice(0, S <= 2 ? 3 : 5)));
+      let got = 0;
+      Game.ask({ prompt:"Tap the 3 things a plant needs to make its food!", say:"Leaves are a plant's kitchen. Tap the three things a plant needs to make its food.",
+        stage:`<div class="kitchen"><div class="leafbox" id="leafbox">${LEAF}</div><div class="ings">${set.map((x, i) => `<button class="ing" data-i="${i}"><span>${x[0]}</span>${x[1]}</button>`).join("")}</div></div>`,
+        onShow(st){
+          st.querySelectorAll(".ing").forEach(b => b.onclick = () => {
+            if (Game.q.done) return;
+            const it = set[Number(b.dataset.i)];
+            if (it[2]){
+              b.classList.add("used"); got++;
+              const e = document.createElement("span"); e.className = "in"; e.textContent = it[0];
+              e.style.left = (30 + got * 40) + "px"; e.style.top = (40 + (got % 2) * 30) + "px"; $("#leafbox").append(e);
+              H.say(it[1] + "!", { rate:1.05 });
+              if (got === 3) setTimeout(() => Game.right(HARD ? "Sunlight + water + carbon dioxide make glucose (sugar) and oxygen. That's photosynthesis!" : "Sunlight + water + air make the plant's food, and oxygen for us to breathe!"), 400);
+            } else { b.classList.add("no"); Game.wrong(`Plants don't need ${it[1].toLowerCase()}! They make their own food.`); setTimeout(() => b.classList.remove("no"), 400); }
+          });
+        } });
+      return;
+    }
+    const bank = PHOTO_Q[HARD ? "botanist" : "sprout"];
+    const q = bank[(Game.R.n + rnd(bank.length)) % bank.length];
+    Game.ask({ prompt:q[0], answer:q[1], choices:shuffle(q[2]).map(v => ({ v, label:v })), explain:q[3], stage:photoSVG() });
+  } });
+
+/* ---------- plant / tree pictures with highlightable parts ---------- */
+function flowerSVG(){
+  return `<svg class="plant" viewBox="0 0 300 380" role="img" aria-label="Parts of a flower">
+    <rect x="0" y="0" width="300" height="270" fill="#fdf2f8"/><rect x="0" y="270" width="300" height="110" fill="#92400e"/>
+    <g class="part" data-part="roots"><path d="M150 270 l-40 60 M150 270 l0 80 M150 270 l40 60 M130 300 l-30 15 M170 300 l30 15 M150 320 l-20 30 M150 320 l20 30" stroke="#fde68a" stroke-width="6" stroke-linecap="round"/></g>
+    <g class="part" data-part="stem"><rect x="143" y="120" width="14" height="152" rx="7" fill="#16a34a"/></g>
+    <g class="part" data-part="leaves"><path d="M150 210 C110 170 70 190 62 215 C95 235 130 230 150 210 Z" fill="#22c55e" stroke="#15803d" stroke-width="3"/><path d="M150 180 C190 140 232 160 240 185 C205 205 170 200 150 180 Z" fill="#22c55e" stroke="#15803d" stroke-width="3"/></g>
+    <g class="part" data-part="flower"><g class="part" data-part="petals">${[0,60,120,180,240,300].map(a => `<ellipse cx="${150 + Math.cos(a * Math.PI / 180) * 38}" cy="${90 + Math.sin(a * Math.PI / 180) * 38}" rx="28" ry="20" transform="rotate(${a} ${150 + Math.cos(a * Math.PI / 180) * 38} ${90 + Math.sin(a * Math.PI / 180) * 38})" fill="#f472b6" stroke="#db2777" stroke-width="3"/>`).join("")}</g>
+      <g class="part" data-part="pollen"><circle cx="150" cy="90" r="24" fill="#facc15" stroke="#ca8a04" stroke-width="3"/>${[0,1,2,3,4,5,6].map(i => `<circle cx="${140 + (i * 7) % 22}" cy="${82 + (i * 5) % 18}" r="2.5" fill="#a16207"/>`).join("")}</g></g>
+  </svg>`;
+}
+function treeSVG(){
+  return `<svg class="plant" viewBox="0 0 300 380" role="img" aria-label="Parts of a tree">
+    <rect x="0" y="0" width="300" height="280" fill="#e0f2fe"/><rect x="0" y="280" width="300" height="100" fill="#78350f"/>
+    <g class="part" data-part="roots"><path d="M150 280 l-60 50 M150 280 l-20 80 M150 280 l25 75 M150 280 l65 45 M110 315 l-40 5 M190 312 l40 8" stroke="#d6a76c" stroke-width="8" stroke-linecap="round"/></g>
+    <g class="part" data-part="trunk"><path d="M128 282 L136 150 L164 150 L172 282 Z" fill="#92400e"/><path d="M142 270 l2 -40 M156 260 l-1 -50 M148 200 l1 -30" stroke="#6b2f0a" stroke-width="3"/></g>
+    <g class="part" data-part="branches"><path d="M140 170 L95 120 M160 165 L210 115 M150 155 L150 95 M110 135 L90 140 M195 128 L220 130" stroke="#92400e" stroke-width="10" stroke-linecap="round"/></g>
+    <g class="part" data-part="leaves"><circle cx="150" cy="80" r="52" fill="#22c55e"/><circle cx="95" cy="110" r="42" fill="#16a34a"/><circle cx="208" cy="106" r="44" fill="#16a34a"/><circle cx="120" cy="58" r="34" fill="#4ade80"/><circle cx="185" cy="60" r="34" fill="#4ade80"/></g>
+    <g class="part" data-part="seeds">${[[105,130],[200,128],[160,110]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="7" ry="9" fill="#a16207"/><path d="M${x - 8} ${y - 6} h16" stroke="#713f12" stroke-width="5" stroke-linecap="round"/>`).join("")}</g>
+    <g class="part" data-part="mushroom"><rect x="222" y="262" width="12" height="22" rx="4" fill="#fef3c7"/><path d="M208 266 C210 240 246 240 248 266 Z" fill="#dc2626"/><circle cx="220" cy="256" r="3" fill="#fff"/><circle cx="234" cy="252" r="3" fill="#fff"/><circle cx="240" cy="261" r="2.5" fill="#fff"/></g>
+  </svg>`;
+}
+const PARTS = {
+  flower:{ sprout:["roots","stem","leaves","flower"], botanist:["roots","stem","leaves","petals","pollen"] },
+  tree:{ sprout:["roots","trunk","branches","leaves","mushroom"], botanist:["roots","trunk","branches","leaves","seeds","mushroom"] }
+};
+const NAMES = { roots:"Roots", stem:"Stem", leaves:"Leaves", flower:"Flower", petals:"Petals", pollen:"Pollen", trunk:"Trunk", branches:"Branches", seeds:"Seeds (acorns)", mushroom:"Mushroom" };
+const JOBS = {
+  roots:["soak up water and hold the plant in the ground","Roots soak up water and hold the plant in the ground."],
+  stem:["carry water up and hold the plant up tall","The stem carries water up and holds the plant up tall."],
+  leaves:["use sunlight to make the plant's food","Leaves use sunlight to make the plant's food."],
+  flower:["make seeds so new plants can grow","The flower makes seeds so new plants can grow."],
+  petals:["invite bees and butterflies with bright colors","Bright petals invite bees and butterflies to visit."],
+  pollen:["help flowers make seeds","Pollen is yellow dust that helps flowers make seeds."],
+  trunk:["carry water up from the roots and hold the whole tree tall","The trunk carries water up from the roots and holds the tree tall."],
+  branches:["hold the leaves up high to catch sunlight","Branches hold the leaves up high to catch sunlight."],
+  seeds:["grow into brand new trees","Acorns are seeds that can grow into brand new oak trees."],
+  mushroom:["break down dead leaves and wood into soil","A mushroom is a fungus, not a plant. It breaks down dead leaves and wood into soil."] };
+Game.modes.push({ id:"parts", name: GIRL ? "Flower Parts" : "Tree Parts", icon: GIRL ? "🌷" : "🌳",
+  blurb:() => HARD ? "Match each part to its job" : "Name the glowing part of the plant",
+  next(){
+    const kind = GIRL ? "flower" : "tree";
+    const list = PARTS[kind][HARD ? "botanist" : "sprout"].slice(0, Math.min(PARTS[kind][HARD ? "botanist" : "sprout"].length, 2 + Game.stage));
+    const part = list[Game.R.n % list.length === 0 ? rnd(list.length) : rnd(list.length)];
+    const others = shuffle(list.filter(x => x !== part)).slice(0, 2);
+    const byJob = HARD && Game.stage >= 2;
+    Game.ask({ prompt: byJob ? `Which part\u2019s job is to ${JOBS[part][0]}?` : "What part is glowing?", answer:part,
+      choices:shuffle([part, ...others]).map(v => ({ v, label:NAMES[v] })),
+      explain:JOBS[part][1],
+      stage: GIRL ? flowerSVG() : treeSVG(),
+      onShow(st){ if (!byJob) st.querySelector(`[data-part="${part}"]`).classList.add("glow"); } });
+    const _right = Game.right;
+    Game.right = function(m){ const g = $(`#stage [data-part="${part}"]`); if (g) g.classList.add("glow"); Game.right = _right; _right(m); };
+  } });
+
+/* 3. NATURE FACTS — true/false (Sprout) and multiple choice (Botanist) */
+const TF = [
+  ["shared","Plants make the oxygen we breathe.",true],["mushroom","Mushrooms are plants.",false,"Mushrooms are fungi, not plants!"],
+  ["flower","Bees help flowers make seeds by carrying pollen.",true],["tree","Some trees can live for thousands of years.",true],
+  ["tree","The tallest trees in the world are redwoods.",true],["shared","Plants grow toward the light.",true],["shared","A seed needs water to sprout.",true],
+  ["shared","Every plant needs soil to grow.",false,"Some plants, like air plants, grow without soil!"],["tree","You can tell a tree's age by counting the rings in its trunk.",true],
+  ["flower","Young sunflowers turn to follow the sun across the sky.",true],["flower","Some flowers only open at night.",true,"Moonflowers bloom at night!"],
+  ["mushroom","Mushrooms grow from seeds.",false,"Mushrooms grow from tiny spores, not seeds."],["mushroom","One of the biggest living things on Earth is a giant fungus in Oregon.",true],
+  ["shared","Some bamboo can grow almost 3 feet in one day!",true],["tree","Leaves change color in fall because their green color fades away.",true],
+  ["shared","Earthworms help make soil healthy.",true],["flower","Cactuses store water in their thick stems.",true],["tree","Trees can share food through fungus networks in the soil.",true]
+];
+const MC = [
+  ["mushroom","What do mushrooms spread to make new mushrooms?","Spores",["Spores","Seeds","Eggs"]],
+  ["flower","What carries pollen from flower to flower?","Bees and butterflies",["Bees and butterflies","Rocks","Fish"]],
+  ["tree","What is a large area full of trees called?","A forest",["A forest","A desert","A glacier"]],
+  ["shared","Living things and their home working together are called an...","Ecosystem",["Ecosystem","Engine","Elevator"]],
+  ["mushroom","Fungi break down dead leaves and wood into...","Healthy soil",["Healthy soil","Plastic","Sand"]],
+  ["tree","Which gas do trees take out of the air?","Carbon dioxide",["Carbon dioxide","Oxygen","Helium"]],
+  ["flower","What part of a flower turns into fruit with seeds inside?","The flower's base (ovary)",["The flower's base (ovary)","The roots","The leaves"]],
+  ["tree","Trees that lose their leaves every fall are called...","Deciduous",["Deciduous","Evergreen","Cactus"]],
+  ["tree","Pine trees that stay green all year are called...","Evergreen",["Evergreen","Deciduous","Fungi"]],
+  ["shared","Animals that eat only plants are called...","Herbivores",["Herbivores","Carnivores","Robots"]],
+  ["flower","A seed that is starting to grow is called a...","Sprout",["Sprout","Stump","Spore"]],
+  ["shared","What do plants need to grow? Pick the best answer.","Sunlight, water and air",["Sunlight, water and air","Candy and juice","Only dirt"]]
+];
+const WANT = GIRL ? ["flower","flower","shared"] : ["tree","mushroom","shared"];
+Game.modes.push({ id:"facts", name:"Nature Facts", icon: GIRL ? "🌼" : "🍄",
+  blurb:() => HARD ? "Trees, flowers, fungi and ecosystems" : "True or false? Cool facts about plants",
+  setup(){ Game.used = new Set(); },
+  next(){
+    const useMC = HARD && (Game.stage >= 2 ? Math.random() < .6 : Math.random() < .3);
+    const bank = useMC ? MC : TF;
+    const want = pick(WANT);
+    let pool = bank.filter((q, i) => (q[0] === want || q[0] === "shared") && !Game.used.has((useMC ? "m" : "t") + i));
+    if (!pool.length){ Game.used = new Set(); pool = bank.filter(q => q[0] === want || q[0] === "shared"); }
+    const q = pick(pool); Game.used.add((useMC ? "m" : "t") + bank.indexOf(q));
+    const em = { flower:"🌸", tree:"🌳", mushroom:"🍄", shared:"🌱" }[q[0]];
+    if (useMC){
+      Game.ask({ prompt:q[1], answer:q[2], choices:shuffle(q[3]).map(v => ({ v, label:v })), explain:`${q[2]}!`, stage:`<div class="tf"><div class="bigemo">${em}</div></div>` });
+    } else {
+      Game.ask({ prompt:"True or false?", say:`True or false? ${q[1]}`, answer:String(q[2]),
+        choices:[{ v:"true", label:"👍 True" },{ v:"false", label:"👎 False" }], explain:q[3] || (q[2] ? "That's true!" : "That's false!"),
+        stage:`<div class="tf"><div class="bigemo">${em}</div><div class="stmt">${q[1]}</div></div>` });
+    }
+  } });
+
+
+/* ---- boot ---- */
+if (!P){
+  $("#dialog").innerHTML = `<h2>Who's playing?</h2><p>Pick a player on the home page first.</p><div class="row"><button class="btn go" id="toHub">Go to the home page</button></div>`;
+  $("#overlay").hidden = false; $("#toHub").onclick = () => { location.href = H.homeUrl; };
+} else {
+  document.documentElement.dataset.style = H.style(P);
+  $("#title").textContent = H.titleOf(LESSON, P); document.title = H.titleOf(LESSON, P);
+  const lvl = LESSON.levels.find(l => l.id === LEVEL);
+  $("#who").textContent = `${H.first(P)} · ${lvl ? lvl.name : ""} level`;
+  H.mountWallet($("#wallet"), P);
+  chooser();
+}
+})();
+</script>
+</body>
+</html>

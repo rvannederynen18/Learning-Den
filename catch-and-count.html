@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Catch &amp; Count</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800;900&display=swap">
+<style>
+/* Layout: problem card on top, a pond below (sky band for bugs, water for fish), dock in the corner. Bright daytime (boy) or sunset kitty (girl). */
+:root{
+  --bg:#dff4ff; --paper:#ffffff; --ink:#0d2a3d; --muted:#4a6b7a; --line:#bfe3e6;
+  --accent:#0e9f6e; --accent-2:#1d74e8; --gold:#ffcf3f; --bad:#e5484d;
+  --sky-a:#8fd8ff; --sky-b:#d9f6ff; --water-a:#2bb3c9; --water-b:#0b6b8a; --dock:#9a6a3e;
+  --display:"Lilita One", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Nunito", "Trebuchet MS", system-ui, sans-serif;
+  color-scheme:light;
+  padding-top:env(safe-area-inset-top, 0px);padding-bottom:env(safe-area-inset-bottom, 0px);
+}
+:root[data-style="girl"]{ --bg:#fff0f8; --line:#f6cfe6; --accent:#e0479e; --accent-2:#c026d3; --muted:#7d5a72;
+  --sky-a:#ffb3d1; --sky-b:#ffe7c7; --water-a:#7fd6e0; --water-b:#5a7fd1; }
+html,body{margin:0;height:100%}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-weight:800;font-size:17px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+button{font-family:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:4px solid var(--gold);outline-offset:2px}
+#app{max-width:1000px;margin:0 auto;padding-block:12px 24px;display:flex;flex-direction:column;gap:14px}
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.bar h1{font-family:var(--display);font-weight:400;font-size:clamp(26px,5vw,36px);margin:0;color:var(--accent)}
+.who{color:var(--muted)}
+#wallet{margin-left:auto}
+.btn{background:var(--paper);border:3px solid var(--line);border-bottom-width:6px;border-radius:14px;padding:9px 16px;font-size:16px;font-weight:800}
+.btn:active{border-bottom-width:3px;translate:0 3px}
+.btn.go{background:var(--accent);border-color:color-mix(in srgb,var(--accent) 70%,#000);color:#fff}
+.btn.small{padding:6px 12px;font-size:15px;border-bottom-width:4px}
+.qcard{background:var(--paper);border:3px solid var(--line);border-radius:22px;padding:12px 16px;display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center}
+.problem{font-family:var(--display);font-size:clamp(40px,10vw,64px);line-height:1;font-variant-numeric:tabular-nums}
+.problem .q{color:var(--accent-2)}
+.counters{grid-column:1/-1;font-size:28px;line-height:1.2;letter-spacing:2px;min-height:0;word-break:break-word}
+.counters b{color:var(--muted);margin:0 8px;font-size:24px}
+.qside{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.dots{display:flex;gap:5px}
+.dots i{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dots i.done{background:var(--accent)}
+.dots i.now{background:var(--gold);box-shadow:0 0 0 3px rgba(255,207,63,.4)}
+.hint{grid-column:1/-1;color:var(--muted);font-size:15px}
+
+.pond{position:relative;width:100%;height:clamp(300px,54dvh,520px);border-radius:24px;overflow:hidden;border:4px solid var(--paper);box-shadow:0 10px 30px rgba(0,40,60,.18);
+  background:linear-gradient(var(--sky-a),var(--sky-b) 30%, var(--water-a) 30.1%, var(--water-b) 100%)}
+.pond::before{content:"";position:absolute;left:0;right:0;top:30%;bottom:0;pointer-events:none;
+  background-image:repeating-linear-gradient(170deg, rgba(255,255,255,.14) 0 2px, transparent 2px 38px);animation:waves 6s linear infinite}
+@keyframes waves{to{background-position:0 76px}}
+.sun{position:absolute;right:8%;top:5%;font-size:44px;pointer-events:none}
+.dock{position:absolute;left:0;top:22%;width:30%;max-width:230px;height:7%;background:var(--dock);border-radius:0 8px 8px 0;box-shadow:inset 0 -5px 0 rgba(0,0,0,.2);pointer-events:none}
+.fisher{position:absolute;left:4%;top:7%;font-size:52px;line-height:1;pointer-events:none;display:flex;align-items:flex-end}
+.fisher small{font-size:40px;margin-left:-6px;transform:rotate(-12deg)}
+.plants{position:absolute;bottom:0;left:0;right:0;font-size:34px;display:flex;justify-content:space-around;pointer-events:none;opacity:.9}
+.critter{position:absolute;width:88px;height:88px;margin:-44px 0 0 -44px;border:0;background:transparent;padding:0;touch-action:manipulation;
+  display:flex;flex-direction:column;align-items:center;justify-content:center}
+.critter .em{font-size:52px;line-height:1;display:block;transition:transform .2s}
+.critter .num{margin-top:-6px;background:var(--paper);color:var(--ink);border:3px solid var(--accent-2);border-radius:14px;min-width:46px;padding:1px 8px;font-size:24px;font-weight:900;font-variant-numeric:tabular-nums;box-shadow:0 3px 0 rgba(0,0,0,.2)}
+.critter.wrong{opacity:.4;pointer-events:none}
+.critter.wrong .num{border-color:var(--bad)}
+.critter.caught{transition:left .7s ease-in, top .7s ease-in, transform .7s;transform:scale(.4) rotate(-20deg);z-index:5}
+.critter.shake{animation:shake .4s}
+@keyframes shake{25%{translate:-8px 0}50%{translate:8px 0}75%{translate:-4px 0}}
+.splash{position:absolute;font-size:40px;pointer-events:none;animation:splash .8s ease-out forwards;transform:translate(-50%,-50%);z-index:6}
+@keyframes splash{to{opacity:0;transform:translate(-50%,-140%) scale(1.6)}}
+.points{position:absolute;font-family:var(--display);font-size:30px;color:var(--gold);text-shadow:0 2px 0 #00000055;pointer-events:none;animation:splash 1s ease-out forwards;transform:translate(-50%,-50%);z-index:6}
+
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(10,30,50,.55);display:grid;place-items:center;
+  padding:max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
+.dialog{background:var(--paper);border-radius:24px;border:4px solid var(--accent);padding:22px;width:min(440px,100%);display:flex;flex-direction:column;gap:12px;text-align:center;max-height:100%;overflow:auto}
+.dialog h2{font-family:var(--display);font-weight:400;font-size:32px;margin:0;color:var(--accent)}
+.dialog p{margin:0;color:var(--muted);line-height:1.4}
+.dialog .big{font-size:60px;line-height:1}
+.dialog .row{display:flex;gap:10px;flex-wrap:wrap}
+.dialog .row .btn{flex:1}
+.fact{background:var(--bg);border-radius:14px;padding:10px 12px;color:var(--ink)!important}
+@media (max-width:600px){
+  .critter{width:76px;height:76px;margin:-38px 0 0 -38px}
+  .critter .em{font-size:44px}
+  .critter .num{font-size:21px;min-width:40px}
+  .counters{font-size:22px}
+  .fisher{font-size:40px}.fisher small{font-size:30px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="bar">
+    <button class="btn small" id="backBtn">‹ Lessons</button>
+    <h1 id="title">Catch &amp; Count</h1>
+    <span class="who" id="who"></span>
+    <div id="wallet"></div>
+  </div>
+  <div class="qcard">
+    <div class="problem" id="problem">–</div>
+    <div class="qside"><div class="dots" id="dots"></div><button class="btn small" id="hearBtn">🔊 Hear it</button></div>
+    <div class="counters" id="counters"></div>
+    <div class="hint" id="hint">Tap the critter with the right answer!</div>
+  </div>
+  <div class="pond" id="pond">
+    <span class="sun" id="sun">☀️</span>
+    <div class="dock"></div>
+    <div class="fisher" id="fisher"></div>
+    <div class="plants" id="plants"></div>
+  </div>
+</div>
+<div class="overlay" id="overlay" hidden><div class="dialog" id="dialog"></div></div>
+
+<script src="hub-core.js"></script>
+<script>
+(function(){
+"use strict";
+const H = window.Hub, esc = H.esc;
+const $ = s => document.querySelector(s);
+const rnd = n => Math.floor(Math.random() * n);
+const pick = a => a[rnd(a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const P = H.active();
+const LEVEL = P ? (H.levelFor(P, "catch-count") || "minnow") : "minnow";
+const GIRL = P && H.style(P) === "girl";
+const ROUND = 10;
+const PTS = { minnow:10, bass:12, shark:15 }[LEVEL];
+const SPEED = { minnow:3.2, bass:4.5, shark:6 }[LEVEL];   /* % of pond width per second */
+const FISH = ["🐟","🐠","🐡","🐟","🐠"];
+const BUGS = GIRL ? ["🦋","🐞","🐝"] : ["🦋","🐞","🐝","🪲","🦗"];
+const CHEERS = GIRL ? ["Yum, fish for kitty!","Purr-fect catch!","Go team!","Gimme a YAY!"] : ["Big catch!","Hooked it!","Bug-tastic!","Fin-tastic!","Great move!"];
+
+let R = null, critters = [], raf = 0, last = 0;
+
+function problem(){
+  let a, b, op;
+  const S = R.stage;
+  if (LEVEL === "minnow"){
+    const top = [5,7,10,10,10][S - 1];
+    if (S >= 5 && Math.random() < .4){ a = 2 + rnd(9); b = 1 + rnd(a - 1); op = "−"; }
+    else { a = 1 + rnd(top - 1); b = 1 + rnd(top - a); op = "+"; }
+  } else if (LEVEL === "bass"){
+    const top = S === 1 ? 12 : 20;
+    if (S <= 2 || Math.random() < .5){ a = 1 + rnd(top - 2); b = 1 + rnd(top - a); op = "+"; }
+    else { a = 2 + rnd(19); b = 1 + rnd(a); op = "−"; }
+  } else {
+    if (S === 1){ a = 10 + rnd(80); b = 1 + rnd(9); op = "+"; }
+    else if (S === 2 || Math.random() < .5){ a = 10 + rnd(80); b = 10 + rnd(Math.max(1, 90 - a)); op = "+"; }
+    else { a = 20 + rnd(80); b = 10 + rnd(a - 10); op = "−"; }
+  }
+  const ans = op === "+" ? a + b : a - b;
+  const near = LEVEL === "shark" ? [1,2,10,-1,-2,-10,9,11] : [1,2,3,-1,-2,-3];
+  const opts = new Set([ans]);
+  for (const d of shuffle(near)){ if (opts.size >= 4) break; if (ans + d >= 0) opts.add(ans + d); }
+  while (opts.size < 4) opts.add(ans + opts.size + 3);
+  return { a, b, op, ans, opts:shuffle([...opts]), tries:0 };
+}
+function speakProblem(){ const q = R.q; H.say(`What is ${q.a} ${q.op === "+" ? "plus" : "minus"} ${q.b}?`); }
+
+function renderDots(){
+  $("#dots").innerHTML = Array.from({length:ROUND}, (_, i) => `<i class="${i < R.n ? "done" : i === R.n ? "now" : ""}"></i>`).join("");
+}
+function newRound(){
+  R = { n:0, firstTry:0, pts:0, q:null, stage:H.stage(P, "catch-count") };
+  $("#who").textContent = `${H.first(P)} · ${LEVEL[0].toUpperCase() + LEVEL.slice(1)} · stage ${R.stage} of 5`;
+  H.sessionPts = 0; H.refreshWallet(true);
+  nextProblem();
+}
+function nextProblem(){
+  if (R.n >= ROUND) return endRound();
+  R.q = problem();
+  const q = R.q;
+  $("#problem").innerHTML = `${q.a} ${q.op} ${q.b} = <span class="q">?</span>`;
+  const em = GIRL ? "🐟" : "🐞";
+  $("#counters").innerHTML = LEVEL === "minnow" ? `${em.repeat(q.a)}<b>+</b>${em.repeat(q.b)}` : "";
+  renderDots(); spawnCritters(); speakProblem();
+}
+function spawnCritters(){
+  const pond = $("#pond");
+  critters.forEach(c => c.el.remove()); critters = [];
+  const bugCount = Math.random() < .5 ? 1 : 2;
+  R.q.opts.forEach((v, i) => {
+    const isBug = i < bugCount;
+    const el = document.createElement("button");
+    el.className = "critter"; el.type = "button";
+    el.setAttribute("aria-label", "Answer " + v);
+    el.innerHTML = `<span class="em">${isBug ? pick(BUGS) : pick(FISH)}</span><span class="num">${v}</span>`;
+    pond.append(el);
+    const dir = Math.random() < .5 ? 1 : -1;
+    const c = { el, v, isBug, dir, x: 15 + i * 22 + rnd(8), base: isBug ? 12 + rnd(8) : 42 + (i % 3) * 16 + rnd(6),
+                amp: isBug ? 4 : 2.5, ph: Math.random() * 6, sp: SPEED * (.7 + R.stage * .08) * (.8 + Math.random() * .5), done:false };
+    el.querySelector(".em").style.transform = dir > 0 ? "scaleX(-1)" : "none";
+    el.addEventListener("click", () => tap(c));
+    critters.push(c);
+  });
+  place(0);
+  if (!raf){ last = performance.now(); raf = requestAnimationFrame(loop); }
+}
+function place(dt){
+  const t = performance.now() / 1000;
+  critters.forEach(c => {
+    if (c.done) return;
+    c.x += c.dir * c.sp * dt;
+    if (c.x > 96){ c.x = 96; c.dir = -1; c.el.querySelector(".em").style.transform = "none"; }
+    const minX = c.isBug ? 36 : 6;
+    if (c.x < minX){ c.x = minX; c.dir = 1; c.el.querySelector(".em").style.transform = "scaleX(-1)"; }
+    const y = c.base + Math.sin(t * (c.isBug ? 3 : 1.6) + c.ph) * c.amp;
+    c.el.style.left = c.x + "%"; c.el.style.top = y + "%";
+  });
+}
+function loop(t){
+  const dt = Math.min(.05, (t - last) / 1000); last = t;
+  if ($("#overlay").hidden) place(dt);
+  raf = requestAnimationFrame(loop);
+}
+function fx(cls, text, x, y){
+  const d = document.createElement("div"); d.className = cls; d.textContent = text;
+  d.style.left = x; d.style.top = y; $("#pond").append(d); setTimeout(() => d.remove(), 1000);
+}
+function tap(c){
+  if (c.done || !R.q) return;
+  if (c.v === R.q.ans){
+    critters.forEach(o => o.done = true);
+    const pts = R.q.tries === 0 ? PTS : Math.ceil(PTS / 2);
+    if (R.q.tries === 0) R.firstTry++;
+    R.pts += pts; R.n++;
+    fx("splash", c.isBug ? "✨" : "💦", c.el.style.left, c.el.style.top);
+    fx("points", "+" + pts, c.el.style.left, c.el.style.top);
+    c.el.classList.add("caught"); c.el.style.left = "8%"; c.el.style.top = "14%";
+    H.earn(P, pts, "catch-count", `${LEVEL} level`);
+    const cheer = pick(CHEERS);
+    $("#problem").innerHTML = `${R.q.a} ${R.q.op} ${R.q.b} = <span class="q">${R.q.ans}</span>`;
+    if (R.n % 4 === 0) H.cheer(`Fun fact: ${H.funFact(P)}`, P, 5500); else H.cheer(cheer, P, 1400);
+    H.say(`${cheer} ${R.q.a} ${R.q.op === "+" ? "plus" : "minus"} ${R.q.b} is ${R.q.ans}.`);
+    R.q = null;
+    setTimeout(nextProblem, 1600);
+  } else {
+    R.q.tries++;
+    c.done = true; c.el.classList.add("wrong", "shake");
+    H.say("Try again!");
+    $("#hint").textContent = R.q.op === "+" ? "Not that one. Try counting up!" : "Not that one. Try counting back!";
+    setTimeout(() => $("#hint").textContent = "Tap the critter with the right answer!", 2200);
+  }
+}
+function endRound(){
+  const bonus = R.firstTry >= 8 ? 20 : 0;
+  if (bonus) H.earn(P, bonus, "catch-count", "round bonus");
+  const note = H.stageNote(H.recordRound(P, "catch-count", R.firstTry, ROUND), H.stage(P, "catch-count"));
+  const fact = H.funFact(P);
+  $("#dialog").innerHTML = `<div class="big">${R.firstTry >= 8 ? "🏆" : GIRL ? "🐱" : "🎣"}</div>
+    <h2>${R.firstTry >= 8 ? "Trophy catch!" : "Bucket full!"}</h2>
+    <p>${R.firstTry} of ${ROUND} caught on the first try. You earned ${R.pts + bonus} points${bonus ? ", including a 20 point bonus" : ""}${P.guest ? "." : ` (${H.money(R.pts + bonus)}).`}</p>
+    <p style="color:var(--ink)">${note}</p>
+    <p class="fact">${GIRL ? "🐱" : "🐞"} Fun fact: ${fact}</p>
+    <div class="row"><button class="btn" id="homeB">Back to lessons</button><button class="btn go" id="againB">Fish again</button></div>`;
+  $("#overlay").hidden = false;
+  H.say(`${R.firstTry >= 8 ? "Trophy catch!" : "Bucket full!"} Fun fact: ${fact}`);
+  $("#againB").onclick = () => { $("#overlay").hidden = true; if (P.guest) P.points = 0; newRound(); };
+  $("#homeB").onclick = H.goHome;
+}
+
+$("#backBtn").onclick = H.goHome;
+$("#hearBtn").onclick = () => R && R.q && speakProblem();
+try { speechSynthesis.getVoices(); } catch(e){}
+
+if (!P){
+  $("#dialog").innerHTML = `<h2>Who's playing?</h2><p>Pick a player on the home page first.</p><div class="row"><button class="btn go" id="toHub">Go to the home page</button></div>`;
+  $("#overlay").hidden = false; $("#toHub").onclick = () => { location.href = H.homeUrl; };
+} else {
+  document.documentElement.dataset.style = H.style(P);
+  const lesson = H.LESSONS.find(l => l.id === "catch-count");
+  $("#title").textContent = H.titleOf(lesson, P);
+  document.title = H.titleOf(lesson, P);
+  const lvl = lesson.levels.find(l => l.id === LEVEL);
+  $("#who").textContent = `${H.first(P)} · ${lvl ? lvl.name : ""} level`;
+  $("#fisher").innerHTML = GIRL ? `🐱<small>🎣</small>` : `🎣<small>🪣</small>`;
+  $("#sun").textContent = GIRL ? "🌅" : "☀️";
+  $("#plants").innerHTML = (GIRL ? ["🪸","🌸","🪸","🌸"] : ["🌿","🪨","🌿","🐚","🌿"]).map(x => `<span>${x}</span>`).join("");
+  H.mountWallet($("#wallet"), P);
+  $("#dialog").innerHTML = `<div class="big">${GIRL ? "🐱" : "🎣"}</div>
+    <h2>${GIRL ? "Kitty's going fishing!" : "Let's go fishing!"}</h2>
+    <p>${lvl ? lvl.blurb : ""}. Tap the fish or bug that has the right answer. ${ROUND} catches fill the bucket.</p>
+    <div class="row"><button class="btn" id="homeB">Back</button><button class="btn go" id="startB">Start</button></div>`;
+  $("#overlay").hidden = false;
+  $("#startB").onclick = () => { $("#overlay").hidden = true; newRound(); };
+  $("#homeB").onclick = H.goHome;
+}
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Planet Hop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800;900&display=swap">
+<style>
+/* Layout: a horizontal solar system strip (Sun to Neptune) with a rocket that hops between planets; planet card below; quiz shares the same sky. Deep-space look, nebula pink for girl style. */
+:root{
+  --bg:#070b22; --panel:#111a3d; --panel-2:#1a2655; --line:#2c3b7a; --fg:#eef2ff; --muted:#a3b0dc;
+  --accent:#22d3ee; --accent-2:#a3e635; --gold:#ffd23f; --bad:#ff5a6e; --good:#4ee38f;
+  --neb-a:rgba(34,211,238,.18); --neb-b:rgba(163,230,53,.12);
+  --display:"Lilita One", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Nunito", "Trebuchet MS", system-ui, sans-serif;
+  color-scheme:dark;
+  padding-top:env(safe-area-inset-top, 0px);padding-bottom:env(safe-area-inset-bottom, 0px);
+}
+:root[data-style="girl"]{ --bg:#120821; --panel:#22103a; --panel-2:#2f1650; --line:#5b2d86; --muted:#d9b8ec; --accent:#ff8fc7; --accent-2:#c084fc;
+  --neb-a:rgba(255,143,199,.2); --neb-b:rgba(192,132,252,.16); }
+html,body{margin:0;min-height:100%}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-weight:800;font-size:17px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));
+  background-image:radial-gradient(ellipse at 15% 10%, var(--neb-a), transparent 45%),radial-gradient(ellipse at 90% 80%, var(--neb-b), transparent 45%)}
+#stars{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+button{font-family:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:4px solid var(--gold);outline-offset:2px}
+#app{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding-block:12px 28px;display:flex;flex-direction:column;gap:14px}
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.bar h1{font-family:var(--display);font-weight:400;font-size:clamp(28px,5.5vw,40px);margin:0;color:var(--accent);letter-spacing:.02em}
+.who{color:var(--muted)}
+#wallet{margin-left:auto}
+.btn{background:var(--panel-2);border:3px solid var(--line);border-bottom-width:6px;border-radius:14px;padding:9px 16px;font-size:16px;font-weight:800}
+.btn:active{border-bottom-width:3px;translate:0 3px}
+.btn.go{background:var(--accent);border-color:color-mix(in srgb,var(--accent) 65%,#000);color:#071022}
+.btn.small{padding:6px 12px;font-size:15px;border-bottom-width:4px}
+.tabs{display:flex;gap:6px;background:var(--panel);padding:5px;border-radius:999px;border:2px solid var(--line);align-self:flex-start}
+.tab{border:0;background:transparent;border-radius:999px;padding:8px 18px;font-weight:800;font-size:16px;color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--accent);color:#071022}
+
+.system{position:relative;background:rgba(10,16,45,.6);border:2px solid var(--line);border-radius:22px;overflow-x:auto;overflow-y:hidden}
+.track{position:relative;display:flex;align-items:center;gap:clamp(10px,2.5vw,26px);padding:70px 24px 40px 0;min-width:900px;height:260px}
+.sun{flex:none;width:130px;height:200px;margin-left:-60px;border-radius:0 50% 50% 0/0 50% 50% 0;
+  background:radial-gradient(circle at 0% 50%, #fff7c2 0, #ffd23f 35%, #ff9f1c 70%, rgba(255,120,30,0) 72%);filter:drop-shadow(0 0 30px rgba(255,190,60,.7));border:0;padding:0}
+.planet{flex:none;background:transparent;border:0;padding:0;display:flex;flex-direction:column;align-items:center;gap:8px;position:relative}
+.planet svg{display:block;transition:transform .25s}
+.planet:hover svg{transform:scale(1.08)}
+.planet .nm{font-size:14px;color:var(--muted);font-weight:900;letter-spacing:.03em}
+.planet.visited .nm{color:var(--gold)}
+.planet.visited .nm::before{content:"★ "}
+.planet.sel .nm{color:var(--fg)}
+.orbit-line{position:absolute;left:0;right:0;top:calc(70px + 50% - 55px);height:2px;background:linear-gradient(90deg,rgba(255,210,63,.4),rgba(255,255,255,.08));pointer-events:none}
+.rocket{position:absolute;top:8px;font-size:44px;transition:left 1.1s cubic-bezier(.5,0,.3,1);transform:rotate(45deg);pointer-events:none;z-index:3;filter:drop-shadow(0 0 10px rgba(255,160,60,.8))}
+.rocket.flying{animation:wob .3s ease-in-out 3}
+@keyframes wob{50%{translate:0 -8px}}
+.scale-note{position:absolute;right:12px;bottom:8px;font-size:12px;color:var(--muted);font-weight:700}
+.progress{display:flex;align-items:center;gap:10px;color:var(--muted)}
+.pbar{width:140px;height:12px;border-radius:6px;background:var(--panel-2);overflow:hidden}
+.pbar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--gold));width:0;transition:width .4s}
+
+.card{background:var(--panel);border:2px solid var(--line);border-radius:22px;padding:18px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:start}
+.card .big svg{width:min(34vw,180px);height:auto}
+.card h2{font-family:var(--display);font-weight:400;font-size:clamp(32px,7vw,48px);margin:0;color:var(--accent);line-height:1}
+.order{color:var(--gold);font-size:18px;margin:4px 0 10px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.chip{background:var(--panel-2);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:15px}
+.facts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.facts li{background:var(--panel-2);border-radius:14px;padding:10px 12px 10px 42px;position:relative;line-height:1.4}
+.facts li::before{content:"✦";position:absolute;left:14px;top:9px;color:var(--gold);font-size:20px}
+.card .row{margin-top:12px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.empty{color:var(--muted);text-align:center;padding:10px}
+
+.quiz{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+.qview{background:var(--panel);border:2px solid var(--line);border-radius:22px;padding:18px;display:flex;flex-direction:column;align-items:center;gap:12px;min-height:280px;justify-content:center;text-align:center}
+.qview svg{width:min(50vw,200px);height:auto}
+.question{font-family:var(--display);font-size:clamp(26px,5.5vw,38px);line-height:1.15;margin:0}
+.scoreboard{background:var(--panel-2);border-radius:18px;padding:10px 14px;display:flex;justify-content:space-around;text-align:center}
+.scoreboard span{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+.scoreboard b{font-family:var(--display);font-weight:400;font-size:32px;color:var(--gold);font-variant-numeric:tabular-nums}
+.choices{display:grid;gap:10px}
+.choice{display:flex;align-items:center;gap:12px;background:var(--panel-2);border:3px solid var(--line);border-bottom-width:7px;border-radius:18px;padding:10px 14px;font-size:19px;font-weight:900;text-align:left}
+.choice svg{width:44px;height:44px;flex:none}
+.choice.right{border-color:var(--good);background:#123f2c}
+.choice.wrong{border-color:var(--bad);opacity:.45}
+.cheer{text-align:center;font-family:var(--display);font-size:26px;min-height:1.2em;color:var(--good)}
+.cheer.no{color:var(--bad)}
+.cheer small{display:block;font-family:var(--body);font-size:16px;color:var(--fg);margin-top:6px;font-weight:800}
+.dots{display:flex;gap:5px;justify-content:center}
+.dots i{width:12px;height:12px;border-radius:50%;background:var(--line)}
+.dots i.done{background:var(--accent)}
+.dots i.now{background:var(--gold)}
+
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(3,6,20,.7);display:grid;place-items:center;
+  padding:max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
+.dialog{background:var(--panel);border-radius:24px;border:3px solid var(--accent);padding:22px;width:min(440px,100%);display:flex;flex-direction:column;gap:12px;text-align:center;max-height:100%;overflow:auto}
+.dialog h2{font-family:var(--display);font-weight:400;font-size:32px;margin:0;color:var(--accent)}
+.dialog p{margin:0;color:var(--muted);line-height:1.4}
+.dialog .big{font-size:60px;line-height:1}
+.dialog .row .btn{flex:1}
+.fact{background:var(--panel-2);border-radius:14px;padding:10px 12px;color:var(--fg)!important}
+canvas#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
+@media (max-width:759px){
+  .quiz{grid-template-columns:1fr}
+  .card{grid-template-columns:1fr;justify-items:center;text-align:center}
+  .card .chips,.card .row{justify-content:center}
+  .facts li{text-align:left}
+  .track{height:230px;padding-top:62px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<div id="app">
+  <div class="bar">
+    <button class="btn small" id="backBtn">‹ Lessons</button>
+    <h1>Planet Hop</h1>
+    <span class="who" id="who"></span>
+    <div id="wallet"></div>
+  </div>
+  <div class="row" style="justify-content:space-between">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" data-mode="hop" aria-selected="true" id="hopTab">Hop around</button>
+      <button class="tab" role="tab" data-mode="quiz" aria-selected="false" id="quizTab">Space quiz</button>
+    </div>
+    <div class="progress"><span id="visitText">0 of 8 visited</span><div class="pbar"><i id="visitBar"></i></div></div>
+  </div>
+
+  <section id="hop" style="display:flex;flex-direction:column;gap:14px">
+    <div class="system" id="system">
+      <div class="track" id="track"></div>
+      <span class="scale-note">Sizes and distances are not to scale</span>
+    </div>
+    <div class="card" id="card"><div class="empty" style="grid-column:1/-1">Tap a planet to fly the rocket there!</div></div>
+  </section>
+
+  <section id="quizScreen" hidden>
+    <div class="quiz">
+      <div class="qview" id="qview"></div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="scoreboard"><div><span>Score</span><b id="qScore">0</b></div><div><span>Streak</span><b id="qStreak">0</b></div><div><span>Best</span><b id="qBest">0</b></div></div>
+        <div class="dots" id="qDots"></div>
+        <div class="choices" id="choices"></div>
+        <div class="cheer" id="cheer"></div>
+        <div class="row" style="justify-content:center"><button class="btn small" id="hearQ">🔊 Hear it</button><button class="btn go" id="nextQ" hidden>Next ▶</button></div>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="overlay" id="overlay" hidden><div class="dialog" id="dialog"></div></div>
+
+<script src="hub-core.js"></script>
+<script>
+(function(){
+"use strict";
+const H = window.Hub, esc = H.esc;
+const $ = s => document.querySelector(s);
+const rnd = n => Math.floor(Math.random() * n);
+const pick = a => a[rnd(a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const ORD = ["1st","2nd","3rd","4th","5th","6th","7th","8th"];
+
+/* Planets in order from the Sun. size = drawing size (not to scale). */
+const PL = [
+  { n:"Mercury", size:34, c:["#d9d4cf","#8e8a86"], year:"88 days", moons:"0", kind:"Rocky",
+    easy:["Mercury is the closest planet to the Sun.","It is the smallest planet."],
+    hard:["A year on Mercury is only 88 days.","It has no air to hold heat, so days are super hot and nights are freezing.","It has no moons.","Its surface is covered in craters, like our Moon."],
+    clue:"the smallest planet" },
+  { n:"Venus", size:50, c:["#fff1c4","#d9a957"], year:"225 days", moons:"0", kind:"Rocky",
+    easy:["Venus is the hottest planet, even hotter than Mercury.","It is the brightest planet in our night sky."],
+    hard:["Thick clouds trap heat, making Venus the hottest planet.","Venus spins backward, so the Sun rises in the west there.","A day on Venus is longer than its year.","It has no moons."],
+    clue:"the hottest planet" },
+  { n:"Earth", size:52, c:["#7cc8ff","#1d5fb8"], year:"365 days", moons:"1", kind:"Rocky",
+    easy:["Earth is our home, the only planet known to have life.","Most of Earth is covered by water."],
+    hard:["Earth is the only planet known to have life.","About 70 percent of Earth is covered by water.","Earth has one moon.","It takes 365 days, one year, to go around the Sun."],
+    clue:"the planet we live on" },
+  { n:"Mars", size:42, c:["#ff9b6a","#b8432a"], year:"687 days", moons:"2", kind:"Rocky",
+    easy:["Mars is called the Red Planet because its dust is rusty.","Robot rovers drive around on Mars exploring."],
+    hard:["Mars looks red because its dust has rust in it.","Olympus Mons on Mars is the tallest volcano in the solar system.","Mars has two small moons, Phobos and Deimos.","Robot rovers are exploring Mars right now."],
+    clue:"the Red Planet" },
+  { n:"Jupiter", size:110, c:["#f3d9b1","#b9773e"], year:"12 years", moons:"lots", kind:"Gas giant",
+    easy:["Jupiter is the biggest planet.","It has a giant storm called the Great Red Spot."],
+    hard:["Jupiter is so big that all the other planets could fit inside it.","The Great Red Spot is a storm bigger than Earth.","Jupiter has more than 90 known moons.","It takes about 12 Earth years to go around the Sun."],
+    clue:"the biggest planet" },
+  { n:"Saturn", size:94, c:["#fbe7a6","#c9a24a"], year:"29 years", moons:"lots", kind:"Gas giant", rings:true,
+    easy:["Saturn has beautiful rings made of ice and rock.","It is so light it could float in a giant bathtub."],
+    hard:["Saturn's rings are made of chunks of ice and rock.","Saturn is lighter than water, so it could float in a giant bathtub.","Saturn has the most known moons of any planet.","Its moon Titan has lakes, but they're filled with liquid methane, not water."],
+    clue:"the planet with big, bright rings" },
+  { n:"Uranus", size:70, c:["#c9f7f5","#4fb8c9"], year:"84 years", moons:"lots", kind:"Ice giant", tilt:true,
+    easy:["Uranus spins on its side, like a rolling ball.","It is a pretty blue-green color."],
+    hard:["Uranus is tipped over, so it rolls around the Sun on its side.","A gas called methane makes it blue-green.","It takes 84 Earth years to go around the Sun once.","Uranus has had the coldest temperatures measured on any planet."],
+    clue:"the planet that spins on its side" },
+  { n:"Neptune", size:68, c:["#7aa8ff","#1f3fa8"], year:"165 years", moons:"lots", kind:"Ice giant",
+    easy:["Neptune is the farthest planet from the Sun.","It has the fastest winds in the solar system."],
+    hard:["Neptune is the farthest planet from the Sun.","Its winds are the fastest in the solar system.","It takes 165 Earth years to go around the Sun once.","Scientists found Neptune using math before anyone saw it in a telescope."],
+    clue:"the farthest planet from the Sun" }
+];
+const byName = Object.fromEntries(PL.map((p, i) => [p.n, Object.assign(p, { i })]));
+
+/* Planet drawing (inline SVG with a gradient; Jupiter gets bands, Saturn rings, Earth land) */
+let gid = 0;
+function planetSVG(p, size){
+  const s = size || p.size, id = "g" + (gid++), r = 50;
+  let extra = "";
+  if (p.n === "Jupiter") extra = [30,42,55,66,76].map((y, k) => `<rect x="0" y="${y}" width="100" height="${k % 2 ? 5 : 7}" fill="#9c5a2b" opacity=".45" clip-path="url(#c${id})"/>`).join("") + `<ellipse cx="64" cy="62" rx="10" ry="6" fill="#c0392b" opacity=".85"/>`;
+  if (p.n === "Earth") extra = `<path d="M28 30c8-6 18-2 20 6s-6 12-12 10-14-8-8-16zM56 52c10-4 20 2 18 12s-12 10-18 6-8-14 0-18zM34 68c6 0 10 6 6 10s-12 0-12-4 2-6 6-6z" fill="#3cb371" opacity=".9"/>`;
+  if (p.n === "Mars") extra = `<circle cx="38" cy="40" r="7" fill="#8f2f1c" opacity=".5"/><circle cx="62" cy="62" r="9" fill="#8f2f1c" opacity=".4"/>`;
+  if (p.n === "Mercury") extra = `<circle cx="36" cy="38" r="6" fill="#7a7672" opacity=".5"/><circle cx="60" cy="58" r="8" fill="#7a7672" opacity=".4"/><circle cx="48" cy="72" r="4" fill="#7a7672" opacity=".5"/>`;
+  const body = `<circle cx="50" cy="50" r="${r - 2}" fill="url(#${id})"/>${extra}`;
+  const rings = p.rings ? [`<ellipse cx="50" cy="50" rx="78" ry="18" fill="none" stroke="#e8d18d" stroke-width="7" opacity=".85" transform="rotate(-14 50 50)"/>`,
+                           `<path d="M-26 55 A78 18 0 0 0 126 45" fill="none" stroke="#e8d18d" stroke-width="7" opacity=".95" transform="rotate(-14 50 50)"/>`] : ["",""];
+  const tilt = p.tilt ? `<ellipse cx="50" cy="50" rx="12" ry="62" fill="none" stroke="#bff3f0" stroke-width="2" opacity=".6"/>` : "";
+  const w = p.rings ? s * 1.7 : s;
+  const vb = p.rings ? "-35 -10 170 120" : "0 0 100 100";
+  return `<svg width="${w}" height="${p.rings ? s * 1.2 : s}" viewBox="${vb}" aria-hidden="true">
+    <defs><radialGradient id="${id}" cx="35%" cy="32%" r="75%"><stop offset="0" stop-color="${p.c[0]}"/><stop offset="1" stop-color="${p.c[1]}"/></radialGradient>
+    <clipPath id="c${id}"><circle cx="50" cy="50" r="${r - 2}"/></clipPath></defs>
+    ${rings[0]}${body}${tilt}${rings[1]}</svg>`;
+}
+
+const P = H.active();
+const LEVEL = P ? (H.levelFor(P, "planet-hop") || "cadet") : "cadet";
+const HARD = LEVEL === "commander";
+const GIRL = P && H.style(P) === "girl";
+const PTS = { visit:15, quiz: HARD ? 15 : 10, all:50 };
+const ROUND = 10;
+const CHEERS = GIRL ? ["Purr-fect!","Star kitty!","Go team!","Out of this world!"] : ["Blast off!","Out of this world!","Rocket power!","Stellar!"];
+
+/* stars background */
+(function stars(){
+  const c = $("#stars"), ctx = c.getContext && c.getContext("2d"); if (!ctx) return;
+  const W = c.width = innerWidth, Hh = c.height = innerHeight;
+  const S = Array.from({length:Math.round(W * Hh / 3500)}, () => ({ x:Math.random() * W, y:Math.random() * Hh, r:Math.random() * 1.5 + .3, p:Math.random() * 6 }));
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  (function draw(t){
+    ctx.clearRect(0, 0, W, Hh);
+    S.forEach(s => { ctx.globalAlpha = .4 + .6 * Math.abs(Math.sin((t || 0) / 900 + s.p)); ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 7); ctx.fill(); });
+    if (!still) requestAnimationFrame(draw);
+  })();
+})();
+
+function confetti(){
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  let c = $("#confetti"); if (!c){ c = document.createElement("canvas"); c.id = "confetti"; document.body.append(c); }
+  const ctx = c.getContext("2d"), W = c.width = innerWidth, Hh = c.height = innerHeight;
+  const em = GIRL ? ["⭐","🐱","🎀","📣"] : ["⭐","🚀","🪐","🏒"];
+  const Pc = Array.from({length:70}, () => ({ x:W/2, y:Hh*.4, vx:(Math.random()-.5)*14, vy:-Math.random()*12-4, s:16+Math.random()*16, e:pick(em) }));
+  let t = 0;
+  (function tick(){ ctx.clearRect(0,0,W,Hh); t++;
+    Pc.forEach(p => { p.vy += .35; p.x += p.vx; p.y += p.vy; ctx.font = `${p.s}px sans-serif`; ctx.fillText(p.e, p.x, p.y); });
+    if (t < 100) requestAnimationFrame(tick); else ctx.clearRect(0,0,W,Hh); })();
+}
+
+/* HOP */
+const visited = () => new Set(P ? P.ph.visited : []);
+function renderTrack(sel){
+  const v = visited();
+  $("#track").innerHTML = `<div class="orbit-line"></div><button class="sun" id="sunBtn" aria-label="The Sun"></button>` +
+    PL.map(p => `<button class="planet ${v.has(p.n) ? "visited" : ""} ${sel === p.n ? "sel" : ""}" data-p="${p.n}" aria-label="${p.n}">${planetSVG(p)}<span class="nm">${p.n}</span></button>`).join("") +
+    `<span class="rocket" id="rocket">🚀</span>`;
+  $("#track").querySelectorAll(".planet").forEach(b => b.onclick = () => fly(b.dataset.p));
+  $("#sunBtn").onclick = sunInfo;
+  $("#visitText").textContent = `${v.size} of 8 visited`;
+  $("#visitBar").style.width = (v.size / 8 * 100) + "%";
+  placeRocket(sel, true);
+}
+function placeRocket(name, instant){
+  const r = $("#rocket"); if (!r) return;
+  const target = name ? $(`.planet[data-p="${name}"]`) : $("#sunBtn");
+  const x = target.offsetLeft + target.offsetWidth / 2 - 22;
+  if (instant){ r.style.transition = "none"; r.style.left = x + "px"; void r.offsetWidth; r.style.transition = ""; }
+  else { r.classList.remove("flying"); void r.offsetWidth; r.classList.add("flying"); r.style.left = x + "px"; }
+}
+let current = null;
+function fly(name){
+  const p = byName[name];
+  placeRocket(name);
+  const t = $(`.planet[data-p="${name}"]`);
+  const sys = $("#system"); sys.scrollTo?.({ left: t.offsetLeft - sys.clientWidth / 2 + t.offsetWidth / 2, behavior:"smooth" });
+  current = name;
+  setTimeout(() => showPlanet(p), 900);
+}
+function showPlanet(p){
+  const isNew = P && !P.ph.visited.includes(p.n);
+  if (isNew){ P.ph.visited.push(p.n); if (!P.guest) H.save(); H.earn(P, PTS.visit, "planet-hop", `visited ${P.ph.visited.length} planets`); }
+  const facts = HARD ? p.hard : p.easy;
+  $("#card").innerHTML = `<div class="big">${planetSVG(p, 150)}</div>
+    <div><h2>${p.n}</h2>
+      <div class="order">${ORD[p.i]} planet from the Sun${isNew ? ` · +${PTS.visit} pts` : ""}</div>
+      ${HARD ? `<div class="chips"><span class="chip">${p.kind}</span><span class="chip">Year: ${p.year}</span><span class="chip">Moons: ${p.moons === "lots" ? "lots!" : p.moons}</span></div>` : ""}
+      <ul class="facts">${facts.map(f => `<li>${f}</li>`).join("")}</ul>
+      <div class="row"><button class="btn" id="readP">🔊 Read to me</button>${p.i < 7 ? `<button class="btn go" id="nextP">Fly to ${PL[p.i + 1].n} ▶</button>` : ""}</div>
+    </div>`;
+  renderTrack(p.n);
+  const speech = `${p.n}! The ${ORD[p.i]} planet from the Sun. ${facts.join(" ")}`;
+  H.say(`${p.n}! The ${ORD[p.i]} planet from the Sun.`);
+  $("#readP").onclick = () => H.say(speech);
+  const nx = $("#nextP"); if (nx) nx.onclick = () => fly(PL[p.i + 1].n);
+  if (isNew){
+    confetti();
+    if (P.ph.visited.length === 8){
+      H.earn(P, PTS.all, "planet-hop", "visited every planet");
+      H.cheer(`You visited all 8 planets! +${PTS.all} bonus points!`, P, 5000);
+    } else if (P.ph.visited.length % 3 === 0) H.cheer(`Fun fact: ${H.funFact(P)}`, P, 5500);
+    else H.cheer(pick(CHEERS), P, 1400);
+  }
+}
+function sunInfo(){
+  placeRocket(null);
+  const facts = HARD ? ["The Sun is a star, the closest one to Earth.","About a million Earths could fit inside the Sun.","Sunlight takes about 8 minutes to reach Earth.","The Sun holds almost all the stuff in our solar system."]
+                     : ["The Sun is a star!","It gives us light and keeps us warm."];
+  $("#card").innerHTML = `<div class="big" style="font-size:120px;line-height:1">☀️</div><div><h2>The Sun</h2><div class="order">The center of our solar system</div>
+    <ul class="facts">${facts.map(f => `<li>${f}</li>`).join("")}</ul>
+    <div class="row"><button class="btn" id="readP">🔊 Read to me</button><button class="btn go" id="nextP">Fly to Mercury ▶</button></div></div>`;
+  H.say("The Sun! " + facts[0]);
+  $("#readP").onclick = () => H.say("The Sun. " + facts.join(" "));
+  $("#nextP").onclick = () => fly("Mercury");
+}
+
+/* QUIZ */
+const Q = { n:0, score:0, streak:0, firstTry:0, cur:null, done:false };
+const qBest = () => (P && P.ph.best) || 0;
+function makeQuestion(){
+  const p = pick(PL);
+  const S = H.stage(P, "planet-hop");
+  const types = HARD ? ["which","clue","order","after","moons","year"].slice(0, 2 + S) : ["which","clue","after","order"].slice(0, Math.min(4, 1 + S));
+  let type = pick(types);
+  if (type === "after" && p.i === 7) type = "which";
+  if (type === "moons" && p.moons === "lots") type = "clue";
+  const others = n => shuffle(PL.filter(x => x.n !== n)).slice(0, 2);
+  let text, show = "", answer, opts;
+  if (type === "which"){ text = "Which planet is this?"; show = planetSVG(p, 180); answer = p.n; opts = shuffle([p, ...others(p.n)]).map(x => x.n); }
+  else if (type === "order"){ text = `Which planet is ${ORD[p.i]} from the Sun?`; answer = p.n; opts = shuffle([p, ...others(p.n)]).map(x => x.n); }
+  else if (type === "clue"){ text = `Which planet is ${p.clue}?`; answer = p.n; opts = shuffle([p, ...others(p.n)]).map(x => x.n); }
+  else if (type === "after"){ text = `Which planet comes right after ${p.n}?`; const a = PL[p.i + 1]; answer = a.n; opts = shuffle([a, ...others(a.n)]).map(x => x.n); show = planetSVG(p, 120); }
+  else if (type === "year"){ text = `How long is one year on ${p.n}?`; answer = p.year; opts = shuffle([p.year, ...shuffle(PL.filter(x => x.year !== p.year)).slice(0, 2).map(x => x.year)]); show = planetSVG(p, 140); }
+  else { text = `How many moons does ${p.n} have?`; answer = p.moons; opts = shuffle(["0","1","2","4"].filter(x => x !== p.moons).slice(0, 2).concat(p.moons)); show = planetSVG(p, 140); }
+  return { p, type, text, show, answer, opts, tries:0 };
+}
+function renderQDots(){ $("#qDots").innerHTML = Array.from({length:ROUND}, (_, i) => `<i class="${i < Q.n ? "done" : i === Q.n ? "now" : ""}"></i>`).join(""); }
+function nextQuestion(){
+  if (Q.n >= ROUND) return endQuiz();
+  Q.cur = makeQuestion(); Q.done = false;
+  const q = Q.cur;
+  $("#qview").innerHTML = `${q.show}<p class="question">${q.text}</p>`;
+  $("#choices").innerHTML = q.opts.map(o => {
+    const pl = byName[o];
+    return `<button class="choice" data-v="${esc(o)}">${pl ? planetSVG(Object.assign({}, pl, { rings:false }), 44) : "<span style='font-size:30px'>🪐</span>"}${esc(o)}</button>`;
+  }).join("");
+  $("#choices").querySelectorAll(".choice").forEach(b => b.onclick = () => answer(b));
+  $("#cheer").textContent = ""; $("#cheer").className = "cheer"; $("#nextQ").hidden = true;
+  renderQDots(); H.say(q.text);
+}
+function answer(b){
+  if (Q.done || b.classList.contains("wrong")) return;
+  const q = Q.cur;
+  if (b.dataset.v === q.answer){
+    Q.done = true; Q.n++; Q.score++; Q.streak++;
+    const pts = q.tries === 0 ? PTS.quiz : Math.ceil(PTS.quiz / 2);
+    if (q.tries === 0) Q.firstTry++;
+    b.classList.add("right");
+    H.earn(P, pts, "planet-hop", `quiz score ${Q.score}`);
+    if (P && Q.score > P.ph.best){ P.ph.best = Q.score; if (!P.guest) H.save(); }
+    const cheer = pick(CHEERS);
+    const fact = pick(HARD ? q.p.hard : q.p.easy);
+    $("#cheer").innerHTML = `${cheer} +${pts}<small>${fact}</small>`;
+    $("#nextQ").hidden = false; confetti();
+    if (Q.n % 4 === 0) H.cheer(`Fun fact: ${H.funFact(P)}`, P, 5500); else H.cheer(cheer, P, 1400);
+    H.say(`${cheer} ${fact}`);
+  } else {
+    q.tries++; Q.streak = 0; b.classList.add("wrong");
+    $("#cheer").textContent = "Try again!"; $("#cheer").className = "cheer no";
+    H.say("Try again!");
+  }
+  $("#qScore").textContent = Q.score; $("#qStreak").textContent = Q.streak; $("#qBest").textContent = qBest();
+  renderQDots();
+}
+function endQuiz(){
+  const bonus = Q.firstTry >= 8 ? 30 : 0;
+  if (bonus) H.earn(P, bonus, "planet-hop", "quiz bonus");
+  const note = H.stageNote(H.recordRound(P, "planet-hop", Q.firstTry, ROUND), H.stage(P, "planet-hop"));
+  const fact = H.funFact(P);
+  $("#dialog").innerHTML = `<div class="big">${Q.firstTry >= 8 ? "🏆" : "🚀"}</div><h2>${Q.firstTry >= 8 ? "Space champion!" : "Mission complete!"}</h2>
+    <p>${Q.firstTry} of ${ROUND} right on the first try.${bonus ? " +30 bonus points!" : ""}</p>
+    <p style="color:var(--fg)">${note}</p>
+    <p class="fact">${GIRL ? "🐱" : "🚀"} Fun fact: ${fact}</p>
+    <div class="row"><button class="btn" id="homeB">Back to lessons</button><button class="btn go" id="againB">New mission</button></div>`;
+  $("#overlay").hidden = false;
+  H.say(`${Q.firstTry >= 8 ? "Space champion!" : "Mission complete!"} Fun fact: ${fact}`);
+  $("#againB").onclick = () => { $("#overlay").hidden = true; Object.assign(Q, { n:0, score:0, streak:0, firstTry:0 }); $("#qScore").textContent = 0; $("#qStreak").textContent = 0; nextQuestion(); };
+  $("#homeB").onclick = H.goHome;
+}
+$("#nextQ").onclick = nextQuestion;
+$("#hearQ").onclick = () => Q.cur && H.say(Q.cur.text);
+
+/* tabs + boot */
+document.querySelectorAll(".tab").forEach(t => t.onclick = () => {
+  const m = t.dataset.mode;
+  document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x === t));
+  $("#hop").hidden = m !== "hop"; $("#hop").style.display = m === "hop" ? "flex" : "none";
+  $("#quizScreen").hidden = m !== "quiz";
+  H.hush();
+  if (m === "quiz" && !Q.cur) nextQuestion();
+  if (m === "hop") renderTrack(current);
+});
+$("#backBtn").onclick = H.goHome;
+try { speechSynthesis.getVoices(); } catch(e){}
+addEventListener("resize", () => placeRocket(current, true));
+
+if (!P){
+  $("#dialog").innerHTML = `<h2>Who's playing?</h2><p>Pick a player on the home page first.</p><div class="row"><button class="btn go" id="toHub">Go to the home page</button></div>`;
+  $("#overlay").hidden = false; $("#toHub").onclick = () => { location.href = H.homeUrl; };
+} else {
+  document.documentElement.dataset.style = H.style(P);
+  const lesson = H.LESSONS.find(l => l.id === "planet-hop");
+  const lvl = lesson.levels.find(l => l.id === LEVEL);
+  $("#who").textContent = `${H.first(P)} · ${lvl ? lvl.name : ""} level`;
+  $("#qBest").textContent = qBest();
+  H.mountWallet($("#wallet"), P);
+  renderTrack(null);
+  $("#dialog").innerHTML = `<div class="big">🚀</div><h2>Ready for launch, ${esc(H.first(P))}?</h2>
+    <p>Tap a planet to fly your rocket there and learn about it. Each new planet earns ${PTS.visit} points, and visiting all 8 earns a ${PTS.all} point bonus. Then try the Space quiz!</p>
+    <div class="row"><button class="btn" id="homeB">Back</button><button class="btn go" id="startB">Blast off!</button></div>`;
+  $("#overlay").hidden = false;
+  $("#startB").onclick = () => { $("#overlay").hidden = true; H.say("Three, two, one, blast off! Tap a planet to fly there."); };
+  $("#homeB").onclick = H.goHome;
+}
+})();
+</script>
+</body>
+</html>

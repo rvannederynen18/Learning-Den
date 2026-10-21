@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Spelling Bee</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800;900&display=swap">
+<style>
+/* Layout: picture or sentence clue, a row of letter slots, then a tray of letter tiles. Cat-eared tiles (girl) or honeycomb tiles (boy). */
+:root{
+  --bg:#e3f6f1; --paper:#ffffff; --ink:#0d2a3d; --muted:#4a6b7a; --line:#bfe3e6;
+  --accent:#0e9f6e; --accent-2:#1d74e8; --tile:#ffd23f; --tile-ink:#3a2a00; --tile-edge:#d9a400; --good:#16a34a; --bad:#e5484d;
+  --display:"Lilita One", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Nunito", "Trebuchet MS", system-ui, sans-serif;
+  color-scheme:light;
+  padding-top:env(safe-area-inset-top, 0px);padding-bottom:env(safe-area-inset-bottom, 0px);
+}
+:root[data-style="girl"]{ --bg:#fff0f8; --line:#f6cfe6; --accent:#e0479e; --accent-2:#c026d3; --muted:#7d5a72;
+  --tile:#ffb3d9; --tile-ink:#4a0d2e; --tile-edge:#e67ab3; }
+html,body{margin:0;height:100%}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-weight:800;font-size:17px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+:root[data-style="boy"] body{background-image:radial-gradient(circle at 10% 0%, #c8f1ff 0, transparent 40%),radial-gradient(circle at 100% 100%, #d9fbe8 0, transparent 45%)}
+:root[data-style="girl"] body{background-image:radial-gradient(circle at 50% 60%, rgba(224,71,158,.07) 0 9px, transparent 10px),radial-gradient(circle at 30% 35%, rgba(224,71,158,.07) 0 4px, transparent 5px),radial-gradient(circle at 50% 28%, rgba(224,71,158,.07) 0 4px, transparent 5px),radial-gradient(circle at 70% 35%, rgba(224,71,158,.07) 0 4px, transparent 5px);background-size:90px 90px}
+button{font-family:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:4px solid var(--accent-2);outline-offset:2px}
+#app{max-width:860px;margin:0 auto;padding-block:12px 24px;display:flex;flex-direction:column;gap:16px}
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.bar h1{font-family:var(--display);font-weight:400;font-size:clamp(26px,5vw,36px);margin:0;color:var(--accent)}
+.who{color:var(--muted)}
+#wallet{margin-left:auto}
+.btn{background:var(--paper);border:3px solid var(--line);border-bottom-width:6px;border-radius:14px;padding:9px 16px;font-size:16px;font-weight:800}
+.btn:active{border-bottom-width:3px;translate:0 3px}
+.btn.go{background:var(--accent);border-color:color-mix(in srgb,var(--accent) 70%,#000);color:#fff}
+.btn.small{padding:6px 12px;font-size:15px;border-bottom-width:4px}
+.card{background:var(--paper);border:3px solid var(--line);border-radius:24px;padding:18px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+.top{display:flex;justify-content:space-between;align-items:center;width:100%;gap:10px;flex-wrap:wrap}
+.dots{display:flex;gap:5px}
+.dots i{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dots i.done{background:var(--accent)}
+.dots i.now{background:var(--tile);box-shadow:0 0 0 3px color-mix(in srgb,var(--tile) 40%,transparent)}
+.pic{font-size:96px;line-height:1}
+.sentence{font-size:clamp(20px,4.5vw,26px);line-height:1.4;max-width:34ch}
+.sentence u{text-decoration:none;border-bottom:4px solid var(--accent-2);display:inline-block;min-width:4ch}
+.slots{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.slot{width:56px;height:64px;border-radius:12px;border:3px dashed var(--line);background:var(--bg);font-size:34px;font-weight:900;display:grid;place-items:center;text-transform:lowercase;padding:0}
+.slot.filled{border-style:solid;border-color:var(--accent-2);background:var(--paper)}
+.slot.right{border-color:var(--good);background:#e3f7ec;color:var(--good)}
+.slot.wrong{border-color:var(--bad);background:#fde8e8;animation:shake .4s}
+@keyframes shake{25%{translate:-6px 0}50%{translate:6px 0}75%{translate:-3px 0}}
+.tray{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;max-width:620px}
+.tile{position:relative;width:62px;height:66px;border:0;background:var(--tile);color:var(--tile-ink);font-size:32px;font-weight:900;text-transform:lowercase;
+  border-radius:14px;box-shadow:inset 0 -6px 0 var(--tile-edge);touch-action:manipulation;padding:0}
+.tile:active{translate:0 3px}
+.tile.used{visibility:hidden}
+:root[data-style="boy"] .tile{clip-path:polygon(25% 3%,75% 3%,100% 50%,75% 97%,25% 97%,0 50%);border-radius:0;width:70px}
+:root[data-style="girl"] .tile{margin-top:10px}
+:root[data-style="girl"] .tile::before,:root[data-style="girl"] .tile::after{content:"";position:absolute;top:-12px;width:20px;height:18px;background:var(--tile);clip-path:polygon(50% 0,100% 100%,0 100%)}
+:root[data-style="girl"] .tile::before{left:6px}
+:root[data-style="girl"] .tile::after{right:6px}
+.msg{min-height:1.4em;font-family:var(--display);font-size:28px;color:var(--accent)}
+.msg.no{color:var(--bad)}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(10,30,50,.55);display:grid;place-items:center;
+  padding:max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
+.dialog{background:var(--paper);border-radius:24px;border:4px solid var(--accent);padding:22px;width:min(440px,100%);display:flex;flex-direction:column;gap:12px;text-align:center;max-height:100%;overflow:auto}
+.dialog h2{font-family:var(--display);font-weight:400;font-size:32px;margin:0;color:var(--accent)}
+.dialog p{margin:0;color:var(--muted);line-height:1.4}
+.dialog .big{font-size:60px;line-height:1}
+.dialog .row .btn{flex:1}
+.fact{background:var(--bg);border-radius:14px;padding:10px 12px;color:var(--ink)!important}
+@media (max-width:600px){
+  .slot{width:42px;height:52px;font-size:28px}
+  .tile{width:52px;height:56px;font-size:28px}
+  :root[data-style="boy"] .tile{width:58px}
+  .pic{font-size:80px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="bar">
+    <button class="btn small" id="backBtn">‹ Lessons</button>
+    <h1 id="title">Spelling Bee</h1>
+    <span class="who" id="who"></span>
+    <div id="wallet"></div>
+  </div>
+  <div class="card">
+    <div class="top"><div class="dots" id="dots"></div><div class="row"><button class="btn small" id="hearBtn">🔊 Hear the word</button><button class="btn small" id="hintBtn">💡 Hint</button></div></div>
+    <div class="pic" id="pic"></div>
+    <div class="sentence" id="sentence"></div>
+    <div class="slots" id="slots"></div>
+    <div class="msg" id="msg"></div>
+    <div class="tray" id="tray"></div>
+    <div class="row"><button class="btn small" id="clearBtn">Clear</button></div>
+  </div>
+</div>
+<div class="overlay" id="overlay" hidden><div class="dialog" id="dialog"></div></div>
+
+<script src="hub-core.js"></script>
+<script>
+(function(){
+"use strict";
+const H = window.Hub, esc = H.esc;
+const $ = s => document.querySelector(s);
+const rnd = n => Math.floor(Math.random() * n);
+const pick = a => a[rnd(a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+/* Word lists by level. Starter words have a picture; the others have a sentence. */
+const WORDS = {
+  starter:[["cat","🐱"],["dog","🐶"],["sun","☀️"],["hat","🎩"],["bug","🐛"],["pig","🐷"],["cup","☕"],["bed","🛏️"],["fox","🦊"],["bus","🚌"],
+    ["fish","🐟"],["frog","🐸"],["duck","🦆"],["cake","🎂"],["star","⭐"],["tree","🌳"],["ball","⚽"],["boat","⛵"],["moon","🌙"],["bee","🐝"],
+    ["ant","🐜"],["egg","🥚"],["car","🚗"],["hen","🐔"],["web","🕸️"],["owl","🦉"],["cow","🐮"],["bat","🦇"],["crab","🦀"],["worm","🪱"],
+    ["kite","🪁"],["milk","🥛"],["book","📖"],["ring","💍"],["sock","🧦"],["hand","✋"]],
+  super:[["because","I smiled because I was happy."],["friend","My friend sat next to me at lunch."],["people","Lots of people came to the party."],
+    ["would","Would you like a cookie?"],["could","I could see the moon last night."],["again","Let's play that game again."],["school","We ride the bus to school."],
+    ["little","The little kitten took a nap."],["house","Our house has a red door."],["water","Fish live in the water."],["before","Wash your hands before you eat."],
+    ["every","I brush my teeth every day."],["about","This book is about a dragon."],["there","Put the box over there."],["their","The kids put on their coats."],
+    ["where","Where did you put my shoes?"],["answer","Raise your hand to answer."],["animal","My favorite animal is a cat."],["family","My family went to the beach."],
+    ["bright","The sun is very bright today."],["around","The dog ran around the yard."],["almost","It is almost time for bed."],["always","I always say thank you."],
+    ["thought","I thought it would rain today."],["until","Wait until the light turns green."],["which","Which color do you like best?"],["pretty","She picked a pretty flower."],
+    ["laugh","That joke made me laugh."],["right","Turn right at the corner."],["caught","He caught a big fish!"]],
+  champion:[["beautiful","The sunset was beautiful."],["different","Every snowflake is different."],["together","We built the fort together."],
+    ["important","It is important to tell the truth."],["through","The train went through the tunnel."],["special","Today is a special day."],
+    ["favorite","Pizza is my favorite food."],["enough","Do we have enough chairs?"],["island","The boat sailed to the island."],["neighbor","Our neighbor has a big dog."],
+    ["probably","It will probably snow tomorrow."],["surprise","We planned a surprise party."],["science","We did a fun science project."],
+    ["library","I borrowed a book from the library."],["believe","I believe you can do it."],["caterpillar","The caterpillar turned into a butterfly."],
+    ["mysterious","The cat gave a mysterious look."],["temperature","The temperature dropped tonight."],["whistle","The coach blew the whistle."],["delicious","The pie was delicious."]]
+};
+const P = H.active();
+const LEVEL = P ? (H.levelFor(P, "spelling") || "starter") : "starter";
+const GIRL = P && H.style(P) === "girl";
+const ROUND = 10;
+const PTS = { starter:10, super:15, champion:20 }[LEVEL];
+const EXTRA = { starter:0, super:2, champion:3 }[LEVEL];
+const CHEERS = GIRL ? ["Purr-fect!","Go team!","You spelled it!","Gimme a YAY!"] : ["Bee-autiful!","Bug-tastic!","You spelled it!","Checkmate!"];
+
+let R = null;
+function renderDots(){ $("#dots").innerHTML = Array.from({length:ROUND}, (_, i) => `<i class="${i < R.n ? "done" : i === R.n ? "now" : ""}"></i>`).join(""); }
+function sayWord(){
+  const w = R.w;
+  if (LEVEL === "starter") H.say(`Spell ${w[0]}.`, { rate:.8 });
+  else H.say(`${w[0]}. ${w[1]} Spell ${w[0]}.`, { rate:.85 });
+}
+function newRound(){
+  const S = H.stage(P, "spelling");
+  /* stage picks shorter words first, longer as they improve */
+  const sorted = WORDS[LEVEL].slice().sort((a, b) => a[0].length - b[0].length);
+  const take = Math.max(ROUND + 2, Math.round(sorted.length * (0.4 + 0.15 * S)));
+  R = { n:0, firstTry:0, pts:0, stage:S, deck:shuffle(sorted.slice(0, Math.min(sorted.length, take))).slice(0, ROUND) };
+  $("#who").textContent = `${H.first(P)} · ${LEVEL[0].toUpperCase() + LEVEL.slice(1)} · stage ${S} of 5`;
+  H.sessionPts = 0; H.refreshWallet(true);
+  nextWord();
+}
+function nextWord(){
+  if (R.n >= ROUND) return endRound();
+  R.w = R.deck[R.n]; R.tries = 0; R.hints = 0;
+  const word = R.w[0];
+  const letters = word.split("");
+  const alphabet = "abcdefghijklmnoprstuwy";
+  const extras = Array.from({length:Math.max(0, EXTRA - (R.stage <= 2 ? 1 : 0))}, () => alphabet[rnd(alphabet.length)]);
+  R.tiles = shuffle(letters.concat(extras)).map((ch, i) => ({ ch, id:i, used:false }));
+  R.slots = letters.map(() => null);
+  R.locked = letters.map(() => false);
+  $("#pic").textContent = LEVEL === "starter" ? R.w[1] : (GIRL ? "🐱" : "🐝");
+  $("#sentence").innerHTML = LEVEL === "starter" ? "" : esc(R.w[1]).replace(new RegExp("\\b" + word + "\\b", "i"), "<u>&nbsp;</u>");
+  $("#msg").textContent = ""; $("#msg").className = "msg";
+  renderDots(); render(); sayWord();
+}
+function render(){
+  const word = R.w[0];
+  $("#slots").innerHTML = R.slots.map((t, i) => {
+    const ch = t == null ? "" : R.tiles[t].ch;
+    return `<button class="slot ${t != null ? "filled" : ""} ${R.locked[i] ? "right" : ""}" data-i="${i}" aria-label="Letter ${i + 1}">${ch}</button>`;
+  }).join("");
+  $("#tray").innerHTML = R.tiles.map(t => `<button class="tile ${t.used ? "used" : ""}" data-t="${t.id}" aria-label="${t.ch}">${t.ch}</button>`).join("");
+  $("#slots").querySelectorAll(".slot").forEach(b => b.onclick = () => unplace(Number(b.dataset.i)));
+  $("#tray").querySelectorAll(".tile").forEach(b => b.onclick = () => place(Number(b.dataset.t)));
+}
+function place(id){
+  const t = R.tiles[id]; if (!t || t.used) return;
+  const i = R.slots.findIndex(s => s == null); if (i < 0) return;
+  R.slots[i] = id; t.used = true; render();
+  if (R.slots.every(s => s != null)) setTimeout(check, 250);
+}
+function unplace(i){
+  if (R.locked[i] || R.slots[i] == null) return;
+  R.tiles[R.slots[i]].used = false; R.slots[i] = null; render();
+}
+function check(){
+  const word = R.w[0];
+  const guess = R.slots.map(s => R.tiles[s].ch).join("");
+  if (guess === word){
+    const pts = R.tries === 0 && R.hints === 0 ? PTS : Math.ceil(PTS / 2);
+    if (R.tries === 0 && R.hints === 0) R.firstTry++;
+    R.pts += pts; R.n++;
+    R.locked = R.locked.map(() => true); render();
+    const cheer = pick(CHEERS);
+    $("#msg").textContent = `${cheer} +${pts}`; $("#msg").className = "msg";
+    H.earn(P, pts, "spelling", `${LEVEL} words`);
+    if (R.n % 4 === 0) H.cheer(`Fun fact: ${H.funFact(P)}`, P, 5500); else H.cheer(cheer, P, 1400);
+    H.say(`${cheer} ${word.split("").join(", ")}. ${word}!`, { rate:.9 });
+    setTimeout(nextWord, 2600);
+    return;
+  }
+  R.tries++;
+  /* lock the letters that are already in the right spot, send the rest back */
+  const els = $("#slots").querySelectorAll(".slot");
+  R.slots.forEach((s, i) => {
+    if (R.tiles[s].ch === word[i]) R.locked[i] = true;
+    else { els[i].classList.add("wrong"); }
+  });
+  $("#msg").textContent = R.tries >= 3 ? "Here's how it's spelled" : "Almost! Try again"; $("#msg").className = "msg no";
+  H.say(R.tries >= 3 ? `It's spelled ${word.split("").join(", ")}.` : "Almost! The green letters are right. Try again.");
+  setTimeout(() => {
+    if (R.tries >= 3){ reveal(); return; }
+    R.slots = R.slots.map((s, i) => { if (R.locked[i]) return s; R.tiles[s].used = false; return null; });
+    render();
+  }, 900);
+}
+function reveal(){
+  const word = R.w[0];
+  /* fill every slot correctly for them to see, then move on with no points */
+  R.tiles.forEach(t => t.used = false);
+  R.slots = word.split("").map(ch => { const t = R.tiles.find(x => !x.used && x.ch === ch); t.used = true; return t.id; });
+  R.locked = R.locked.map(() => true); render();
+  R.n++;
+  setTimeout(nextWord, 3200);
+}
+function hint(){
+  if (!R || !R.w) return;
+  const word = R.w[0];
+  const i = R.locked.findIndex((l, k) => !l && !(R.slots[k] != null && R.tiles[R.slots[k]].ch === word[k]));
+  if (i < 0) return;
+  R.hints++;
+  if (R.slots[i] != null){ R.tiles[R.slots[i]].used = false; R.slots[i] = null; }
+  const t = R.tiles.find(x => !x.used && x.ch === word[i]) || (() => { const s = R.slots.findIndex((sid, k) => sid != null && !R.locked[k] && R.tiles[sid].ch === word[i]); const id = R.slots[s]; R.slots[s] = null; return R.tiles[id]; })();
+  t.used = true; R.slots[i] = t.id; R.locked[i] = true;
+  render(); H.say(`The next letter is ${word[i]}.`);
+  if (R.slots.every(s => s != null)) setTimeout(check, 300);
+}
+function endRound(){
+  const bonus = R.firstTry >= 8 ? 25 : 0;
+  if (bonus) H.earn(P, bonus, "spelling", "round bonus");
+  const note = H.stageNote(H.recordRound(P, "spelling", R.firstTry, ROUND), H.stage(P, "spelling"));
+  const fact = H.funFact(P);
+  $("#dialog").innerHTML = `<div class="big">${R.firstTry >= 8 ? "🏆" : GIRL ? "🐱" : "🐝"}</div>
+    <h2>${R.firstTry >= 8 ? "Spelling champ!" : "Round done!"}</h2>
+    <p>${R.firstTry} of ${ROUND} words spelled on the first try. You earned ${R.pts + bonus} points${bonus ? ", including a 25 point bonus" : ""}${P.guest ? "." : ` (${H.money(R.pts + bonus)}).`}</p>
+    <p style="color:var(--ink)">${note}</p>
+    <p class="fact">${GIRL ? "🐱" : "🐞"} Fun fact: ${fact}</p>
+    <div class="row"><button class="btn" id="homeB">Back to lessons</button><button class="btn go" id="againB">More words</button></div>`;
+  $("#overlay").hidden = false;
+  H.say(`${R.firstTry >= 8 ? "Spelling champ!" : "Round done!"} Fun fact: ${fact}`);
+  $("#againB").onclick = () => { $("#overlay").hidden = true; if (P.guest) P.points = 0; newRound(); };
+  $("#homeB").onclick = H.goHome;
+}
+document.addEventListener("keydown", e => {
+  if (!R || !$("#overlay").hidden) return;
+  const k = e.key.toLowerCase();
+  if (/^[a-z]$/.test(k)){ const t = R.tiles.find(x => !x.used && x.ch === k); if (t) place(t.id); }
+  else if (e.key === "Backspace"){ for (let i = R.slots.length - 1; i >= 0; i--) if (R.slots[i] != null && !R.locked[i]){ unplace(i); break; } e.preventDefault(); }
+});
+$("#hearBtn").onclick = () => R && R.w && sayWord();
+$("#hintBtn").onclick = hint;
+$("#clearBtn").onclick = () => { if (!R) return; R.slots = R.slots.map((s, i) => { if (R.locked[i] || s == null) return s; R.tiles[s].used = false; return null; }); render(); };
+$("#backBtn").onclick = H.goHome;
+try { speechSynthesis.getVoices(); } catch(e){}
+
+if (!P){
+  $("#dialog").innerHTML = `<h2>Who's playing?</h2><p>Pick a player on the home page first.</p><div class="row"><button class="btn go" id="toHub">Go to the home page</button></div>`;
+  $("#overlay").hidden = false; $("#toHub").onclick = () => { location.href = H.homeUrl; };
+} else {
+  document.documentElement.dataset.style = H.style(P);
+  const lesson = H.LESSONS.find(l => l.id === "spelling");
+  const title = H.titleOf(lesson, P);
+  $("#title").textContent = title; document.title = title;
+  const lvl = lesson.levels.find(l => l.id === LEVEL);
+  $("#who").textContent = `${H.first(P)} · ${lvl ? lvl.name : ""} level`;
+  H.mountWallet($("#wallet"), P);
+  $("#dialog").innerHTML = `<div class="big">${GIRL ? "🐱" : "🐝"}</div>
+    <h2>${title}</h2>
+    <p>Listen to the word, then tap the letters to spell it. Green letters are in the right spot. Use 💡 if you get stuck. ${ROUND} words in a round.</p>
+    <div class="row"><button class="btn" id="homeB">Back</button><button class="btn go" id="startB">Start</button></div>`;
+  $("#overlay").hidden = false;
+  $("#startB").onclick = () => { $("#overlay").hidden = true; newRound(); };
+  $("#homeB").onclick = H.goHome;
+}
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Litter Bug</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800;900&display=swap">
+<style>
+/* Shared lesson shell: top bar with wallet, mode tabs, a stage card for the question, answer buttons beside it. */
+:root{
+  --bg:#e6f4ff; --paper:#ffffff; --ink:#0d2a3d; --muted:#4a6b7a; --line:#c6dcec; --soft:#eef6fc;
+  --accent:#1d74e8; --accent-2:#0e9f6e; --gold:#f5a400; --good:#16a34a; --bad:#e5484d;
+  --display:"Lilita One", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Nunito", "Trebuchet MS", system-ui, sans-serif;
+  color-scheme:light;
+  padding-top:env(safe-area-inset-top, 0px);padding-bottom:env(safe-area-inset-bottom, 0px);
+}
+:root[data-style="girl"]{ --bg:#fff0f8; --line:#f3cfe4; --soft:#fde8f3; --accent:#e0479e; --accent-2:#a855f7; --muted:#7d5a72; }
+html,body{margin:0;min-height:100%}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-weight:800;font-size:17px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+button{font-family:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:4px solid var(--gold);outline-offset:2px}
+#app{max-width:1060px;margin:0 auto;padding-block:12px 28px;display:flex;flex-direction:column;gap:14px}
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.bar h1{font-family:var(--display);font-weight:400;font-size:clamp(26px,5vw,38px);margin:0;color:var(--accent)}
+.who{color:var(--muted)}
+#wallet{margin-left:auto}
+.btn{background:var(--paper);border:3px solid var(--line);border-bottom-width:6px;border-radius:14px;padding:9px 16px;font-size:16px;font-weight:800}
+.btn:active{border-bottom-width:3px;translate:0 3px}
+.btn.go{background:var(--accent);border-color:color-mix(in srgb,var(--accent) 70%,#000);color:#fff}
+.btn.small{padding:6px 12px;font-size:15px;border-bottom-width:4px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tab{background:var(--paper);border:3px solid var(--line);border-radius:999px;padding:8px 16px;font-weight:900;font-size:16px;color:var(--muted);display:flex;gap:8px;align-items:center}
+.tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.game{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+.stagecard{background:var(--paper);border:3px solid var(--line);border-radius:24px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.dots{display:flex;gap:5px}
+.dots i{width:13px;height:13px;border-radius:50%;background:var(--line)}
+.dots i.done{background:var(--accent-2)}
+.dots i.now{background:var(--gold)}
+#stage{display:flex;justify-content:center;align-items:center;min-height:240px;position:relative}
+.prompt{font-family:var(--display);font-size:clamp(24px,5vw,34px);line-height:1.15;text-align:center;margin:0}
+.side{display:flex;flex-direction:column;gap:12px}
+.choices{display:grid;gap:10px}
+.choice{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--paper);border:3px solid var(--line);border-bottom-width:7px;border-radius:18px;padding:12px 14px;font-size:22px;font-weight:900;font-variant-numeric:tabular-nums}
+.choice:active{border-bottom-width:3px;translate:0 4px}
+.choice.right{border-color:var(--good);background:#e3f7ec}
+.choice.wrong{border-color:var(--bad);opacity:.45;pointer-events:none}
+.cheer{text-align:center;font-family:var(--display);font-size:28px;min-height:1.2em;color:var(--good)}
+.cheer.no{color:var(--bad)}
+.cheer small{display:block;font-family:var(--body);font-size:16px;color:var(--ink);margin-top:4px;font-weight:800}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(10,30,50,.55);display:grid;place-items:center;
+  padding:max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
+.dialog{background:var(--paper);border-radius:24px;border:4px solid var(--accent);padding:22px;width:min(460px,100%);display:flex;flex-direction:column;gap:12px;text-align:center;max-height:100%;overflow:auto}
+.dialog h2{font-family:var(--display);font-weight:400;font-size:32px;margin:0;color:var(--accent)}
+.dialog p{margin:0;color:var(--muted);line-height:1.4}
+.dialog .big{font-size:60px;line-height:1}
+.dialog .row .btn{flex:1}
+.fact{background:var(--soft);border-radius:14px;padding:10px 12px;color:var(--ink)!important}
+canvas#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
+@media (max-width:759px){ .game{grid-template-columns:1fr} #stage{min-height:200px} }
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+:root{ --bg:#eaf7ff; --line:#c3e3d0; --soft:#e5f6ec; --accent:#15803d; --accent-2:#0284c7; }
+:root[data-style="girl"]{ --bg:#fff1f7; --line:#f3cfe0; --soft:#fde7f1; --accent:#db2777; --accent-2:#16a34a; }
+.park{position:relative;width:100%;max-width:560px;aspect-ratio:16/10;border-radius:22px;overflow:hidden;border:4px solid var(--paper);box-shadow:0 8px 24px rgba(0,60,40,.15);
+  background:linear-gradient(#bae6fd 0 55%, var(--grass, #86b86b) 55%);transition:filter .6s}
+.park .tree{position:absolute;bottom:38%;font-size:54px;line-height:1}
+.park .grow{position:absolute;font-size:28px;animation:sprout .6s ease-out both}
+@keyframes sprout{from{transform:scale(0) translateY(20px)}}
+.park .junk{position:absolute;font-size:30px;opacity:.85}
+.park .item{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:2px;transition:left .5s ease-in, top .5s ease-in, transform .5s, opacity .5s;z-index:3}
+.park .item span{font-size:64px;line-height:1;filter:drop-shadow(0 4px 0 rgba(0,0,0,.2))}
+.park .item b{background:var(--paper);border-radius:999px;padding:2px 12px;font-size:16px;box-shadow:0 2px 0 rgba(0,0,0,.15)}
+.park .item.gone{transform:translate(-50%,-50%) scale(.2);opacity:0}
+.meter{display:flex;align-items:center;gap:10px;width:100%;max-width:560px;font-size:15px;color:var(--muted)}
+.meter .bar{flex:1;height:14px;border-radius:7px;background:var(--line);overflow:hidden}
+.meter .bar i{display:block;height:100%;background:linear-gradient(90deg,#84cc16,#16a34a);width:0;transition:width .5s}
+.wrapc{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
+.bin{flex-direction:column;gap:2px;font-size:18px}
+.bin .ic{font-size:40px;line-height:1}
+.bin.trash{background:#f1f5f9} .bin.recycle{background:#dbeafe} .bin.compost{background:#dcfce7}
+.ecoq{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;max-width:520px}
+.ecoq .bigemo{font-size:72px;line-height:1}
+.ecoq .stmt{font-size:clamp(20px,4.5vw,26px);line-height:1.35}
+.park.beach{background:linear-gradient(#bae6fd 0 42%, #38bdf8 42% 55%, #fde68a 55%)}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="bar">
+    <button class="btn small" id="backBtn">‹ Lessons</button>
+    <h1 id="title">Litter Bug</h1>
+    <span class="who" id="who"></span>
+    <div id="wallet"></div>
+  </div>
+  <div class="tabs" role="tablist" id="modeTabs"></div>
+  <div class="game">
+    <div class="stagecard">
+      <div class="qhead"><div class="dots" id="dots"></div><button class="btn small" id="hearBtn">🔊 Hear it</button></div>
+      <p class="prompt" id="prompt"></p>
+      <div id="stage"></div>
+    </div>
+    <div class="side">
+      <div class="choices" id="choices"></div>
+      <div class="cheer" id="cheer"></div>
+      <div class="row"><button class="btn go" id="nextBtn" hidden>Next ▶</button></div>
+      
+    </div>
+  </div>
+</div>
+<div class="overlay" id="overlay" hidden><div class="dialog" id="dialog"></div></div>
+
+<script src="hub-core.js"></script>
+<script>
+(function(){
+"use strict";
+const H = window.Hub, esc = H.esc;
+const $ = s => document.querySelector(s);
+const rnd = n => Math.floor(Math.random() * n);
+const pick = a => a[rnd(a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const LESSON_ID = "litter-bug";
+const P = H.active();
+const LESSON = H.LESSONS.find(l => l.id === LESSON_ID);
+const LEVEL = P ? (H.levelFor(P, LESSON_ID) || (Number(P.age) >= 8 ? LESSON.levels[1].id : LESSON.levels[0].id)) : LESSON.levels[0].id;
+const HARD = LEVEL === LESSON.levels[1].id;
+const GIRL = P && H.style(P) === "girl";
+const ROUND = 10;
+const PTS = HARD ? 15 : 10;
+
+/* ---- shared round engine ---- */
+const Game = { mode:null, q:null, R:null, modes:[], stage:1 };
+function confetti(emojis){
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  let c = $("#confetti"); if (!c){ c = document.createElement("canvas"); c.id = "confetti"; document.body.append(c); }
+  const ctx = c.getContext("2d"), W = c.width = innerWidth, Hh = c.height = innerHeight;
+  const em = emojis || Game.confetti || ["⭐","✨"];
+  const Pc = Array.from({length:60}, () => ({ x:W/2, y:Hh*.4, vx:(Math.random()-.5)*14, vy:-Math.random()*12-4, s:16+Math.random()*16, e:pick(em) }));
+  let t = 0;
+  (function tick(){ ctx.clearRect(0,0,W,Hh); t++;
+    Pc.forEach(p => { p.vy += .35; p.x += p.vx; p.y += p.vy; ctx.font = `${p.s}px sans-serif`; ctx.fillText(p.e, p.x, p.y); });
+    if (t < 95) requestAnimationFrame(tick); else ctx.clearRect(0,0,W,Hh); })();
+}
+function renderDots(){ $("#dots").innerHTML = Array.from({length:ROUND}, (_, i) => `<i class="${i < Game.R.n ? "done" : i === Game.R.n ? "now" : ""}"></i>`).join(""); }
+function renderTabs(){
+  const list = Game.modes.filter(m => !m.only || m.only.includes(LEVEL));
+  $("#modeTabs").innerHTML = list.map(m => `<button class="tab" role="tab" data-m="${m.id}" aria-selected="${Game.mode && Game.mode.id === m.id}"><span>${m.icon}</span>${m.name}</button>`).join("");
+  $("#modeTabs").querySelectorAll(".tab").forEach(b => b.onclick = () => startMode(b.dataset.m));
+}
+function startMode(id){
+  Game.mode = Game.modes.find(m => m.id === id); renderTabs();
+  Game.R = { n:0, first:0, pts:0 }; H.sessionPts = 0; H.refreshWallet(true);
+  Game.stage = H.stage(P, LESSON_ID);
+  const lvl = LESSON.levels.find(l => l.id === LEVEL);
+  $("#who").textContent = `${H.first(P)} · ${lvl ? lvl.name : ""} · stage ${Game.stage} of 5`;
+  H.hush();
+  if (Game.mode.setup) Game.mode.setup();
+  next();
+}
+function next(){
+  if (Game.R.n >= ROUND) return endRound();
+  $("#cheer").textContent = ""; $("#cheer").className = "cheer"; $("#nextBtn").hidden = true;
+  renderDots();
+  Game.mode.next();
+}
+/* q = { prompt, say, stage (html), choices:[{v,label}], answer, onShow(stageEl) } */
+Game.ask = function(q){
+  Game.q = Object.assign({ tries:0, done:false }, q);
+  $("#prompt").innerHTML = q.prompt || "";
+  $("#stage").innerHTML = q.stage || "";
+  $("#choices").innerHTML = (q.choices || []).map(c => `<button class="choice" data-v="${esc(c.v)}">${c.label}</button>`).join("");
+  $("#choices").querySelectorAll(".choice").forEach(b => b.onclick = () => {
+    if (Game.q.done) return;
+    if (b.dataset.v === String(Game.q.answer)){ b.classList.add("right"); Game.right(); }
+    else { b.classList.add("wrong"); Game.wrong(); }
+  });
+  if (q.onShow) q.onShow($("#stage"));
+  H.say(q.say || (q.prompt || "").replace(/<[^>]+>/g, ""));
+};
+Game.right = function(msg){
+  const q = Game.q; if (!q || q.done) return; q.done = true;
+  const pts = q.tries === 0 ? PTS : Math.ceil(PTS / 2);
+  if (q.tries === 0) Game.R.first++;
+  Game.R.pts += pts; Game.R.n++;
+  H.earn(P, pts, LESSON_ID, `${Game.mode.name}`);
+  const cheer = pick(Game.cheers);
+  $("#cheer").innerHTML = `${cheer} +${pts}${msg || q.explain ? `<small>${msg || q.explain}</small>` : ""}`; $("#cheer").className = "cheer";
+  confetti();
+  if (Game.R.n % 4 === 0) H.cheer(`Fun fact: ${H.funFact(P)}`, P, 5500); else H.cheer(cheer, P, 1400);
+  H.say(`${cheer} ${(msg || q.explain || "").replace(/<[^>]+>/g, "")}`);
+  renderDots();
+  if (q.autoNext) setTimeout(next, q.autoNext); else $("#nextBtn").hidden = false;
+};
+Game.wrong = function(msg){
+  const q = Game.q; if (!q || q.done) return;
+  q.tries++;
+  $("#cheer").innerHTML = `Try again!${msg ? `<small>${msg}</small>` : ""}`; $("#cheer").className = "cheer no";
+  H.say("Try again! " + (msg || "").replace(/<[^>]+>/g, ""));
+};
+function endRound(){
+  const bonus = Game.R.first >= 8 ? 25 : 0;
+  if (bonus) H.earn(P, bonus, LESSON_ID, "round bonus");
+  const change = H.recordRound(P, LESSON_ID, Game.R.first, ROUND);
+  const note = H.stageNote(change, H.stage(P, LESSON_ID));
+  const fact = H.funFact(P);
+  $("#dialog").innerHTML = `<div class="big">${Game.R.first >= 8 ? "🏆" : Game.mode.icon}</div>
+    <h2>${Game.R.first >= 8 ? Game.winTitle : Game.doneTitle}</h2>
+    <p>${Game.R.first} of ${ROUND} right on the first try. You earned ${Game.R.pts + bonus} points${bonus ? ", with a 25 point bonus" : ""}${P.guest ? "." : ` (${H.money(Game.R.pts + bonus)}).`}</p>
+    <p style="color:var(--ink)">${note}</p>
+    <p class="fact">${GIRL ? "🐱" : "🐞"} Fun fact: ${fact}</p>
+    <div class="row"><button class="btn" id="homeB">Back to lessons</button><button class="btn" id="otherB">Pick another game</button><button class="btn go" id="againB">Play again</button></div>`;
+  $("#overlay").hidden = false;
+  H.say(`${Game.R.first >= 8 ? Game.winTitle : Game.doneTitle}! Fun fact: ${fact}`);
+  $("#againB").onclick = () => { $("#overlay").hidden = true; if (P.guest) P.points = 0; startMode(Game.mode.id); };
+  $("#otherB").onclick = () => { $("#overlay").hidden = true; chooser(); };
+  $("#homeB").onclick = H.goHome;
+}
+function chooser(){
+  const list = Game.modes.filter(m => !m.only || m.only.includes(LEVEL));
+  $("#dialog").innerHTML = `<div class="big">${H.iconOf(LESSON, P)}</div><h2>${esc(H.titleOf(LESSON, P))}</h2><p>Pick a game. Each one has ${ROUND} questions.</p>
+    <div style="display:grid;gap:10px">${list.map(m => `<button class="btn" data-pickm="${m.id}" style="text-align:left;display:flex;gap:12px;align-items:center"><span style="font-size:32px">${m.icon}</span><span><b>${m.name}</b><br><span style="font-weight:700;color:var(--muted);font-size:14px">${m.blurb()}</span></span></button>`).join("")}</div>
+    <div class="row"><button class="btn small" id="homeB">Back to lessons</button></div>`;
+  $("#overlay").hidden = false;
+  $("#dialog").querySelectorAll("[data-pickm]").forEach(b => b.onclick = () => { $("#overlay").hidden = true; startMode(b.dataset.pickm); });
+  $("#homeB").onclick = H.goHome;
+}
+$("#nextBtn").onclick = next;
+$("#hearBtn").onclick = () => Game.q && H.say(Game.q.say || ($("#prompt").textContent));
+$("#backBtn").onclick = H.goHome;
+try { speechSynthesis.getVoices(); } catch(e){}
+
+/* ---- this lesson's games ---- */
+Game.cheers = GIRL ? ["Sparkly clean!","Earth hero!","Go team!","Purr-fect!","Way to go!"] : ["Earth hero!","Clean sweep!","Great move!","Nature pro!","Awesome!"];
+Game.confetti = GIRL ? ["🌸","♻️","🦋","✨"] : ["🌳","♻️","🍄","✨"];
+Game.winTitle = "Earth hero!"; Game.doneTitle = "Park cleaned";
+const BINS = { trash:["🗑️","Trash"], recycle:["♻️","Recycling"], compost:["🌱","Compost"] };
+const WHY = { recycle:"It can be made into something new!", trash:"It can't be recycled, so it goes in the trash. Never on the ground!", compost:"Food scraps and leaves turn into rich soil in a compost pile." };
+const ITEMS = [
+  ["🧴","Plastic bottle","recycle",1],["🥫","Metal can","recycle",1],["📰","Newspaper","recycle",1],["📦","Cardboard box","recycle",1],
+  ["🫙","Glass jar","recycle",3],["📄","Paper","recycle",2],["✉️","Envelope","recycle",3],
+  ["🍬","Candy wrapper","trash",1],["🎈","Popped balloon","trash",1],["🩹","Used bandage","trash",2],["🧽","Old sponge","trash",3],["🖍️","Broken crayon","trash",3],
+  ["🍌","Banana peel","compost",1],["🍎","Apple core","compost",1],["🥚","Eggshells","compost",2],["🍂","Dry leaves","compost",2],["🥕","Carrot tops","compost",3],["☕","Coffee grounds","compost",3]
+];
+const GROW = GIRL ? ["🌸","🌷","🦋","🌼","🐝","🌺","🐦","🦊","🌻","🐱"] : ["🌳","🍄","🦋","🐿️","🐞","🌲","🦎","🐦","🌿","🐢"];
+const JUNK = ["🥫","🧴","📰","🍬","🍌","📦","🎈","🍎","🫙","🍂"];
+const SEA_GROW = ["🦀","🐢","🐚","🐬","🐠","🪸","🐙","🦭","🐟","🌴"];
+let sceneFlip = Math.random() < .5;
+
+/* 1. CLEAN THE PARK — sort each piece of litter into the right bin */
+Game.modes.push({ id:"clean", name:"Park & Beach Cleanup", icon:"🧹",
+  blurb:() => HARD ? "Clean the park or the beach: trash, recycling or compost?" : "Pick up litter at the park or beach: trash or recycling?",
+  setup(){
+    sceneFlip = !sceneFlip;
+    Game.park = { beach:sceneFlip, junk:Array.from({length:ROUND}, (_, i) => ({ e:JUNK[i % JUNK.length], x:8 + rnd(84), y:62 + rnd(28) })), grown:[] };
+    Game.lastItem = null;
+  },
+  next(){
+    const bins = HARD ? ["trash","recycle","compost"] : ["trash","recycle"];
+    const pool = ITEMS.filter(it => bins.includes(it[2]) && it[3] <= Math.min(3, Game.stage) && it !== Game.lastItem);
+    const it = pick(pool); Game.lastItem = it;
+    const pk = Game.park, n = Game.R.n;
+    const scene = `<div class="wrapc"><div class="park ${pk.beach ? "beach" : ""}" id="park" style="filter:saturate(${.45 + n * .06})">
+        ${pk.beach ? `<span class="tree" style="left:5%">🌴</span><span class="tree" style="right:6%;font-size:40px;bottom:44%">⛱️</span>` : `<span class="tree" style="left:6%">${GIRL ? "🌳" : "🌲"}</span><span class="tree" style="right:8%">🌳</span>`}
+        ${pk.junk.slice(n).map(j => `<span class="junk" style="left:${j.x}%;top:${j.y}%">${j.e}</span>`).join("")}
+        ${pk.grown.map(g => `<span class="grow" style="left:${g.x}%;top:${g.y}%">${g.e}</span>`).join("")}
+        <div class="item" id="item"><span>${it[0]}</span><b>${it[1]}</b></div></div>
+      <div class="meter">${pk.beach ? "🌊 Beach" : "🌳 Park"} health<div class="bar"><i style="width:${n * 10}%"></i></div>${n * 10}%</div></div>`;
+    Game.ask({ prompt:`Where does the <b>${it[1].toLowerCase()}</b> go?`, say:`Where does the ${it[1].toLowerCase()} go?`, answer:it[2],
+      choices:bins.map(b => ({ v:b, label:`<span class="ic">${BINS[b][0]}</span>${BINS[b][1]}` })),
+      explain:`${it[1]} goes in ${BINS[it[2]][1].toLowerCase()}. ${WHY[it[2]]}`, stage:scene,
+      onShow(){ $("#choices").querySelectorAll(".choice").forEach(b => b.classList.add("bin", b.dataset.v)); } });
+    const _right = Game.right;
+    Game.right = function(m){
+      Game.right = _right;
+      const item = $("#item"); if (item){ item.style.left = it[2] === "trash" ? "15%" : it[2] === "recycle" ? "50%" : "85%"; item.style.top = "100%"; item.classList.add("gone"); }
+      pk.grown.push({ e:(pk.beach ? SEA_GROW : GROW)[pk.grown.length % GROW.length], x:6 + rnd(86), y:52 + rnd(36) });
+      setTimeout(() => {
+        const park = $("#park"); if (!park) return;
+        const g = pk.grown[pk.grown.length - 1], el = document.createElement("span");
+        el.className = "grow"; el.style.left = g.x + "%"; el.style.top = g.y + "%"; el.textContent = g.e; park.append(el);
+        const j = park.querySelector(".junk"); if (j) j.remove();
+        park.style.filter = `saturate(${.45 + Game.R.n * .06})`;
+      }, 450);
+      _right(m);
+    };
+  } });
+
+/* 2. EARTH QUIZ */
+const ECO_TF = [
+  ["Throwing litter on the ground is okay.",false,"Litter hurts animals and makes parks dirty. Always use a bin!"],
+  ["Turning off the lights when you leave a room saves energy.",true],["Plastic bottles can be recycled.",true],
+  ["Banana peels go in the recycling bin.",false,"Banana peels go in compost (or the trash), not recycling."],
+  ["Litter in the ocean can hurt sea turtles.",true,"Turtles can mistake plastic bags for jellyfish."],
+  ["It's okay to leave trash on the beach because the waves wash it away.",false,"Waves carry trash into the ocean, where it can hurt sea animals."],
+  ["Baby sea turtles follow the light of the moon to find the ocean.",true,"That's why beach towns turn off bright lights at night during nesting season."],["Using a refillable water bottle makes less trash.",true],
+  ["Trees help clean the air.",true],["Turning off the water while you brush your teeth saves water.",true],
+  ["Paper is made from trees.",true],["Old newspapers can be turned into new paper.",true]
+];
+const ECO_MC = [
+  ["Reduce, reuse and recycle all help us make less...","Trash",["Trash","Food","Sunshine"]],
+  ["Compost turns food scraps into...","Rich soil",["Rich soil","Plastic","Rocks"]],
+  ["About how long can a plastic bottle take to break down?","Hundreds of years",["Hundreds of years","One week","One day"]],
+  ["Which usually uses less water?","A short shower",["A short shower","A full bath","Leaving the hose on"]],
+  ["Which gas do trees take out of the air?","Carbon dioxide",["Carbon dioxide","Oxygen","Steam"]],
+  ["Which of these can go in recycling?","An aluminum can",["An aluminum can","A banana peel","A used tissue"]],
+  ["Where should old batteries go?","A special battery drop-off",["A special battery drop-off","The trash can","The compost pile"]],
+  ["When forests are cut down and animals lose their homes, it is called...","Habitat loss",["Habitat loss","Hibernation","Migration"]],
+  ["Which is the best way to carry groceries to help the Earth?","A reusable bag",["A reusable bag","A new plastic bag every time","Your pockets"]],
+  ["What do the arrows in the ♻️ symbol stand for?","Recycling",["Recycling","Danger","Stop"]],
+  ["Why should we fill in holes we dig on the beach?","So nesting sea turtles don't get stuck",["So nesting sea turtles don't get stuck","So the sand stays warm","So waves get bigger"]],
+  ["What should you do with fishing line you find on the beach?","Put it in a recycling bin or trash so animals don't get tangled",["Put it in a recycling bin or trash so animals don't get tangled","Throw it in the water","Bury it in the sand"]]
+];
+Game.modes.push({ id:"ecoquiz", name:"Earth Quiz", icon:"🌍",
+  blurb:() => HARD ? "Earth facts: recycling, water, energy and habitats" : "True or false? How to help the Earth",
+  setup(){ Game.ecoUsed = new Set(); },
+  next(){
+    const useMC = HARD && Math.random() < (Game.stage >= 2 ? .65 : .35);
+    const bank = useMC ? ECO_MC : ECO_TF;
+    let idx = shuffle(bank.map((_, i) => i)).find(i => !Game.ecoUsed.has((useMC ? "m" : "t") + i));
+    if (idx === undefined){ Game.ecoUsed = new Set(); idx = rnd(bank.length); }
+    Game.ecoUsed.add((useMC ? "m" : "t") + idx);
+    const q = bank[idx];
+    if (useMC) Game.ask({ prompt:q[0], answer:q[1], choices:shuffle(q[2]).map(v => ({ v, label:v })), explain:`${q[1]}!`, stage:`<div class="ecoq"><div class="bigemo">🌍</div></div>` });
+    else Game.ask({ prompt:"True or false?", say:`True or false? ${q[0]}`, answer:String(q[1]), choices:[{ v:"true", label:"👍 True" },{ v:"false", label:"👎 False" }],
+      explain:q[2] || (q[1] ? "That's true!" : "That's false!"), stage:`<div class="ecoq"><div class="bigemo">${q[1] ? "🌎" : "🚯"}</div><div class="stmt">${q[0]}</div></div>` });
+  } });
+
+
+/* ---- boot ---- */
+if (!P){
+  $("#dialog").innerHTML = `<h2>Who's playing?</h2><p>Pick a player on the home page first.</p><div class="row"><button class="btn go" id="toHub">Go to the home page</button></div>`;
+  $("#overlay").hidden = false; $("#toHub").onclick = () => { location.href = H.homeUrl; };
+} else {
+  document.documentElement.dataset.style = H.style(P);
+  $("#title").textContent = H.titleOf(LESSON, P); document.title = H.titleOf(LESSON, P);
+  const lvl = LESSON.levels.find(l => l.id === LEVEL);
+  $("#who").textContent = `${H.first(P)} · ${lvl ? lvl.name : ""} level`;
+  H.mountWallet($("#wallet"), P);
+  chooser();
+}
+})();
+</script>
+</body>
+</html>

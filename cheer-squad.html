@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cheer Squad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800;900&display=swap">
+<style>
+/* Shared lesson shell: top bar with wallet, mode tabs, a stage card for the question, answer buttons beside it. */
+:root{
+  --bg:#e6f4ff; --paper:#ffffff; --ink:#0d2a3d; --muted:#4a6b7a; --line:#c6dcec; --soft:#eef6fc;
+  --accent:#1d74e8; --accent-2:#0e9f6e; --gold:#f5a400; --good:#16a34a; --bad:#e5484d;
+  --display:"Lilita One", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Nunito", "Trebuchet MS", system-ui, sans-serif;
+  color-scheme:light;
+  padding-top:env(safe-area-inset-top, 0px);padding-bottom:env(safe-area-inset-bottom, 0px);
+}
+:root[data-style="girl"]{ --bg:#fff0f8; --line:#f3cfe4; --soft:#fde8f3; --accent:#e0479e; --accent-2:#a855f7; --muted:#7d5a72; }
+html,body{margin:0;min-height:100%}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-weight:800;font-size:17px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+button{font-family:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:4px solid var(--gold);outline-offset:2px}
+#app{max-width:1060px;margin:0 auto;padding-block:12px 28px;display:flex;flex-direction:column;gap:14px}
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.bar h1{font-family:var(--display);font-weight:400;font-size:clamp(26px,5vw,38px);margin:0;color:var(--accent)}
+.who{color:var(--muted)}
+#wallet{margin-left:auto}
+.btn{background:var(--paper);border:3px solid var(--line);border-bottom-width:6px;border-radius:14px;padding:9px 16px;font-size:16px;font-weight:800}
+.btn:active{border-bottom-width:3px;translate:0 3px}
+.btn.go{background:var(--accent);border-color:color-mix(in srgb,var(--accent) 70%,#000);color:#fff}
+.btn.small{padding:6px 12px;font-size:15px;border-bottom-width:4px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tab{background:var(--paper);border:3px solid var(--line);border-radius:999px;padding:8px 16px;font-weight:900;font-size:16px;color:var(--muted);display:flex;gap:8px;align-items:center}
+.tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.game{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+.stagecard{background:var(--paper);border:3px solid var(--line);border-radius:24px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.dots{display:flex;gap:5px}
+.dots i{width:13px;height:13px;border-radius:50%;background:var(--line)}
+.dots i.done{background:var(--accent-2)}
+.dots i.now{background:var(--gold)}
+#stage{display:flex;justify-content:center;align-items:center;min-height:240px;position:relative}
+.prompt{font-family:var(--display);font-size:clamp(24px,5vw,34px);line-height:1.15;text-align:center;margin:0}
+.side{display:flex;flex-direction:column;gap:12px}
+.choices{display:grid;gap:10px}
+.choice{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--paper);border:3px solid var(--line);border-bottom-width:7px;border-radius:18px;padding:12px 14px;font-size:22px;font-weight:900;font-variant-numeric:tabular-nums}
+.choice:active{border-bottom-width:3px;translate:0 4px}
+.choice.right{border-color:var(--good);background:#e3f7ec}
+.choice.wrong{border-color:var(--bad);opacity:.45;pointer-events:none}
+.cheer{text-align:center;font-family:var(--display);font-size:28px;min-height:1.2em;color:var(--good)}
+.cheer.no{color:var(--bad)}
+.cheer small{display:block;font-family:var(--body);font-size:16px;color:var(--ink);margin-top:4px;font-weight:800}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(10,30,50,.55);display:grid;place-items:center;
+  padding:max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
+.dialog{background:var(--paper);border-radius:24px;border:4px solid var(--accent);padding:22px;width:min(460px,100%);display:flex;flex-direction:column;gap:12px;text-align:center;max-height:100%;overflow:auto}
+.dialog h2{font-family:var(--display);font-weight:400;font-size:32px;margin:0;color:var(--accent)}
+.dialog p{margin:0;color:var(--muted);line-height:1.4}
+.dialog .big{font-size:60px;line-height:1}
+.dialog .row .btn{flex:1}
+.fact{background:var(--soft);border-radius:14px;padding:10px 12px;color:var(--ink)!important}
+canvas#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
+@media (max-width:759px){ .game{grid-template-columns:1fr} #stage{min-height:200px} }
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+body{background-image:radial-gradient(circle at 10% 10%, color-mix(in srgb,var(--accent) 14%,transparent) 0, transparent 35%),radial-gradient(circle at 90% 90%, color-mix(in srgb,var(--accent-2) 14%,transparent) 0, transparent 35%)}
+.squad{display:flex;flex-direction:column;align-items:center;gap:14px;width:100%}
+.cheerleader{position:relative;width:120px;height:110px}
+.cheerleader .face{position:absolute;left:50%;top:18px;transform:translateX(-50%);font-size:58px;line-height:1}
+.pom{position:absolute;top:0;width:46px;height:46px;border-radius:50%;
+  background:radial-gradient(circle, #fff 0 8%, transparent 9%),repeating-conic-gradient(var(--accent) 0 10deg, color-mix(in srgb,var(--accent) 60%,#fff) 10deg 20deg);
+  box-shadow:0 0 0 3px rgba(255,255,255,.7)}
+.pom.l{left:0;transform:rotate(-15deg)} .pom.r{right:0;transform:rotate(15deg)}
+.cheerleader.jump{animation:jump .5s ease-out 2}
+.cheerleader.jump .pom{animation:shake .25s ease-in-out 4}
+@keyframes jump{40%{transform:translateY(-22px)}}
+@keyframes shake{50%{rotate:25deg}}
+.seq{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.card8{min-width:66px;height:72px;padding:0 10px;border-radius:14px;background:var(--accent);color:#fff;display:grid;place-items:center;font-family:var(--display);font-size:34px;box-shadow:0 5px 0 color-mix(in srgb,var(--accent) 60%,#000);
+  animation:pop .35s ease-out both}
+.card8.q{background:var(--paper);color:var(--accent);border:3px dashed var(--accent);box-shadow:none}
+@keyframes pop{from{transform:scale(.5);opacity:0}}
+.slots{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.slot{width:54px;height:62px;border-radius:12px;border:3px dashed var(--line);display:grid;place-items:center;font-family:var(--display);font-size:32px;text-transform:uppercase;background:var(--soft)}
+.slot.on{border-style:solid;border-color:var(--accent);background:var(--accent);color:#fff;animation:pop .3s ease-out}
+.tiles{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;max-width:560px}
+.ltile{width:58px;height:62px;border:0;border-radius:12px;background:var(--accent-2);color:#fff;font-family:var(--display);font-size:32px;text-transform:uppercase;box-shadow:0 5px 0 color-mix(in srgb,var(--accent-2) 60%,#000);padding:0}
+.ltile.used{visibility:hidden}
+.ltile.no{animation:wig .35s}
+@keyframes wig{25%{translate:-6px 0}75%{translate:6px 0}}
+.counts{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;width:100%;max-width:560px}
+.cnt{aspect-ratio:1/1.2;border-radius:12px;border:3px solid var(--line);background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--display);font-size:24px;padding:0}
+.cnt span{font-size:22px;line-height:1}
+.cnt.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.legend{color:var(--muted);font-size:15px;text-align:center}
+.frac{font-family:var(--display);font-size:26px}
+@media (max-width:600px){ .slot{width:42px;height:50px;font-size:26px} .ltile{width:48px;height:52px;font-size:26px} .cnt{font-size:18px} .cnt span{font-size:16px} }
+
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="bar">
+    <button class="btn small" id="backBtn">‹ Lessons</button>
+    <h1 id="title">Cheer Squad</h1>
+    <span class="who" id="who"></span>
+    <div id="wallet"></div>
+  </div>
+  <div class="tabs" role="tablist" id="modeTabs"></div>
+  <div class="game">
+    <div class="stagecard">
+      <div class="qhead"><div class="dots" id="dots"></div><button class="btn small" id="hearBtn">🔊 Hear it</button></div>
+      <p class="prompt" id="prompt"></p>
+      <div id="stage"></div>
+    </div>
+    <div class="side">
+      <div class="choices" id="choices"></div>
+      <div class="cheer" id="cheer"></div>
+      <div class="row"><button class="btn go" id="nextBtn" hidden>Next ▶</button></div>
+      
+    </div>
+  </div>
+</div>
+<div class="overlay" id="overlay" hidden><div class="dialog" id="dialog"></div></div>
+
+<script src="hub-core.js"></script>
+<script>
+(function(){
+"use strict";
+const H = window.Hub, esc = H.esc;
+const $ = s => document.querySelector(s);
+const rnd = n => Math.floor(Math.random() * n);
+const pick = a => a[rnd(a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const LESSON_ID = "cheer-squad";
+const P = H.active();
+const LESSON = H.LESSONS.find(l => l.id === LESSON_ID);
+const LEVEL = P ? (H.levelFor(P, LESSON_ID) || (Number(P.age) >= 8 ? LESSON.levels[1].id : LESSON.levels[0].id)) : LESSON.levels[0].id;
+const HARD = LEVEL === LESSON.levels[1].id;
+const GIRL = P && H.style(P) === "girl";
+const ROUND = 10;
+const PTS = HARD ? 15 : 10;
+
+/* ---- shared round engine ---- */
+const Game = { mode:null, q:null, R:null, modes:[], stage:1 };
+function confetti(emojis){
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  let c = $("#confetti"); if (!c){ c = document.createElement("canvas"); c.id = "confetti"; document.body.append(c); }
+  const ctx = c.getContext("2d"), W = c.width = innerWidth, Hh = c.height = innerHeight;
+  const em = emojis || Game.confetti || ["⭐","✨"];
+  const Pc = Array.from({length:60}, () => ({ x:W/2, y:Hh*.4, vx:(Math.random()-.5)*14, vy:-Math.random()*12-4, s:16+Math.random()*16, e:pick(em) }));
+  let t = 0;
+  (function tick(){ ctx.clearRect(0,0,W,Hh); t++;
+    Pc.forEach(p => { p.vy += .35; p.x += p.vx; p.y += p.vy; ctx.font = `${p.s}px sans-serif`; ctx.fillText(p.e, p.x, p.y); });
+    if (t < 95) requestAnimationFrame(tick); else ctx.clearRect(0,0,W,Hh); })();
+}
+function renderDots(){ $("#dots").innerHTML = Array.from({length:ROUND}, (_, i) => `<i class="${i < Game.R.n ? "done" : i === Game.R.n ? "now" : ""}"></i>`).join(""); }
+function renderTabs(){
+  const list = Game.modes.filter(m => !m.only || m.only.includes(LEVEL));
+  $("#modeTabs").innerHTML = list.map(m => `<button class="tab" role="tab" data-m="${m.id}" aria-selected="${Game.mode && Game.mode.id === m.id}"><span>${m.icon}</span>${m.name}</button>`).join("");
+  $("#modeTabs").querySelectorAll(".tab").forEach(b => b.onclick = () => startMode(b.dataset.m));
+}
+function startMode(id){
+  Game.mode = Game.modes.find(m => m.id === id); renderTabs();
+  Game.R = { n:0, first:0, pts:0 }; H.sessionPts = 0; H.refreshWallet(true);
+  Game.stage = H.stage(P, LESSON_ID);
+  const lvl = LESSON.levels.find(l => l.id === LEVEL);
+  $("#who").textContent = `${H.first(P)} · ${lvl ? lvl.name : ""} · stage ${Game.stage} of 5`;
+  H.hush();
+  if (Game.mode.setup) Game.mode.setup();
+  next();
+}
+function next(){
+  if (Game.R.n >= ROUND) return endRound();
+  $("#cheer").textContent = ""; $("#cheer").className = "cheer"; $("#nextBtn").hidden = true;
+  renderDots();
+  Game.mode.next();
+}
+/* q = { prompt, say, stage (html), choices:[{v,label}], answer, onShow(stageEl) } */
+Game.ask = function(q){
+  Game.q = Object.assign({ tries:0, done:false }, q);
+  $("#prompt").innerHTML = q.prompt || "";
+  $("#stage").innerHTML = q.stage || "";
+  $("#choices").innerHTML = (q.choices || []).map(c => `<button class="choice" data-v="${esc(c.v)}">${c.label}</button>`).join("");
+  $("#choices").querySelectorAll(".choice").forEach(b => b.onclick = () => {
+    if (Game.q.done) return;
+    if (b.dataset.v === String(Game.q.answer)){ b.classList.add("right"); Game.right(); }
+    else { b.classList.add("wrong"); Game.wrong(); }
+  });
+  if (q.onShow) q.onShow($("#stage"));
+  H.say(q.say || (q.prompt || "").replace(/<[^>]+>/g, ""));
+};
+Game.right = function(msg){
+  const q = Game.q; if (!q || q.done) return; q.done = true;
+  const pts = q.tries === 0 ? PTS : Math.ceil(PTS / 2);
+  if (q.tries === 0) Game.R.first++;
+  Game.R.pts += pts; Game.R.n++;
+  H.earn(P, pts, LESSON_ID, `${Game.mode.name}`);
+  const cheer = pick(Game.cheers);
+  $("#cheer").innerHTML = `${cheer} +${pts}${msg || q.explain ? `<small>${msg || q.explain}</small>` : ""}`; $("#cheer").className = "cheer";
+  confetti();
+  if (Game.R.n % 4 === 0) H.cheer(`Fun fact: ${H.funFact(P)}`, P, 5500); else H.cheer(cheer, P, 1400);
+  H.say(`${cheer} ${(msg || q.explain || "").replace(/<[^>]+>/g, "")}`);
+  renderDots();
+  if (q.autoNext) setTimeout(next, q.autoNext); else $("#nextBtn").hidden = false;
+};
+Game.wrong = function(msg){
+  const q = Game.q; if (!q || q.done) return;
+  q.tries++;
+  $("#cheer").innerHTML = `Try again!${msg ? `<small>${msg}</small>` : ""}`; $("#cheer").className = "cheer no";
+  H.say("Try again! " + (msg || "").replace(/<[^>]+>/g, ""));
+};
+function endRound(){
+  const bonus = Game.R.first >= 8 ? 25 : 0;
+  if (bonus) H.earn(P, bonus, LESSON_ID, "round bonus");
+  const change = H.recordRound(P, LESSON_ID, Game.R.first, ROUND);
+  const note = H.stageNote(change, H.stage(P, LESSON_ID));
+  const fact = H.funFact(P);
+  $("#dialog").innerHTML = `<div class="big">${Game.R.first >= 8 ? "🏆" : Game.mode.icon}</div>
+    <h2>${Game.R.first >= 8 ? Game.winTitle : Game.doneTitle}</h2>
+    <p>${Game.R.first} of ${ROUND} right on the first try. You earned ${Game.R.pts + bonus} points${bonus ? ", with a 25 point bonus" : ""}${P.guest ? "." : ` (${H.money(Game.R.pts + bonus)}).`}</p>
+    <p style="color:var(--ink)">${note}</p>
+    <p class="fact">${GIRL ? "🐱" : "🐞"} Fun fact: ${fact}</p>
+    <div class="row"><button class="btn" id="homeB">Back to lessons</button><button class="btn" id="otherB">Pick another game</button><button class="btn go" id="againB">Play again</button></div>`;
+  $("#overlay").hidden = false;
+  H.say(`${Game.R.first >= 8 ? Game.winTitle : Game.doneTitle}! Fun fact: ${fact}`);
+  $("#againB").onclick = () => { $("#overlay").hidden = true; if (P.guest) P.points = 0; startMode(Game.mode.id); };
+  $("#otherB").onclick = () => { $("#overlay").hidden = true; chooser(); };
+  $("#homeB").onclick = H.goHome;
+}
+function chooser(){
+  const list = Game.modes.filter(m => !m.only || m.only.includes(LEVEL));
+  $("#dialog").innerHTML = `<div class="big">${H.iconOf(LESSON, P)}</div><h2>${esc(H.titleOf(LESSON, P))}</h2><p>Pick a game. Each one has ${ROUND} questions.</p>
+    <div style="display:grid;gap:10px">${list.map(m => `<button class="btn" data-pickm="${m.id}" style="text-align:left;display:flex;gap:12px;align-items:center"><span style="font-size:32px">${m.icon}</span><span><b>${m.name}</b><br><span style="font-weight:700;color:var(--muted);font-size:14px">${m.blurb()}</span></span></button>`).join("")}</div>
+    <div class="row"><button class="btn small" id="homeB">Back to lessons</button></div>`;
+  $("#overlay").hidden = false;
+  $("#dialog").querySelectorAll("[data-pickm]").forEach(b => b.onclick = () => { $("#overlay").hidden = true; startMode(b.dataset.pickm); });
+  $("#homeB").onclick = H.goHome;
+}
+$("#nextBtn").onclick = next;
+$("#hearBtn").onclick = () => Game.q && H.say(Game.q.say || ($("#prompt").textContent));
+$("#backBtn").onclick = H.goHome;
+try { speechSynthesis.getVoices(); } catch(e){}
+
+/* ---- this lesson's games ---- */
+const NM = P ? H.first(P) : "you";
+Game.cheers = ["Go team!","Gimme a YAY!","Ready, OK!","Woo-hoo!",`Go, ${NM}, go!`,"Spirit fingers!"];
+Game.confetti = GIRL ? ["🎀","📣","✨","🐱","💖"] : ["📣","✨","🏒","⭐"];
+Game.winTitle = "Squad captain!"; Game.doneTitle = "Routine complete";
+const cheerer = `<div class="cheerleader" id="cheerer"><span class="pom l"></span><span class="pom r"></span><span class="face">${GIRL ? "🐱" : "🙂"}</span></div>`;
+function jump(){ const c = $("#cheerer"); if (c){ c.classList.remove("jump"); void c.offsetWidth; c.classList.add("jump"); } }
+
+/* 1. CHEER COUNT — skip counting chants */
+Game.modes.push({ id:"count", name:"Cheer Count", icon:"🔢",
+  blurb:() => HARD ? "Skip-count by 3s, 4s, 6s, 7s, 8s and 9s, just like the times tables" : "Count by 2s, 5s and 10s like a cheer chant",
+  next(){
+    const S = Game.stage;
+    const step = HARD ? pick([[3,4],[3,4,6],[3,4,6,8],[3,4,6,7,8,9],[6,7,8,9]][S - 1]) : pick([[10],[10,5],[10,5,2],[10,5,2],[5,2]][S - 1]);
+    const startK = HARD ? rnd(5) : rnd(3);
+    const nums = Array.from({length:5}, (_, i) => (startK + i + 1) * step);
+    const gap = HARD && S >= 3 && Math.random() < .5 ? 1 + rnd(3) : 4;
+    const ans = nums[gap];
+    const opts = new Set([ans, ans + step, ans - (step > 2 ? 1 : 3)]);
+    if (ans - step > 0) opts.add(ans - step);
+    const shown = nums.map((n, i) => i === gap ? `<span class="card8 q">?</span>` : `<span class="card8" style="animation-delay:${i * .12}s">${n}</span>`).join("");
+    const chant = nums.map((n, i) => i === gap ? "what?" : n).join("! ");
+    Game.ask({ prompt:`Count by ${step}s! What's missing?`, say:`Count by ${step}s! ${chant}! What number is missing?`,
+      stage:`<div class="squad">${cheerer}<div class="seq">${shown}</div></div>`,
+      answer:String(ans), choices:shuffle([ans, ...shuffle([...opts].filter(v => v !== ans)).slice(0, 2)]).map(v => ({ v:String(v), label:String(v) })),
+      explain: HARD ? `${ans} is ${ans / step} × ${step}!` : `Counting by ${step}s: ${nums.join(", ")}.` });
+  } });
+
+/* 2. GIVE ME A LETTER — cheer-spell the word, one letter at a time */
+const WORDS_EASY = ["cat","dog","sun","fish","frog","star","cake","ball","jump","hop","run","kick","team","yes","bee","duck","pink","clap"];
+const WORDS_HARD = ["because","friend","people","school","family","pretty","bright","laugh","caught","always","around","answer","special","together","cheer","spirit","stunt","jumping","practice","excited"];
+const AN = new Set("AEFHILMNORSX".split(""));
+Game.modes.push({ id:"letters", name:"Give Me a Letter!", icon:"🔤",
+  blurb:() => HARD ? "Cheer-spell bigger words letter by letter" : "Cheer-spell short words: give me a C!",
+  next(){
+    const S = Game.stage;
+    const pool = (HARD ? WORDS_HARD : WORDS_EASY).filter(w => w.length <= (HARD ? 5 + S : 2 + S));
+    const word = pick(pool.length ? pool : (HARD ? WORDS_HARD : WORDS_EASY));
+    const extra = HARD && S >= 2 ? Array.from({length:2}, () => "abcdefghijklmnoprstuwy"[rnd(22)]) : [];
+    const tiles = shuffle(word.split("").concat(extra)).map((ch, i) => ({ ch, i }));
+    let pos = 0;
+    Game.ask({ prompt:"Spell it out, cheer style!", say:`Let's spell ${word}! ${word}!`,
+      stage:`<div class="squad">${cheerer}<div class="slots">${word.split("").map((_, i) => `<span class="slot" data-s="${i}"></span>`).join("")}</div>
+        <div class="tiles">${tiles.map(t => `<button class="ltile" data-t="${t.i}" data-ch="${t.ch}">${t.ch}</button>`).join("")}</div></div>`,
+      explain:`${word.toUpperCase().split("").join("-")} spells ${word}!`,
+      onShow(st){
+        st.querySelectorAll(".ltile").forEach(b => b.onclick = () => {
+          if (Game.q.done || b.classList.contains("used")) return;
+          if (b.dataset.ch === word[pos]){
+            b.classList.add("used");
+            const s = st.querySelector(`[data-s="${pos}"]`); s.textContent = word[pos]; s.classList.add("on");
+            const L = word[pos].toUpperCase();
+            H.say(`Give me ${AN.has(L) ? "an" : "a"} ${L}!`, { rate:1 });
+            pos++; jump();
+            if (pos === word.length) setTimeout(() => Game.right(`${word.toUpperCase().split("").join("-")} spells ${word}!`), 700);
+          } else {
+            b.classList.remove("no"); void b.offsetWidth; b.classList.add("no");
+            Game.q.tries++;
+            $("#cheer").innerHTML = "Oops! Try another letter."; $("#cheer").className = "cheer no";
+          }
+        });
+      } });
+  } });
+
+/* 3. 8-COUNT FRACTIONS — cheer routines are counted in 8s */
+const FR = { 1:"1/8", 2:"2/8", 3:"3/8", 4:"4/8", 5:"5/8", 6:"6/8", 7:"7/8", 8:"8/8" };
+const SIMPLE = { 2:"1/4", 4:"1/2", 6:"3/4", 8:"1 whole" };
+function countsHTML(on, interactive){
+  return `<div class="counts">${Array.from({length:8}, (_, i) => `<button class="cnt ${on.includes(i) ? "on" : ""}" data-c="${i}" ${interactive ? "" : "tabindex=\"-1\""}><span>${on.includes(i) ? "👏" : "·"}</span>${i + 1}</button>`).join("")}</div>`;
+}
+Game.modes.push({ id:"fractions", name:"8-Count Fractions", icon:"👏",
+  blurb:() => HARD ? "Name the fraction of the 8-count and find matching fractions" : "Clap on half or a quarter of the 8 counts",
+  next(){
+    if (!HARD){
+      const target = pick([[4,"half"],[8,"all"],[2,"one quarter"],[6,"three quarters"]].slice(0, Math.min(4, Game.stage + 1)));
+      const on = [];
+      Game.ask({ prompt:`Clap on ${target[1]} of the 8 counts!`, say:`Our routine has 8 counts. Tap to clap on ${target[1]} of them, then press Check.`,
+        explain:`${target[0]} out of 8 counts is ${target[1]}!`,
+        stage:`<div class="squad">${cheerer}${countsHTML([], true)}<div class="legend">Tap counts to add a clap 👏</div><button class="btn go" id="checkF">Check</button></div>`,
+        onShow(st){
+          const draw = () => st.querySelectorAll(".cnt").forEach(b => { const i = Number(b.dataset.c), o = on.includes(i); b.classList.toggle("on", o); b.firstElementChild.textContent = o ? "👏" : "·"; });
+          st.querySelectorAll(".cnt").forEach(b => b.onclick = () => { if (Game.q.done) return; const i = Number(b.dataset.c), k = on.indexOf(i); if (k >= 0) on.splice(k, 1); else on.push(i); draw(); H.say(String(on.length), { rate:1.1 }); });
+          $("#checkF").onclick = () => {
+            if (Game.q.done) return;
+            if (on.length === target[0]){ jump(); Game.right(`${target[0]} out of 8 counts is ${target[1]}!`); }
+            else { Game.wrong(on.length > target[0] ? "That's too many claps." : "You need more claps."); }
+          };
+        } });
+      return;
+    }
+    const k = 1 + rnd(7);
+    const on = shuffle([0,1,2,3,4,5,6,7]).slice(0, k).sort((a, b) => a - b);
+    if (Game.stage >= 3 && SIMPLE[k] && Math.random() < .5){
+      const ans = SIMPLE[k];
+      const opts = shuffle([ans, ...shuffle(Object.values(SIMPLE).filter(v => v !== ans)).slice(0, 2)]);
+      Game.ask({ prompt:`Claps on ${k} of 8 counts is ${FR[k]}. Which fraction is the same?`, answer:ans,
+        choices:opts.map(v => ({ v, label:`<span class="frac">${v}</span>` })), explain:`${FR[k]} is the same as ${ans}.`,
+        stage:`<div class="squad">${cheerer}${countsHTML(on, false)}</div>` });
+    } else {
+      const ask = Game.stage >= 2 && Math.random() < .5 ? "rest" : "claps";
+      const n = ask === "claps" ? k : 8 - k;
+      const opts = new Set([FR[n] || "0/8"]);
+      opts.add(FR[8 - n] || "0/8"); opts.add(FR[Math.max(1, Math.min(8, n + (n < 7 ? 1 : -1)))]);
+      const ansL = FR[n] || "0/8";
+      Game.ask({ prompt: ask === "claps" ? "What fraction of the 8-count has claps?" : "What fraction of the 8-count has NO claps?", answer:ansL,
+        choices:shuffle([...opts]).map(v => ({ v, label:`<span class="frac">${v}</span>` })), explain:`${n} out of 8 counts is ${ansL}.`,
+        stage:`<div class="squad">${cheerer}${countsHTML(on, false)}<div class="legend">👏 = clap</div></div>` });
+    }
+  } });
+
+/* jump on every right answer */
+const _right = Game.right;
+Game.right = function(msg){ jump(); _right(msg); };
+
+
+/* ---- boot ---- */
+if (!P){
+  $("#dialog").innerHTML = `<h2>Who's playing?</h2><p>Pick a player on the home page first.</p><div class="row"><button class="btn go" id="toHub">Go to the home page</button></div>`;
+  $("#overlay").hidden = false; $("#toHub").onclick = () => { location.href = H.homeUrl; };
+} else {
+  document.documentElement.dataset.style = H.style(P);
+  $("#title").textContent = H.titleOf(LESSON, P); document.title = H.titleOf(LESSON, P);
+  const lvl = LESSON.levels.find(l => l.id === LEVEL);
+  $("#who").textContent = `${H.first(P)} · ${lvl ? lvl.name : ""} level`;
+  H.mountWallet($("#wallet"), P);
+  chooser();
+}
+})();
+</script>
+</body>
+</html>

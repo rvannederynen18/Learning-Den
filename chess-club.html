@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chess Club</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800;900&display=swap">
+<style>
+/* Shared lesson shell: top bar with wallet, mode tabs, a stage card for the question, answer buttons beside it. */
+:root{
+  --bg:#e6f4ff; --paper:#ffffff; --ink:#0d2a3d; --muted:#4a6b7a; --line:#c6dcec; --soft:#eef6fc;
+  --accent:#1d74e8; --accent-2:#0e9f6e; --gold:#f5a400; --good:#16a34a; --bad:#e5484d;
+  --display:"Lilita One", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Nunito", "Trebuchet MS", system-ui, sans-serif;
+  color-scheme:light;
+  padding-top:env(safe-area-inset-top, 0px);padding-bottom:env(safe-area-inset-bottom, 0px);
+}
+:root[data-style="girl"]{ --bg:#fff0f8; --line:#f3cfe4; --soft:#fde8f3; --accent:#e0479e; --accent-2:#a855f7; --muted:#7d5a72; }
+html,body{margin:0;min-height:100%}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-weight:800;font-size:17px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+button{font-family:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:4px solid var(--gold);outline-offset:2px}
+#app{max-width:1060px;margin:0 auto;padding-block:12px 28px;display:flex;flex-direction:column;gap:14px}
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.bar h1{font-family:var(--display);font-weight:400;font-size:clamp(26px,5vw,38px);margin:0;color:var(--accent)}
+.who{color:var(--muted)}
+#wallet{margin-left:auto}
+.btn{background:var(--paper);border:3px solid var(--line);border-bottom-width:6px;border-radius:14px;padding:9px 16px;font-size:16px;font-weight:800}
+.btn:active{border-bottom-width:3px;translate:0 3px}
+.btn.go{background:var(--accent);border-color:color-mix(in srgb,var(--accent) 70%,#000);color:#fff}
+.btn.small{padding:6px 12px;font-size:15px;border-bottom-width:4px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tab{background:var(--paper);border:3px solid var(--line);border-radius:999px;padding:8px 16px;font-weight:900;font-size:16px;color:var(--muted);display:flex;gap:8px;align-items:center}
+.tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.game{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+.stagecard{background:var(--paper);border:3px solid var(--line);border-radius:24px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.dots{display:flex;gap:5px}
+.dots i{width:13px;height:13px;border-radius:50%;background:var(--line)}
+.dots i.done{background:var(--accent-2)}
+.dots i.now{background:var(--gold)}
+#stage{display:flex;justify-content:center;align-items:center;min-height:240px;position:relative}
+.prompt{font-family:var(--display);font-size:clamp(24px,5vw,34px);line-height:1.15;text-align:center;margin:0}
+.side{display:flex;flex-direction:column;gap:12px}
+.choices{display:grid;gap:10px}
+.choice{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--paper);border:3px solid var(--line);border-bottom-width:7px;border-radius:18px;padding:12px 14px;font-size:22px;font-weight:900;font-variant-numeric:tabular-nums}
+.choice:active{border-bottom-width:3px;translate:0 4px}
+.choice.right{border-color:var(--good);background:#e3f7ec}
+.choice.wrong{border-color:var(--bad);opacity:.45;pointer-events:none}
+.cheer{text-align:center;font-family:var(--display);font-size:28px;min-height:1.2em;color:var(--good)}
+.cheer.no{color:var(--bad)}
+.cheer small{display:block;font-family:var(--body);font-size:16px;color:var(--ink);margin-top:4px;font-weight:800}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(10,30,50,.55);display:grid;place-items:center;
+  padding:max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
+.dialog{background:var(--paper);border-radius:24px;border:4px solid var(--accent);padding:22px;width:min(460px,100%);display:flex;flex-direction:column;gap:12px;text-align:center;max-height:100%;overflow:auto}
+.dialog h2{font-family:var(--display);font-weight:400;font-size:32px;margin:0;color:var(--accent)}
+.dialog p{margin:0;color:var(--muted);line-height:1.4}
+.dialog .big{font-size:60px;line-height:1}
+.dialog .row .btn{flex:1}
+.fact{background:var(--soft);border-radius:14px;padding:10px 12px;color:var(--ink)!important}
+canvas#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
+@media (max-width:759px){ .game{grid-template-columns:1fr} #stage{min-height:200px} }
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+:root{ --sq-l:#e8f3ec; --sq-d:#5b9b7a; --piece:#10233a; }
+:root[data-style="girl"]{ --sq-l:#fff3f9; --sq-d:#e48bbd; --piece:#3a0d2e; }
+:root[data-style="boy"]{ --sq-l:#e6f4ff; --sq-d:#3f86c6; --piece:#0b1f33; }
+.boardwrap{display:grid;grid-template-columns:20px auto;grid-template-rows:auto 20px;gap:4px;align-items:center}
+.ranks{display:grid;grid-template-rows:repeat(8,1fr);height:100%;font-size:13px;color:var(--muted);text-align:center}
+.files{grid-column:2;display:grid;grid-template-columns:repeat(8,1fr);font-size:13px;color:var(--muted);text-align:center}
+.ranks span,.files span{display:grid;place-items:center}
+.ranks span.hl,.files span.hl{color:var(--accent);font-weight:900;font-size:16px}
+.board{display:grid;grid-template-columns:repeat(8,1fr);width:min(86vw,440px);aspect-ratio:1;border:5px solid var(--piece);border-radius:8px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.sq{position:relative;border:0;padding:0;display:grid;place-items:center;font-size:clamp(24px,7vw,44px);line-height:1;touch-action:manipulation}
+.sq.l{background:var(--sq-l)} .sq.d{background:var(--sq-d)}
+.sq .pc{color:var(--piece);text-shadow:0 0 3px #fff,0 0 6px #fff;transition:transform .2s}
+.sq .star{font-size:clamp(18px,5vw,32px);animation:twinkle 1.2s ease-in-out infinite}
+@keyframes twinkle{50%{transform:scale(1.18)}}
+.sq.legal::after{content:"";position:absolute;width:28%;height:28%;border-radius:50%;background:rgba(0,0,0,.22)}
+.sq.bad{animation:wig .35s;box-shadow:inset 0 0 0 4px var(--bad)}
+.sq.target{box-shadow:inset 0 0 0 5px var(--gold)}
+@keyframes wig{25%{translate:-4px 0}75%{translate:4px 0}}
+.sq .numtag{position:absolute;inset:14%;border-radius:10px;background:var(--paper);border:3px solid var(--accent);display:grid;place-items:center;font-family:var(--display);font-size:clamp(16px,4.5vw,26px);color:var(--ink)}
+.chessinfo{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;color:var(--muted);font-size:15px;margin-top:8px}
+.chessinfo b{color:var(--ink)}
+.mathq{font-family:var(--display);font-size:clamp(30px,7vw,44px);color:var(--accent)}
+
+#stage{flex-direction:column;gap:6px}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="bar">
+    <button class="btn small" id="backBtn">‹ Lessons</button>
+    <h1 id="title">Chess Club</h1>
+    <span class="who" id="who"></span>
+    <div id="wallet"></div>
+  </div>
+  <div class="tabs" role="tablist" id="modeTabs"></div>
+  <div class="game">
+    <div class="stagecard">
+      <div class="qhead"><div class="dots" id="dots"></div><button class="btn small" id="hearBtn">🔊 Hear it</button></div>
+      <p class="prompt" id="prompt"></p>
+      <div id="stage"></div>
+    </div>
+    <div class="side">
+      <div class="choices" id="choices"></div>
+      <div class="cheer" id="cheer"></div>
+      <div class="row"><button class="btn go" id="nextBtn" hidden>Next ▶</button></div>
+      
+    </div>
+  </div>
+</div>
+<div class="overlay" id="overlay" hidden><div class="dialog" id="dialog"></div></div>
+
+<script src="hub-core.js"></script>
+<script>
+(function(){
+"use strict";
+const H = window.Hub, esc = H.esc;
+const $ = s => document.querySelector(s);
+const rnd = n => Math.floor(Math.random() * n);
+const pick = a => a[rnd(a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const LESSON_ID = "chess-club";
+const P = H.active();
+const LESSON = H.LESSONS.find(l => l.id === LESSON_ID);
+const LEVEL = P ? (H.levelFor(P, LESSON_ID) || (Number(P.age) >= 8 ? LESSON.levels[1].id : LESSON.levels[0].id)) : LESSON.levels[0].id;
+const HARD = LEVEL === LESSON.levels[1].id;
+const GIRL = P && H.style(P) === "girl";
+const ROUND = 10;
+const PTS = HARD ? 15 : 10;
+
+/* ---- shared round engine ---- */
+const Game = { mode:null, q:null, R:null, modes:[], stage:1 };
+function confetti(emojis){
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  let c = $("#confetti"); if (!c){ c = document.createElement("canvas"); c.id = "confetti"; document.body.append(c); }
+  const ctx = c.getContext("2d"), W = c.width = innerWidth, Hh = c.height = innerHeight;
+  const em = emojis || Game.confetti || ["⭐","✨"];
+  const Pc = Array.from({length:60}, () => ({ x:W/2, y:Hh*.4, vx:(Math.random()-.5)*14, vy:-Math.random()*12-4, s:16+Math.random()*16, e:pick(em) }));
+  let t = 0;
+  (function tick(){ ctx.clearRect(0,0,W,Hh); t++;
+    Pc.forEach(p => { p.vy += .35; p.x += p.vx; p.y += p.vy; ctx.font = `${p.s}px sans-serif`; ctx.fillText(p.e, p.x, p.y); });
+    if (t < 95) requestAnimationFrame(tick); else ctx.clearRect(0,0,W,Hh); })();
+}
+function renderDots(){ $("#dots").innerHTML = Array.from({length:ROUND}, (_, i) => `<i class="${i < Game.R.n ? "done" : i === Game.R.n ? "now" : ""}"></i>`).join(""); }
+function renderTabs(){
+  const list = Game.modes.filter(m => !m.only || m.only.includes(LEVEL));
+  $("#modeTabs").innerHTML = list.map(m => `<button class="tab" role="tab" data-m="${m.id}" aria-selected="${Game.mode && Game.mode.id === m.id}"><span>${m.icon}</span>${m.name}</button>`).join("");
+  $("#modeTabs").querySelectorAll(".tab").forEach(b => b.onclick = () => startMode(b.dataset.m));
+}
+function startMode(id){
+  Game.mode = Game.modes.find(m => m.id === id); renderTabs();
+  Game.R = { n:0, first:0, pts:0 }; H.sessionPts = 0; H.refreshWallet(true);
+  Game.stage = H.stage(P, LESSON_ID);
+  const lvl = LESSON.levels.find(l => l.id === LEVEL);
+  $("#who").textContent = `${H.first(P)} · ${lvl ? lvl.name : ""} · stage ${Game.stage} of 5`;
+  H.hush();
+  if (Game.mode.setup) Game.mode.setup();
+  next();
+}
+function next(){
+  if (Game.R.n >= ROUND) return endRound();
+  $("#cheer").textContent = ""; $("#cheer").className = "cheer"; $("#nextBtn").hidden = true;
+  renderDots();
+  Game.mode.next();
+}
+/* q = { prompt, say, stage (html), choices:[{v,label}], answer, onShow(stageEl) } */
+Game.ask = function(q){
+  Game.q = Object.assign({ tries:0, done:false }, q);
+  $("#prompt").innerHTML = q.prompt || "";
+  $("#stage").innerHTML = q.stage || "";
+  $("#choices").innerHTML = (q.choices || []).map(c => `<button class="choice" data-v="${esc(c.v)}">${c.label}</button>`).join("");
+  $("#choices").querySelectorAll(".choice").forEach(b => b.onclick = () => {
+    if (Game.q.done) return;
+    if (b.dataset.v === String(Game.q.answer)){ b.classList.add("right"); Game.right(); }
+    else { b.classList.add("wrong"); Game.wrong(); }
+  });
+  if (q.onShow) q.onShow($("#stage"));
+  H.say(q.say || (q.prompt || "").replace(/<[^>]+>/g, ""));
+};
+Game.right = function(msg){
+  const q = Game.q; if (!q || q.done) return; q.done = true;
+  const pts = q.tries === 0 ? PTS : Math.ceil(PTS / 2);
+  if (q.tries === 0) Game.R.first++;
+  Game.R.pts += pts; Game.R.n++;
+  H.earn(P, pts, LESSON_ID, `${Game.mode.name}`);
+  const cheer = pick(Game.cheers);
+  $("#cheer").innerHTML = `${cheer} +${pts}${msg || q.explain ? `<small>${msg || q.explain}</small>` : ""}`; $("#cheer").className = "cheer";
+  confetti();
+  if (Game.R.n % 4 === 0) H.cheer(`Fun fact: ${H.funFact(P)}`, P, 5500); else H.cheer(cheer, P, 1400);
+  H.say(`${cheer} ${(msg || q.explain || "").replace(/<[^>]+>/g, "")}`);
+  renderDots();
+  if (q.autoNext) setTimeout(next, q.autoNext); else $("#nextBtn").hidden = false;
+};
+Game.wrong = function(msg){
+  const q = Game.q; if (!q || q.done) return;
+  q.tries++;
+  $("#cheer").innerHTML = `Try again!${msg ? `<small>${msg}</small>` : ""}`; $("#cheer").className = "cheer no";
+  H.say("Try again! " + (msg || "").replace(/<[^>]+>/g, ""));
+};
+function endRound(){
+  const bonus = Game.R.first >= 8 ? 25 : 0;
+  if (bonus) H.earn(P, bonus, LESSON_ID, "round bonus");
+  const change = H.recordRound(P, LESSON_ID, Game.R.first, ROUND);
+  const note = H.stageNote(change, H.stage(P, LESSON_ID));
+  const fact = H.funFact(P);
+  $("#dialog").innerHTML = `<div class="big">${Game.R.first >= 8 ? "🏆" : Game.mode.icon}</div>
+    <h2>${Game.R.first >= 8 ? Game.winTitle : Game.doneTitle}</h2>
+    <p>${Game.R.first} of ${ROUND} right on the first try. You earned ${Game.R.pts + bonus} points${bonus ? ", with a 25 point bonus" : ""}${P.guest ? "." : ` (${H.money(Game.R.pts + bonus)}).`}</p>
+    <p style="color:var(--ink)">${note}</p>
+    <p class="fact">${GIRL ? "🐱" : "🐞"} Fun fact: ${fact}</p>
+    <div class="row"><button class="btn" id="homeB">Back to lessons</button><button class="btn" id="otherB">Pick another game</button><button class="btn go" id="againB">Play again</button></div>`;
+  $("#overlay").hidden = false;
+  H.say(`${Game.R.first >= 8 ? Game.winTitle : Game.doneTitle}! Fun fact: ${fact}`);
+  $("#againB").onclick = () => { $("#overlay").hidden = true; if (P.guest) P.points = 0; startMode(Game.mode.id); };
+  $("#otherB").onclick = () => { $("#overlay").hidden = true; chooser(); };
+  $("#homeB").onclick = H.goHome;
+}
+function chooser(){
+  const list = Game.modes.filter(m => !m.only || m.only.includes(LEVEL));
+  $("#dialog").innerHTML = `<div class="big">${H.iconOf(LESSON, P)}</div><h2>${esc(H.titleOf(LESSON, P))}</h2><p>Pick a game. Each one has ${ROUND} questions.</p>
+    <div style="display:grid;gap:10px">${list.map(m => `<button class="btn" data-pickm="${m.id}" style="text-align:left;display:flex;gap:12px;align-items:center"><span style="font-size:32px">${m.icon}</span><span><b>${m.name}</b><br><span style="font-weight:700;color:var(--muted);font-size:14px">${m.blurb()}</span></span></button>`).join("")}</div>
+    <div class="row"><button class="btn small" id="homeB">Back to lessons</button></div>`;
+  $("#overlay").hidden = false;
+  $("#dialog").querySelectorAll("[data-pickm]").forEach(b => b.onclick = () => { $("#overlay").hidden = true; startMode(b.dataset.pickm); });
+  $("#homeB").onclick = H.goHome;
+}
+$("#nextBtn").onclick = next;
+$("#hearBtn").onclick = () => Game.q && H.say(Game.q.say || ($("#prompt").textContent));
+$("#backBtn").onclick = H.goHome;
+try { speechSynthesis.getVoices(); } catch(e){}
+
+/* ---- this lesson's games ---- */
+Game.cheers = GIRL ? ["Checkmate, kitty style!","Great move!","Brilliant!","Go team!"] : ["Checkmate!","Great move!","Brilliant!","Grandmaster move!","Wow!"];
+Game.confetti = ["♟️","⭐","👑", GIRL ? "🎀" : "🏆"];
+Game.winTitle = "Grandmaster!"; Game.doneTitle = "Good game";
+const FILES = "abcdefgh";
+const sqName = (f, r) => FILES[f] + (r + 1);
+const GLYPH = { rook:"♜", bishop:"♝", knight:"♞", queen:"♛", king:"♚" };
+const HOW = { rook:"The rook moves in straight lines: up, down, left or right.", bishop:"The bishop moves diagonally, corner to corner.",
+  knight:"The knight jumps in an L: two squares one way, then one square to the side.", queen:"The queen moves any direction, straight or diagonal.",
+  king:"The king moves one square in any direction." };
+function moves(piece, f, r){
+  const out = [], inb = (a, b) => a >= 0 && a < 8 && b >= 0 && b < 8;
+  const slide = dirs => dirs.forEach(([df, dr]) => { let a = f + df, b = r + dr; while (inb(a, b)){ out.push([a, b]); a += df; b += dr; } });
+  if (piece === "rook") slide([[1,0],[-1,0],[0,1],[0,-1]]);
+  if (piece === "bishop") slide([[1,1],[1,-1],[-1,1],[-1,-1]]);
+  if (piece === "queen") slide([[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]]);
+  if (piece === "king") [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([a, b]) => inb(f + a, r + b) && out.push([f + a, r + b]));
+  if (piece === "knight") [[1,2],[2,1],[2,-1],[1,-2],[-1,-2],[-2,-1],[-2,1],[-1,2]].forEach(([a, b]) => inb(f + a, r + b) && out.push([f + a, r + b]));
+  return out;
+}
+const has = (list, f, r) => list.some(([a, b]) => a === f && b === r);
+function boardHTML(cells, opts){
+  opts = opts || {};
+  let s = `<div class="boardwrap"><div class="ranks">${[8,7,6,5,4,3,2,1].map(n => `<span class="${opts.hlR === n - 1 ? "hl" : ""}">${n}</span>`).join("")}</div><div class="board">`;
+  for (let r = 7; r >= 0; r--) for (let f = 0; f < 8; f++){
+    const k = sqName(f, r), c = cells[k] || "";
+    s += `<button class="sq ${(f + r) % 2 ? "l" : "d"} ${opts.legal && has(opts.legal, f, r) ? "legal" : ""}" data-f="${f}" data-r="${r}" aria-label="${k}">${c}</button>`;
+  }
+  return s + `</div><span></span><div class="files">${[...FILES].map((x, i) => `<span class="${opts.hlF === i ? "hl" : ""}">${x}</span>`).join("")}</div></div>`;
+}
+
+/* 1. CHESS COACH — move the piece to collect every star */
+const ORDER = ["rook","bishop","knight","king","queen","knight","rook","bishop","queen","knight"];
+Game.modes.push({ id:"coach", name:"Chess Coach", icon:"♞",
+  blurb:() => HARD ? "Collect the stars in as few moves as you can" : "Learn how each piece moves while collecting stars",
+  next(){
+    const easyOrder = ["rook","bishop","king","rook","bishop","king","rook","bishop","king","rook"];
+    const piece = (!HARD && Game.stage <= 2 ? easyOrder : ORDER)[Game.R.n % ORDER.length];
+    let pos = [rnd(8), rnd(8)];
+    const S = Game.stage, nStars = HARD ? 2 + (S >= 3 ? 1 : 0) + (S >= 5 ? 1 : 0) : (S <= 2 ? 1 : S <= 4 ? 2 : 3), stars = [];
+    let walk = pos.slice(), guard = 0;
+    while (stars.length < nStars && guard++ < 200){
+      const opts = moves(piece, walk[0], walk[1]).filter(([a, b]) => !(a === pos[0] && b === pos[1]) && !has(stars, a, b));
+      if (!opts.length) break;
+      walk = pick(opts); stars.push(walk.slice());
+    }
+    let count = 0;
+    const par = stars.length;
+    const draw = () => {
+      const cells = {};
+      stars.forEach(([a, b]) => cells[sqName(a, b)] = `<span class="star">⭐</span>`);
+      cells[sqName(pos[0], pos[1])] = `<span class="pc">${GLYPH[piece]}</span>`;
+      $("#stage").innerHTML = boardHTML(cells, { legal: HARD ? null : moves(piece, pos[0], pos[1]) }) +
+        `<div class="chessinfo">Moves: <b>${count}</b>${HARD ? ` · Best possible: <b>${par}</b>` : ""} · Stars left: <b>${stars.length}</b></div>`;
+      $("#stage").querySelectorAll(".sq").forEach(b => b.onclick = () => tap(Number(b.dataset.f), Number(b.dataset.r), b));
+    };
+    const tap = (f, r, el) => {
+      if (Game.q.done) return;
+      if (!has(moves(piece, pos[0], pos[1]), f, r)){ el.classList.add("bad"); setTimeout(() => el.classList.remove("bad"), 400); Game.wrong(HOW[piece]); Game.q.tries = 0; return; }
+      pos = [f, r]; count++;
+      const k = stars.findIndex(([a, b]) => a === f && b === r);
+      if (k >= 0){ stars.splice(k, 1); H.say(stars.length ? "Star!" : "All stars!", { rate:1.1 }); }
+      $("#cheer").textContent = ""; draw();
+      if (!stars.length){ if (HARD && count > par) Game.q.tries = 1; Game.right(`${count} move${count > 1 ? "s" : ""}${HARD ? (count === par ? ", a perfect path!" : ` (best is ${par})`) : ""}`); }
+    };
+    Game.ask({ prompt:`Move the ${piece} ${GLYPH[piece]} to grab every ⭐`, say:`${HOW[piece]} Move it to grab every star.`, onShow: draw });
+  } });
+
+/* 2. BOARD DETECTIVE — square names (coordinates) */
+Game.modes.push({ id:"detective", name:"Board Detective", icon:"🔍",
+  blurb:() => HARD ? "Name the square a piece is on, and find squares fast" : "Find squares like c3: letter first, then number",
+  next(){
+    const f = rnd(8), r = rnd(8), name = sqName(f, r);
+    if (HARD && Math.random() < .5){
+      const piece = pick(Object.keys(GLYPH));
+      const cells = { [name]:`<span class="pc">${GLYPH[piece]}</span>` };
+      const wrong = [sqName(r, f), sqName(f, (r + 1 + rnd(6)) % 8), sqName((f + 1 + rnd(6)) % 8, r)].filter(x => x !== name);
+      const opts = shuffle([name, ...[...new Set(wrong)].slice(0, 2)]);
+      Game.ask({ prompt:`What square is the ${piece} on?`, answer:name, choices:opts.map(v => ({ v, label:v })), explain:`The ${piece} is on ${name}.`, stage:boardHTML(cells) });
+      return;
+    }
+    Game.ask({ prompt:`Tap square <b style="color:var(--accent)">${name}</b>`, say:`Find square ${name[0]} ${name[1]}. Letter first, then number.`, explain:`That's ${name}!`,
+      onShow(st){
+        st.innerHTML = boardHTML({}, HARD || Game.stage >= 4 ? {} : { hlF:f, hlR:r });
+        st.querySelectorAll(".sq").forEach(b => b.onclick = () => {
+          if (Game.q.done) return;
+          const bf = Number(b.dataset.f), br = Number(b.dataset.r);
+          if (bf === f && br === r){ b.classList.add("target"); Game.right(`That's ${name}!`); }
+          else { b.classList.add("bad"); setTimeout(() => b.classList.remove("bad"), 400); Game.wrong(`That one is ${sqName(bf, br)}. Look for letter ${name[0]} and number ${name[1]}.`); }
+        });
+      } });
+  } });
+
+/* 3. KNIGHT MATH — hop the knight to the right answer */
+let kpos = null;
+Game.modes.push({ id:"knightmath", name:"Knight Math", icon:"🐴",
+  blurb:() => HARD ? "Hop the knight to the answer of times-table problems" : "Hop the knight to the answer: adding up to 10",
+  setup(){ kpos = [rnd(8), rnd(8)]; },
+  next(){
+    const dests = shuffle(moves("knight", kpos[0], kpos[1]));
+    let t, s, ans;
+    const S = Game.stage;
+    if (HARD){ const fm = 4 + S; const a = 2 + rnd(fm - 1), b = 2 + rnd(fm - 1); t = `${a} × ${b}`; s = `${a} times ${b}`; ans = a * b; }
+    else { const tot = 5 + S; const a = rnd(tot), b = rnd(tot + 1 - a); t = `${a} + ${b}`; s = `${a} plus ${b}`; ans = a + b; }
+    const nums = new Set([ans]);
+    const ds = HARD ? [1,2,-1,-2,3,10,-3] : [1,2,-1,-2,3,-3];
+    for (const d of shuffle(ds)){ if (nums.size >= dests.length) break; if (ans + d >= 0) nums.add(ans + d); }
+    while (nums.size < dests.length) nums.add(ans + nums.size + 5);
+    const vals = shuffle([...nums]).slice(0, dests.length);
+    if (!vals.includes(ans)) vals[0] = ans;
+    const map = {};
+    dests.forEach(([a, b], i) => map[sqName(a, b)] = vals[i]);
+    const cells = { [sqName(kpos[0], kpos[1])]:`<span class="pc">♞</span>` };
+    Object.entries(map).forEach(([k, v]) => cells[k] = `<span class="numtag">${v}</span>`);
+    Game.ask({ prompt:`Hop to <span class="mathq">${t}</span>`, say:`Hop the knight to ${s}!`, explain:`${t} = ${ans}`, stage:boardHTML(cells),
+      onShow(st){
+        st.querySelectorAll(".sq").forEach(b => b.onclick = () => {
+          if (Game.q.done) return;
+          const k = sqName(Number(b.dataset.f), Number(b.dataset.r));
+          if (!(k in map)){ b.classList.add("bad"); setTimeout(() => b.classList.remove("bad"), 400); $("#cheer").innerHTML = "Knights only hop in an L!"; $("#cheer").className = "cheer no"; return; }
+          if (map[k] === ans){
+            kpos = [Number(b.dataset.f), Number(b.dataset.r)];
+            st.querySelectorAll(".pc").forEach(p => p.remove()); b.innerHTML = `<span class="pc">♞</span>`;
+            Game.q.autoNext = 1500;
+            Game.right(`${t} = ${ans}`);
+          } else { b.classList.add("bad"); setTimeout(() => b.classList.remove("bad"), 400); Game.wrong(`That square is ${map[k]}.`); }
+        });
+      } });
+  } });
+
+
+/* ---- boot ---- */
+if (!P){
+  $("#dialog").innerHTML = `<h2>Who's playing?</h2><p>Pick a player on the home page first.</p><div class="row"><button class="btn go" id="toHub">Go to the home page</button></div>`;
+  $("#overlay").hidden = false; $("#toHub").onclick = () => { location.href = H.homeUrl; };
+} else {
+  document.documentElement.dataset.style = H.style(P);
+  $("#title").textContent = H.titleOf(LESSON, P); document.title = H.titleOf(LESSON, P);
+  const lvl = LESSON.levels.find(l => l.id === LEVEL);
+  $("#who").textContent = `${H.first(P)} · ${lvl ? lvl.name : ""} level`;
+  H.mountWallet($("#wallet"), P);
+  chooser();
+}
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Times Tower</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: arcade cabinet — times-table chart | falling-block well | stats + keypad. Kitty (girl) or bugs-and-fishing (boy) look. */
+:root{
+  --bg:#131938; --panel:#1d2550; --panel-2:#252f63; --line:#34407e;
+  --fg:#f5f3ff; --muted:#a8aedb; --gold:#ffcf3f; --good:#3fdc8a; --bad:#ff5a6e; --well:#0d1230; --accent:#ffcf3f;
+  --display:"Bungee", "Arial Black", Impact, system-ui, sans-serif;
+  --body:"Fredoka", "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  color-scheme:dark;
+  padding-top:env(safe-area-inset-top, 0px);padding-bottom:env(safe-area-inset-bottom, 0px);
+}
+:root[data-style="girl"]{--bg:#2b1236;--panel:#3e1a4d;--panel-2:#532566;--line:#8a3f9e;--muted:#e2b5e8;--gold:#ffd166;--accent:#ff8fc7;--good:#7fe6c8;--well:#21092b}
+:root[data-style="boy"]{--bg:#0c2236;--panel:#123450;--panel-2:#1a466b;--line:#2a6a92;--muted:#a9d4e4;--gold:#b6ff3b;--accent:#22d3ee;--good:#4ee38f;--well:#063a52}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+:root[data-style="girl"] body{background-image:radial-gradient(circle at 15% 0%, #4a1b57 0, transparent 45%),radial-gradient(circle at 90% 100%, #46164f 0, transparent 40%)}
+:root[data-style="boy"] body{background-image:radial-gradient(circle at 15% 0%, #14456b 0, transparent 45%),radial-gradient(circle at 90% 100%, #0f4a45 0, transparent 40%)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+button{font-family:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+#app{max-width:1120px;margin:0 auto;padding-block:12px 24px;display:flex;flex-direction:column;gap:14px}
+.logo{font-family:var(--display);font-size:22px;letter-spacing:.02em;display:flex;gap:6px;align-items:baseline}
+.logo .x{color:var(--accent)}
+.btn{background:var(--panel-2);border:2px solid var(--line);border-radius:10px;padding:10px 16px;font-size:16px;font-weight:600}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#1a0d24}
+.btn.small{padding:6px 12px;font-size:14px}
+.hud{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hud-player{display:flex;align-items:center;gap:8px;font-weight:700;font-size:18px;margin-right:auto}
+.stat{background:var(--panel);border:2px solid var(--line);border-radius:10px;padding:4px 12px;text-align:center;min-width:64px}
+.stat span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.stat b{font-size:18px;font-variant-numeric:tabular-nums}
+.board{display:grid;gap:16px;grid-template-columns:1fr auto 240px;grid-template-areas:"chart well side" "chart well pad";align-items:start}
+.chart-wrap{grid-area:chart;min-width:0}
+.well-wrap{grid-area:well}
+.side{grid-area:side;display:flex;flex-direction:column;gap:10px}
+.pad-area{grid-area:pad;display:flex;flex-direction:column;gap:10px}
+.panel{background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:10px 12px}
+.panel-label{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px}
+.small{font-size:13px;color:var(--muted);margin-top:4px}
+.well{position:relative;width:min(calc(72dvh * .6), 390px);aspect-ratio:6/10;max-width:100%;container-type:inline-size;
+  background-color:var(--well);border:4px solid var(--line);border-radius:6px;overflow:hidden;
+  background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);
+  background-size:calc(100% / 6) calc(100% / 10);box-shadow:0 0 0 4px var(--well),0 18px 40px rgba(0,0,0,.4)}
+:root[data-style="girl"] .well{background-image:radial-gradient(rgba(255,143,199,.16) 18%, transparent 20%),radial-gradient(rgba(255,143,199,.1) 18%, transparent 20%);background-size:calc(100% / 6) calc(100% / 10);background-position:0 0, calc(100% / 12) calc(100% / 20)}
+:root[data-style="boy"] .well{background-image:radial-gradient(ellipse at 30% 18%, rgba(255,255,255,.12) 0 7%, transparent 8%),radial-gradient(ellipse at 72% 55%, rgba(255,255,255,.08) 0 6%, transparent 7%),linear-gradient(#0e7090,#063a52);background-size:100% 100%}
+:root[data-style="boy"] .well::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle, rgba(255,255,255,.28) 2px, transparent 3px),radial-gradient(circle, rgba(255,255,255,.18) 3px, transparent 4px);background-size:46px 70px, 70px 110px;background-position:0 0, 20px 30px;animation:bubbles 7s linear infinite}
+@keyframes bubbles{to{background-position:0 -70px, 20px -80px}}
+:root[data-style="girl"] body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.08;background-image:radial-gradient(circle at 50% 60%, #fff 0 9px, transparent 10px),radial-gradient(circle at 30% 35%, #fff 0 4px, transparent 5px),radial-gradient(circle at 50% 28%, #fff 0 4px, transparent 5px),radial-gradient(circle at 70% 35%, #fff 0 4px, transparent 5px);background-size:90px 90px}
+:root[data-style="girl"] #app{position:relative;z-index:1}
+.well.danger{border-color:var(--bad);box-shadow:0 0 0 4px var(--well),0 0 30px rgba(255,90,110,.45)}
+.block{position:absolute;width:calc(100% / 6);height:calc(100% / 10);padding:2px;display:flex}
+.block .face{flex:1;position:relative;border-radius:4px;background:var(--c);color:#111633;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;
+  box-shadow:inset -4px -4px 0 rgba(0,0,0,.22),inset 4px 4px 0 rgba(255,255,255,.35);font-weight:700;font-variant-numeric:tabular-nums}
+.block.active .face{font-size:calc(100cqw / 6 * .25);outline:3px solid #fff;outline-offset:-1px}
+.block.active{z-index:3}
+.block.locked .face{filter:saturate(.55) brightness(.8)}
+.block.locked .q{font-size:calc(100cqw / 6 * .17)}
+.block.locked .a{font-size:calc(100cqw / 6 * .2);margin-top:2px;background:rgba(255,255,255,.55);border-radius:3px;padding:1px 4px}
+.block .icon{position:absolute;right:1px;top:0;font-size:calc(100cqw / 6 * .22);line-height:1}
+:root[data-style="girl"] .block .face{border-radius:8px 8px 10px 10px}
+:root[data-style="girl"] .block .face::before,:root[data-style="girl"] .block .face::after{content:"";position:absolute;top:-20%;width:30%;height:32%;background:var(--c);clip-path:polygon(50% 0,100% 100%,0 100%)}
+:root[data-style="girl"] .block .face::before{left:7%}
+:root[data-style="girl"] .block .face::after{right:7%}
+:root[data-style="boy"] .block .face{border-radius:12px;background:radial-gradient(circle at 28% 24%, rgba(255,255,255,.65) 0 11%, transparent 12%), var(--c)}
+.burst{position:absolute;z-index:5;font-family:var(--display);color:var(--gold);font-size:calc(100cqw * .065);pointer-events:none;text-align:center;white-space:nowrap;
+  text-shadow:0 2px 0 #000;animation:rise .9s ease-out forwards;transform:translateX(-50%)}
+.burst.big{color:var(--good);font-size:calc(100cqw * .075)}
+@keyframes rise{from{opacity:1;translate:0 0}to{opacity:0;translate:0 -60px}}
+.pop{position:absolute;z-index:4;border-radius:6px;background:#fff;pointer-events:none;animation:pop .35s ease-out forwards}
+@keyframes pop{from{opacity:.9;scale:1}to{opacity:0;scale:1.6}}
+.flashrow{position:absolute;left:0;right:0;bottom:0;height:10%;background:var(--good);z-index:4;animation:flash .5s ease-out forwards;pointer-events:none}
+@keyframes flash{from{opacity:.9}to{opacity:0}}
+.banner{position:absolute;inset:auto 6% 38% 6%;z-index:6;background:rgba(10,14,40,.92);border:3px solid var(--gold);border-radius:12px;padding:14px;text-align:center}
+.banner b{display:block;font-family:var(--display);font-size:calc(100cqw * .09);color:var(--gold);font-weight:400}
+.banner span{font-size:calc(100cqw * .05)}
+.mini-block{width:64px;height:48px;border-radius:6px;background:var(--c,#555);color:#111633;display:grid;place-items:center;font-weight:700;font-size:18px;
+  box-shadow:inset -4px -4px 0 rgba(0,0,0,.22),inset 4px 4px 0 rgba(255,255,255,.35)}
+.meter{height:12px;background:var(--well);border-radius:6px;overflow:hidden}
+.meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--good),var(--gold));transition:width .3s}
+:root[data-style="girl"] .meter i{background:linear-gradient(90deg,#d79bff,var(--accent))}
+.streak{display:flex;gap:6px}
+.streak i{width:20px;height:20px;border-radius:5px;background:var(--well);border:2px solid var(--line)}
+.streak i.on{background:var(--good);border-color:var(--good)}
+.coin b{font-size:24px;color:var(--gold);font-variant-numeric:tabular-nums}
+.answer-box{background:var(--well);border:3px solid var(--line);border-radius:12px;padding:10px 12px;font-size:28px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
+.answer-box .ans{display:inline-block;min-width:2.4ch;border-bottom:3px solid var(--accent);color:var(--accent)}
+.answer-box.wrong{border-color:var(--bad);animation:shake .35s}
+.answer-box.right{border-color:var(--good)}
+@keyframes shake{25%{translate:-8px 0}50%{translate:8px 0}75%{translate:-4px 0}}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.key{background:var(--panel-2);border:2px solid var(--line);border-bottom-width:5px;border-radius:10px;font-size:26px;font-weight:700;padding:10px 0;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.key:active{border-bottom-width:2px;translate:0 3px}
+.key.go{background:var(--good);border-color:#2bb36e;color:#06301a}
+.key.del{color:var(--muted)}
+.chart-scroll{overflow-x:auto}
+table.tt{border-collapse:separate;border-spacing:3px;font-variant-numeric:tabular-nums;font-weight:600;margin:0 auto}
+table.tt td,table.tt th{width:2.3em;height:2em;text-align:center;border-radius:5px;font-size:14px}
+table.tt th{background:var(--panel-2);color:var(--muted);font-weight:700}
+table.tt td{background:var(--panel)}
+table.tt td.hid{background:transparent;border:1px dashed var(--line);color:var(--line)}
+table.tt th.hl{background:var(--accent);color:#1a0d24}
+table.tt tr.hlrow td:not(.hid){background:var(--panel-2)}
+table.tt td.sq:not(.hid){color:var(--gold)}
+.no-chart{border:2px dashed var(--line);border-radius:12px;padding:24px 16px;text-align:center;color:var(--muted);line-height:1.4}
+.no-chart b{display:block;font-family:var(--display);font-weight:400;color:var(--gold);font-size:20px;margin-bottom:6px}
+.chart-note{font-size:13px;color:var(--muted);margin-top:8px;text-align:center}
+.helper{display:none;background:var(--panel);border:2px solid var(--line);border-radius:10px;padding:6px 8px;overflow-x:auto;white-space:nowrap;font-weight:600;font-variant-numeric:tabular-nums;font-size:14px}
+.helper span{display:inline-block;min-width:2.2em;text-align:center;padding:2px 3px;border-radius:4px;background:var(--panel-2);margin-right:3px}
+.helper span.hid{background:transparent;border:1px dashed var(--line);color:var(--line)}
+.helper span.lab{background:var(--accent);color:#1a0d24}
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(8,11,30,.82);display:grid;place-items:center;
+  padding:max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
+.dialog{background:var(--panel);border:3px solid var(--line);border-radius:18px;padding:22px;width:min(420px,100%);display:flex;flex-direction:column;gap:14px;text-align:center;max-height:100%;overflow:auto}
+.dialog h2{font-family:var(--display);font-weight:400;font-size:28px;color:var(--gold);margin:0}
+.dialog p{margin:0;color:var(--muted);line-height:1.45}
+.dialog .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.dialog .row .btn{flex:1}
+.bigemo{font-size:52px;line-height:1}
+.results{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.results div{background:var(--panel-2);border-radius:10px;padding:8px}
+.results span{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.results b{font-size:22px;font-variant-numeric:tabular-nums}
+.results .money{grid-column:1/-1}
+.results .money b{color:var(--gold);font-size:28px}
+@media (max-width:759px){
+  .board{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"well side" "pad pad";gap:10px}
+  .chart-wrap{display:none}
+  .helper{display:block}
+  .well{width:min(58vw, calc((100dvh - 410px) * .6), 340px);min-width:150px}
+  .side{gap:8px}
+  .panel{padding:8px}
+  .mini-block{width:100%;height:40px;font-size:16px}
+  .streak i{width:14px;height:14px}
+  .coin b{font-size:20px}
+  .side .small{display:none}
+  .stat{min-width:54px;padding:3px 8px}
+  .hud-player{width:100%}
+  .key{font-size:24px;padding:8px 0}
+  .answer-box{font-size:24px;padding:8px}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="hud">
+    <button class="btn small" id="backBtn">‹ Lessons</button>
+    <div class="logo">TIMES<span class="x">×</span>TOWER</div>
+    <div class="hud-player" id="hudPlayer"></div>
+    <div class="stat"><span>Score</span><b id="hudScore">0</b></div>
+    <div class="stat"><span>Level</span><b id="hudLevel">1</b></div>
+    <div class="stat"><span>Tables</span><b id="hudTables">1–5</b></div>
+    <button class="btn small" id="resetBtn" hidden>Start over</button>
+    <button class="btn small" id="pauseBtn">Pause</button>
+  </div>
+  <div class="board">
+    <aside class="chart-wrap"><div class="panel-label">Times table</div><div id="chart"></div></aside>
+    <div class="well-wrap">
+      <div class="well" id="well">
+        <div id="stackLayer"></div>
+        <div class="block active" id="activeBlock" hidden><div class="face" id="activeFace"></div></div>
+        <div id="fx"></div>
+        <div class="banner" id="banner" hidden></div>
+      </div>
+    </div>
+    <div class="side">
+      <div class="panel"><div class="panel-label">Next</div><div class="mini-block" id="nextBlock"></div></div>
+      <div class="panel"><div class="panel-label">Level</div><div class="meter"><i id="levelMeter"></i></div><div class="small" id="levelText">0 of 10 to level up</div></div>
+      <div class="panel"><div class="panel-label">Streak</div><div class="streak" id="streak"></div><div class="small">5 right in a row clears the bottom line</div></div>
+      <div id="wallet"></div>
+    </div>
+    <div class="pad-area">
+      <div class="helper" id="helper"></div>
+      <div class="answer-box" id="answerBox"><span id="probText">–</span> = <span class="ans" id="ansText">?</span></div>
+      <div class="keypad" id="keypad">
+        <button class="key" data-k="1">1</button><button class="key" data-k="2">2</button><button class="key" data-k="3">3</button>
+        <button class="key" data-k="4">4</button><button class="key" data-k="5">5</button><button class="key" data-k="6">6</button>
+        <button class="key" data-k="7">7</button><button class="key" data-k="8">8</button><button class="key" data-k="9">9</button>
+        <button class="key del" data-k="del" aria-label="Delete">⌫</button><button class="key" data-k="0">0</button><button class="key go" data-k="go" aria-label="Submit answer">✓</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="overlay" id="overlay" hidden><div class="dialog" id="dialog"></div></div>
+
+<script src="hub-core.js"></script>
+<script>
+(function(){
+"use strict";
+const H = window.Hub, esc = H.esc;
+const COLS = 6, ROWS = 10;
+const SPEEDS = { slow: .32, normal: .45, fast: .62 };
+const THEMES = {
+  girl: { avatar:"🐱", colors:["#ff8fc7","#ffb3e6","#d79bff","#ff9eae","#ffc4a3","#c7a6ff","#f7a8d8"],
+          icons:["🐱","🐾","😺","📣","🎀","🏒","🐆","🦊","🐚","🐬"], right:["Purr-fect!","Paw-some!","Go team!","Gimme a YAY!","She shoots, she scores!","Hat trick!"],
+          line:"Pyramid!", over:"Cat nap time!", start:"Ready to pounce" },
+  boy:  { avatar:"🐞", colors:["#22d3ee","#a3e635","#34d399","#60a5fa","#2dd4bf","#b6ff3b","#7dd3fc"],
+          icons:["🐞","🦋","🦈","🐍","🦎","🦥","🐢","🦀","🚀","🪐","♟️","🏒","🍄"], right:["Big catch!","Bug-tastic!","Blast off!","Checkmate!","He shoots, he scores!","Hat trick!"],
+          line:"Trophy fish!", over:"Time to reel in!", start:"Cast your line" }
+};
+const $ = s => document.querySelector(s);
+const rnd = n => Math.floor(Math.random() * n);
+const pick = a => a[rnd(a.length)];
+const fmt = n => Math.round(n).toLocaleString();
+
+function goHome(){ try { sessionStorage.setItem("hub-return", "1"); } catch(e){} location.href = H.homeUrl; }
+$("#backBtn").onclick = () => { if (G && !G.over && !G.paused) return openPause(); goHome(); };
+
+const P = H.active();
+let TH = THEMES.girl, CFG = null;
+
+/* sound */
+let ac = null;
+function tone(f, d = .12, type = "square", vol = .05, when = 0){
+  if (!H.db.settings.sound) return;
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + when;
+    o.type = type; o.frequency.value = f; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + d);
+    o.connect(g).connect(ac.destination); o.start(t); o.stop(t + d + .02);
+  } catch(e){}
+}
+const sfx = {
+  right(){ tone(660,.08); tone(880,.12,"square",.05,.07); },
+  wrong(){ tone(180,.2,"sawtooth",.05); },
+  land(){ tone(110,.15,"triangle",.08); },
+  line(){ [523,659,784,1047].forEach((f,i)=>tone(f,.1,"square",.05,i*.07)); },
+  level(){ [392,523,659,784,1047].forEach((f,i)=>tone(f,.14,"triangle",.07,i*.09)); },
+  over(){ [392,330,262,196].forEach((f,i)=>tone(f,.22,"triangle",.07,i*.16)); }
+};
+const style2emoji = () => H.style(P) === "boy" ? "🐞" : "🐱";
+function dialog(html){ $("#dialog").innerHTML = html; $("#overlay").hidden = false; }
+function closeDialog(){ $("#overlay").hidden = true; }
+
+/* game */
+let G = null, raf = 0, last = 0, wakeLock = null;
+const narrowMQ = window.matchMedia("(max-width: 759px)");
+function tableMax(level){ return Math.min(CFG.topMax, Math.min(CFG.startMax, CFG.topMax) + level - 1); }
+function useDivision(level){
+  const m = CFG.mode;
+  if (m === "mult") return false;
+  if (m === "div") return true;
+  if (m === "mix") return Math.random() < .5;
+  return level >= CFG.divLevel && Math.random() < .5;
+}
+function fadeFrac(level){ const f = CFG.fadeBy; if (f >= 99) return 0; if (f <= 1) return 1; return Math.max(0, Math.min(1, (level - 1) / (f - 1))); }
+function gen(){
+  const max = tableMax(G.level); let q, tries = 0;
+  do {
+    let a = Math.random() < .4 ? max : 1 + rnd(max), b = 1 + rnd(max);
+    if (Math.random() < .5) [a, b] = [b, a];
+    q = useDivision(G.level) ? { text:`${a*b}÷${a}`, show:`${a*b} ÷ ${a}`, ans:b, r:a, c:b, div:true }
+                             : { text:`${a}×${b}`, show:`${a} × ${b}`, ans:a*b, r:a, c:b, div:false };
+  } while (G.lastText === q.text && ++tries < 6);
+  G.lastText = q.text; q.color = pick(TH.colors); q.icon = pick(TH.icons);
+  return q;
+}
+function computeHidden(){
+  const max = tableMax(G.level), frac = fadeFrac(G.level), cells = [];
+  for (let r = 1; r <= max; r++) for (let c = 1; c <= max; c++) cells.push(r + "x" + c);
+  for (let i = cells.length - 1; i > 0; i--){ const j = rnd(i + 1); [cells[i], cells[j]] = [cells[j], cells[i]]; }
+  G.hidden = new Set(cells.slice(0, Math.round(frac * cells.length))); G.frac = frac;
+}
+function speedNow(){ return (SPEEDS[CFG.speed] || SPEEDS.normal) * (1 + .12 * (G.level - 1)) * (1 + Math.min(G.levelTime, 75) / 75 * .3); }
+function landingRow(col){ return ROWS - 1 - G.stack[col].length; }
+
+function startGame(){
+  G = { level:1, score:0, correct:0, inLevel:0, streak:0, missed:0, lines:0, stack:Array.from({length:COLS}, () => []),
+        active:null, next:null, input:"", levelTime:0, paused:true, over:false, banked:false, lastText:"" };
+  G.next = gen(); computeHidden();
+  H.sessionPts = 0; H.refreshWallet(true);
+  renderStack(); updateHud(); renderStreak(); renderChart();
+  $("#activeBlock").hidden = true; $("#probText").textContent = "–"; $("#ansText").textContent = "?";
+  const lvl = H.levelFor(P, "times-tower");
+  dialog(`<div class="bigemo">${TH.avatar}</div><h2>${TH.start}, ${esc(H.first(P))}!</h2>
+    <p>${lvl === "starter" ? "Starter level" : "Full level"}: tables 1 to ${tableMax(1)} to begin${CFG.mode === "div" ? ", with division" : ""}. Type the answer and press ✓ before the block lands.</p>
+    <p style="color:var(--fg)">${style2emoji()} Fun fact: ${H.funFact(P)}</p>
+    <div class="row"><button class="btn" id="cancelStart">Back to lessons</button><button class="btn primary" id="goStart">Start</button></div>`);
+  $("#goStart").onclick = () => { closeDialog(); tone(523,.05,"square",.001); spawn(); resume(); requestWake(); };
+  $("#cancelStart").onclick = goHome;
+}
+async function requestWake(){ try { wakeLock = await navigator.wakeLock?.request("screen"); } catch(e){} }
+function releaseWake(){ try { wakeLock?.release(); } catch(e){} wakeLock = null; }
+
+function spawn(){
+  const open = []; for (let c = 0; c < COLS; c++) if (G.stack[c].length < ROWS) open.push(c);
+  if (!open.length) return gameOver();
+  const q = G.next; G.next = gen();
+  q.col = pick(open); q.y = -0.6;
+  G.active = q; G.input = "";
+  const el = $("#activeBlock"); el.hidden = false;
+  el.style.left = (q.col * 100 / COLS) + "%"; el.style.setProperty("--c", q.color);
+  $("#activeFace").innerHTML = `${q.text}<span class="icon">${q.icon}</span>`;
+  $("#probText").textContent = q.show; $("#ansText").textContent = "?";
+  const nb = $("#nextBlock"); nb.style.setProperty("--c", G.next.color); nb.textContent = G.next.text;
+  renderChart(); drawActive();
+}
+function drawActive(){ if (G.active) $("#activeBlock").style.top = (Math.max(-1, G.active.y) * 100 / ROWS) + "%"; }
+function frame(t){
+  if (!G || G.paused || G.over){ raf = 0; return; }
+  const dt = Math.min(.05, (t - last) / 1000); last = t;
+  G.levelTime += dt;
+  const a = G.active;
+  if (a){ a.y += speedNow() * dt; const land = landingRow(a.col); if (a.y >= land){ a.y = land; lockActive(); } else drawActive(); }
+  raf = requestAnimationFrame(frame);
+}
+function resume(){ if (!G || G.over) return; G.paused = false; last = performance.now(); if (!raf) raf = requestAnimationFrame(frame); }
+function pause(){ if (!G || G.over || G.paused) return; G.paused = true; }
+function lockActive(){
+  const a = G.active; G.active = null; $("#activeBlock").hidden = true;
+  G.stack[a.col].push(a); G.missed++; G.streak = 0;
+  sfx.land(); renderStack(); renderStreak();
+  if (G.stack[a.col].length >= ROWS) return gameOver();
+  spawn();
+}
+function renderStack(){
+  let h = "", maxH = 0;
+  G.stack.forEach((col, c) => { maxH = Math.max(maxH, col.length);
+    col.forEach((b, i) => { h += `<div class="block locked" style="left:${c*100/COLS}%;top:${(ROWS-1-i)*100/ROWS}%;--c:${b.color}"><div class="face"><span class="q">${b.text}</span><span class="a">${b.ans}</span></div></div>`; }); });
+  $("#stackLayer").innerHTML = h;
+  $("#well").classList.toggle("danger", maxH >= ROWS - 3);
+}
+function fxAt(col, row, html, big){
+  const fx = $("#fx");
+  const p = document.createElement("div"); p.className = "pop";
+  Object.assign(p.style, { left:(col*100/COLS)+"%", top:(row*100/ROWS)+"%", width:(100/COLS)+"%", height:(100/ROWS)+"%" });
+  const b = document.createElement("div"); b.className = "burst" + (big ? " big" : ""); b.innerHTML = html;
+  Object.assign(b.style, { left:Math.min(80, Math.max(20, (col+.5)*100/COLS))+"%", top:(Math.max(0,row)*100/ROWS)+"%" });
+  fx.append(p, b); setTimeout(() => { p.remove(); b.remove(); }, 950);
+}
+function showBanner(title, sub){
+  const el = $("#banner"); el.innerHTML = `<b>${esc(title)}</b><span>${esc(sub)}</span>`; el.hidden = false;
+  clearTimeout(showBanner.t); showBanner.t = setTimeout(() => el.hidden = true, 1800);
+}
+function submit(){
+  const a = G && G.active; if (!a || G.paused || G.input === "") return;
+  const box = $("#answerBox");
+  if (Number(G.input) === a.ans){
+    const fast = a.y < landingRow(a.col) / 2;
+    const pts = 10 + 5 * (G.level - 1) + (fast ? 5 : 0);
+    G.score += pts; G.correct++; G.inLevel++; G.streak++;
+    H.earn(P, pts, "times-tower", `reached level ${G.level}`);
+    fxAt(a.col, a.y, `${pick(TH.right)}<br>+${pts}${fast ? " fast!" : ""}`);
+    H.cheer(null, P, 1400);
+    sfx.right();
+    box.classList.remove("wrong"); box.classList.add("right"); setTimeout(() => box.classList.remove("right"), 250);
+    G.active = null; $("#activeBlock").hidden = true;
+    if (G.streak % 5 === 0 && G.stack.some(c => c.length)){
+      G.stack.forEach(c => c.shift()); G.lines++; G.score += 25; H.earn(P, 25, "times-tower");
+      const f = document.createElement("div"); f.className = "flashrow"; $("#fx").append(f); setTimeout(() => f.remove(), 550);
+      fxAt(2.5, ROWS - 2, `${TH.line}<br>Line +25`, true); sfx.line(); renderStack();
+    }
+    if (G.inLevel >= CFG.levelSize) levelUp();
+    renderStreak(); updateHud(); spawn();
+  } else {
+    sfx.wrong(); G.streak = 0; G.input = "";
+    a.y = Math.min(landingRow(a.col), a.y + 1); drawActive();
+    $("#ansText").textContent = "?";
+    box.classList.remove("wrong"); void box.offsetWidth; box.classList.add("wrong");
+    renderStreak();
+  }
+}
+function levelUp(){
+  const prevMax = tableMax(G.level), prevDiv = CFG.mode === "auto" && G.level >= CFG.divLevel;
+  G.level++; G.inLevel = 0; G.levelTime = 0;
+  const bonus = 50 * (G.level - 1); G.score += bonus; H.earn(P, bonus, "times-tower", `reached level ${G.level}`);
+  computeHidden();
+  const max = tableMax(G.level);
+  let sub = `+${bonus} bonus points`;
+  if (CFG.mode === "auto" && !prevDiv && G.level >= CFG.divLevel) sub = "Division blocks are coming!";
+  else if (max > prevMax) sub = `Now tables up to ${max}`;
+  else if (G.frac >= 1 && fadeFrac(G.level - 1) < 1) sub = "No more chart. You've got this!";
+  showBanner("Level " + G.level, sub); sfx.level();
+  H.cheer(`Level ${G.level}! Fun fact: ${H.funFact(P)}`, P, 5500);
+}
+function updateHud(){
+  $("#hudScore").textContent = fmt(G.score);
+  $("#hudLevel").textContent = G.level;
+  $("#hudTables").textContent = "1–" + tableMax(G.level);
+  $("#levelMeter").style.width = (G.inLevel / CFG.levelSize * 100) + "%";
+  $("#levelText").textContent = `${G.inLevel} of ${CFG.levelSize} to level up`;
+}
+function renderStreak(){
+  const n = G.streak > 0 && G.streak % 5 === 0 ? 5 : G.streak % 5;
+  $("#streak").innerHTML = Array.from({length:5}, (_, i) => `<i class="${i < n ? "on" : ""}"></i>`).join("");
+}
+function renderChart(){
+  const max = tableMax(G.level), a = G.active, gone = G.frac >= 1;
+  if (narrowMQ.matches){
+    const h = $("#helper");
+    if (gone || !a){ h.innerHTML = gone ? `<span class="lab">No chart</span> You know these!` : ""; return; }
+    let s = `<span class="lab">${a.r} ×</span>`;
+    for (let c = 1; c <= max; c++){ const hid = G.hidden.has(a.r + "x" + c); s += `<span class="${hid ? "hid" : ""}">${hid ? "?" : a.r * c}</span>`; }
+    h.innerHTML = s; return;
+  }
+  const el = $("#chart");
+  if (gone){ el.innerHTML = `<div class="no-chart"><b>Chart's gone!</b>You've learned these. Answer from memory to keep climbing.</div>`; return; }
+  let s = `<div class="chart-scroll"><table class="tt"><tr><th>×</th>`;
+  for (let c = 1; c <= max; c++) s += `<th class="${a && !a.div && a.c === c ? "hl" : ""}">${c}</th>`;
+  s += "</tr>";
+  for (let r = 1; r <= max; r++){
+    s += `<tr class="${a && a.r === r ? "hlrow" : ""}"><th class="${a && a.r === r ? "hl" : ""}">${r}</th>`;
+    for (let c = 1; c <= max; c++){ const hid = G.hidden.has(r + "x" + c); s += `<td class="${hid ? "hid" : ""}${r === c ? " sq" : ""}">${hid ? "?" : r * c}</td>`; }
+    s += "</tr>";
+  }
+  const pct = Math.round(G.frac * 100);
+  el.innerHTML = s + `</table></div><div class="chart-note">${pct === 0 ? "Full chart showing" : pct + "% of the chart is hidden"}${a && a.div ? ` · find ${a.r*a.c} in row ${a.r}` : ""}</div>`;
+}
+narrowMQ.addEventListener?.("change", () => { if (G) renderChart(); });
+
+function bankGame(){
+  if (!G || G.banked) return;
+  G.banked = true;
+  P.tt.best = Math.max(P.tt.best || 0, G.score); P.tt.bestLevel = Math.max(P.tt.bestLevel || 0, G.level);
+  if (!P.guest) H.save();
+}
+function gameOver(){
+  G.over = true; G.active = null; $("#activeBlock").hidden = true; releaseWake();
+  sfx.over(); bankGame();
+  dialog(`<div class="bigemo">${TH.avatar}</div><h2>${TH.over}</h2>
+    <p>${P.guest ? "Great playing! Guest scores aren't saved." : `Great playing, ${esc(H.first(P))}. Your points are in your bank.`}</p>
+    <div class="results">
+      <div><span>Score</span><b>${fmt(G.score)}</b></div><div><span>Level</span><b>${G.level}</b></div>
+      <div><span>Right answers</span><b>${G.correct}</b></div><div><span>Lines cleared</span><b>${G.lines}</b></div>
+      ${P.guest ? "" : `<div class="money"><span>Earned this game</span><b>${H.money(G.score)}</b></div>`}
+    </div>
+    <p style="color:var(--fg)">${style2emoji()} Fun fact: ${H.funFact(P)}</p>
+    <p>${P.guest ? `Best this visit: ${fmt(P.tt.best)} pts` : `Bank total: ${H.money(P.points)}`}</p>
+    <div class="row"><button class="btn" id="goHome">Back to lessons</button><button class="btn primary" id="again">${P.guest ? "Start over" : "Play again"}</button></div>`);
+  $("#again").onclick = () => { closeDialog(); startGame(); };
+  $("#goHome").onclick = goHome;
+}
+function openPause(){
+  if (!G || G.over) return;
+  pause();
+  dialog(`<h2>Paused</h2><p>Score ${fmt(G.score)} · Level ${G.level}</p>
+    <div class="row">${P.guest ? `<button class="btn" id="restartGame">Start over</button>` : ""}
+      <button class="btn" id="quitGame">${P.guest ? "Back to lessons" : "Back to lessons"}</button>
+      <button class="btn primary" id="resumeGame">Keep playing</button></div>`);
+  $("#resumeGame").onclick = () => { closeDialog(); resume(); };
+  $("#quitGame").onclick = () => { bankGame(); G.over = true; releaseWake(); goHome(); };
+  const rs = $("#restartGame"); if (rs) rs.onclick = () => { G.over = true; releaseWake(); closeDialog(); P.tt.best = 0; P.points = 0; startGame(); };
+}
+function press(k){
+  if (!G || G.paused || G.over || !G.active) return;
+  if (k === "go") return submit();
+  if (k === "del") G.input = G.input.slice(0, -1); else if (G.input.length < 3) G.input += k;
+  $("#ansText").textContent = G.input || "?";
+}
+$("#keypad").addEventListener("pointerdown", e => { const b = e.target.closest("[data-k]"); if (!b) return; e.preventDefault(); press(b.dataset.k); });
+$("#keypad").addEventListener("click", e => { if (e.detail === 0){ const b = e.target.closest("[data-k]"); if (b) press(b.dataset.k); } });
+document.addEventListener("keydown", e => {
+  if (!G || !$("#overlay").hidden) return;
+  if (/^[0-9]$/.test(e.key)){ press(e.key); e.preventDefault(); }
+  else if (e.key === "Backspace"){ press("del"); e.preventDefault(); }
+  else if (e.key === "Enter"){ press("go"); e.preventDefault(); }
+  else if (e.key === "Escape" || e.key === "p") openPause();
+});
+$("#pauseBtn").onclick = openPause;
+$("#resetBtn").onclick = () => {
+  if (!G) return;
+  const wasOver = G.over; pause();
+  dialog(`<h2>Start over?</h2><p>The score and level go back to the beginning.</p>
+    <div class="row"><button class="btn" id="rsNo">Keep playing</button><button class="btn primary" id="rsYes">Start over</button></div>`);
+  $("#rsNo").onclick = () => { closeDialog(); if (!wasOver) resume(); };
+  $("#rsYes").onclick = () => { G.over = true; releaseWake(); closeDialog(); P.tt.best = 0; P.points = 0; startGame(); };
+};
+document.addEventListener("visibilitychange", () => { if (document.hidden && G && !G.paused && !G.over) openPause(); });
+
+/* boot */
+if (!P){
+  dialog(`<h2>Who's playing?</h2><p>Pick a player on the home page first.</p><div class="row"><button class="btn primary" id="toHub">Go to the home page</button></div>`);
+  $("#toHub").onclick = () => { location.href = H.homeUrl; };
+} else {
+  const style = H.style(P);
+  document.documentElement.dataset.style = style;
+  TH = THEMES[style]; CFG = H.ttConfig(P);
+  $("#hudPlayer").innerHTML = `<span style="font-size:24px">${TH.avatar}</span>${esc(H.first(P))}`;
+  $("#resetBtn").hidden = !P.guest;
+  H.mountWallet($("#wallet"), P);
+  startGame();
+}
+})();
+</script>
+</body>
+</html>
