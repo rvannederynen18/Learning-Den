@@ -253,7 +253,7 @@ function endRound(){
     <h2>${R.firstTry >= 8 ? "Trophy catch!" : "Bucket full!"}</h2>
     <p>${R.firstTry} of ${ROUND} caught on the first try. You earned ${R.pts + bonus} points${bonus ? ", including a 20 point bonus" : ""}${P.guest ? "." : ` (${H.money(R.pts + bonus)}).`}</p>
     <p style="color:var(--ink)">${note}</p>
-    <p class="fact">${GIRL ? "🐱" : "🐞"} Fun fact: ${fact}</p>
+    <p class="fact">${GIRL ? "🐱" : "🦔"} Fun fact: ${fact}</p>
     <div class="row"><button class="btn" id="homeB">Back to lessons</button><button class="btn go" id="againB">Fish again</button></div>`;
   $("#overlay").hidden = false;
   H.say(`${R.firstTry >= 8 ? "Trophy catch!" : "Bucket full!"} Fun fact: ${fact}`);

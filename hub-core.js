@@ -70,7 +70,7 @@ const LESSONS = [
 
 const STYLES = {
   girl:{ label:"Girl", theme:"Pink, kitties, cheetahs & beach", avatar:"🐱" },
-  boy: { label:"Boy",  theme:"Sharks, bugs, space, chess & beach", avatar:"🐞" }
+  boy: { label:"Boy",  theme:"Hedgehogs, sharks, bugs, space & chess", avatar:"🦔" }
 };
 /* Fun facts the mascot shares between levels, matched to each style. */
 const FUN = {
@@ -112,7 +112,9 @@ FUN.boy.push(...OCEAN, "Sharks don't have bones. Their skeletons are made of car
   "The whale shark is the biggest fish in the world.","Snakes smell with their tongues.","Snakes don't have eyelids.","Some lizards can drop their tails to escape, then grow new ones.",
   "Chameleons can move each eye in a different direction at the same time.","Komodo dragons are the biggest lizards in the world.",
   "Sloths move so slowly that tiny plants called algae grow on their fur.","Sloths climb down from their trees only about once a week to go potty.",
-  "Sloths can hold their breath underwater for a long time, up to about 40 minutes.");
+  "Sloths can hold their breath underwater for a long time, up to about 40 minutes.",
+  "A hedgehog has thousands of spines, about 5,000 to 7,000!","Hedgehogs roll into a spiky ball to stay safe.","Baby hedgehogs are called hoglets.",
+  "Hedgehogs snuffle and grunt like tiny pigs while they hunt for bugs.","Hedgehogs love to eat beetles, caterpillars and worms.");
 function newId(){ return "p" + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 function newProfile(name, age, gender){
   return { id:newId(), name, age, gender:gender || "girl", color:COLORS[Math.floor(Math.random()*COLORS.length)],

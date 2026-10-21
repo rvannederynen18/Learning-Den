@@ -208,7 +208,7 @@ function renderWho(){
         <div class="who"><div class="avatar">👋</div><div><h2>Guest</h2><div class="sub">For friends and visitors. Nothing is saved.</div></div></div>
         <div class="row">
           <select id="gAge" aria-label="Guest age">${ages.map(a => `<option value="${a}" ${a === g.age ? "selected" : ""}>Age ${a}</option>`).join("")}</select>
-          <div class="seg"><button type="button" data-g="girl" aria-pressed="${g.gender === "girl"}">🐱 Girl</button><button type="button" data-g="boy" aria-pressed="${g.gender === "boy"}">🐞 Boy</button></div>
+          <div class="seg"><button type="button" data-g="girl" aria-pressed="${g.gender === "girl"}">🐱 Girl</button><button type="button" data-g="boy" aria-pressed="${g.gender === "boy"}">🦔 Boy</button></div>
         </div>
         <button class="btn primary go" id="guestGo">Play as guest</button>
       </div>
@@ -323,7 +323,7 @@ function renderPlayers(){
     <div class="field"><label for="f-name">Full name</label><input type="text" id="f-name" maxlength="60" value="${esc(p.name)}"></div>
     <div class="field"><label for="f-age">Age</label><input type="number" id="f-age" min="3" max="18" value="${esc(p.age)}"><span class="hint">Lessons and difficulty follow the age.</span></div>
     <div class="field"><span class="lab">Boy or girl</span>
-      <div class="seg"><button type="button" data-gender="girl" aria-pressed="${p.gender === "girl"}">🐱 Girl</button><button type="button" data-gender="boy" aria-pressed="${p.gender === "boy"}">🐞 Boy</button></div>
+      <div class="seg"><button type="button" data-gender="girl" aria-pressed="${p.gender === "girl"}">🐱 Girl</button><button type="button" data-gender="boy" aria-pressed="${p.gender === "boy"}">🦔 Boy</button></div>
       <span class="hint">Girl: pink and kitties. Boy: bugs, fish, blue and green.</span></div>
     <div class="field"><span class="lab">Card color</span><div class="swatches">${H.COLORS.map(c => `<button type="button" class="swatch" data-color="${c}" style="--c:${c}" aria-label="Color ${c}" aria-pressed="${c === p.color}"></button>`).join("")}</div></div>
     <h3>Lessons</h3>

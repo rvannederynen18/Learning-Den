@@ -215,7 +215,7 @@ function endRound(){
     <h2>${Game.R.first >= 8 ? Game.winTitle : Game.doneTitle}</h2>
     <p>${Game.R.first} of ${ROUND} right on the first try. You earned ${Game.R.pts + bonus} points${bonus ? ", with a 25 point bonus" : ""}${P.guest ? "." : ` (${H.money(Game.R.pts + bonus)}).`}</p>
     <p style="color:var(--ink)">${note}</p>
-    <p class="fact">${GIRL ? "🐱" : "🐞"} Fun fact: ${fact}</p>
+    <p class="fact">${GIRL ? "🐱" : "🦔"} Fun fact: ${fact}</p>
     <div class="row"><button class="btn" id="homeB">Back to lessons</button><button class="btn" id="otherB">Pick another game</button><button class="btn go" id="againB">Play again</button></div>`;
   $("#overlay").hidden = false;
   H.say(`${Game.R.first >= 8 ? Game.winTitle : Game.doneTitle}! Fun fact: ${fact}`);
