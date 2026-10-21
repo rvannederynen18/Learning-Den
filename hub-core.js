@@ -119,8 +119,8 @@ function newProfile(name, age, gender){
     points:0, lifetime:0, paidPoints:0, history:[], lessons:{}, tt:{ best:0, bestLevel:0, custom:null }, ws:{ found:[], best:0 }, ph:{ visited:[], best:0 } };
 }
 function seed(){
-  const d = newProfile("Cecilia Jayne VanNederynen", 8, "girl"); d.color = "#ff8fc7";
-  const s = newProfile("Harrison Ryan VanNederynen", 6, "boy"); s.color = "#22d3ee";
+  const d = newProfile("Player 1", 8, "girl"); d.color = "#ff8fc7";
+  const s = newProfile("Player 2", 6, "boy"); s.color = "#22d3ee";
   return { v:1, profiles:[d, s], settings:{ pointsPerDollar:1000, pin:"", sound:true, voice:true }, payouts:[], active:null,
            guest:{ age:8, gender:"girl" } };
 }
@@ -263,7 +263,7 @@ const Hub = {
     return change > 0 ? `⬆️ Great job! Next round steps up to stage ${stage} of 5.` : change < 0 ? `Next round will be a little easier (stage ${stage} of 5).` : `Stage ${stage} of 5. ${stage < 5 ? "Two great rounds in a row moves you up!" : "Top stage!"}`;
   },
   funFact(p){ const list = FUN[Hub.style(p)]; return list[Math.floor(Math.random() * list.length)]; },
-  /* MASCOT — Den the wolf pops up to cheer. Cecilia's style brings a kitty friend along. */
+  /* MASCOT — Den the wolf pops up to cheer. The girl style brings a kitty friend along. */
   cheer(text, p, ms){
     p = p || Hub.active();
     const girl = Hub.style(p) === "girl";

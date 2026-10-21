@@ -1,6 +1,6 @@
 # The Learning Den
 
-Learning games for Cecilia and Harrison. Each player gets lessons picked for their age and interests, and points from every game go into their bank and turn into allowance.
+Learning games for kids. Each player gets lessons picked for their age and interests, and points from every game go into their bank and turn into allowance.
 
 **Play it here:** https://rvannederynen18.github.io/kids-learning-games/
 
