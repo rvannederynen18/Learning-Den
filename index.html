@@ -276,14 +276,58 @@ function openBank(id){
     <div class="history">${p.history.length ? p.history.slice(0,15).map(h => `<div class="hrow"><span>${esc(lessonTitle(h.lesson))}${h.note ? " · " + esc(h.note) : ""}</span><span class="d">${date(h.d)}</span><b>+${fmt(h.pts)} pts · ${H.money(h.pts)}</b></div>`).join("") : `<p class="note">No points yet. Play a game to start earning.</p>`}</div>`;
   show("bank", H.style(p));
   $("#bankBack").onclick = openBoard;
-  $("#payOut").onclick = () => requirePin(() => {
-    const d = Math.floor(H.dollars(p.points) * 100) / 100;
-    const used = Math.min(p.points, Math.round(d * db().settings.pointsPerDollar));
-    dialog(`<h2>Pay $${d.toFixed(2)}?</h2><p>This takes ${fmt(used)} points out of ${esc(p.name)}'s bank and records the payout.</p>
-      <div class="row"><button class="btn" id="payNo">Cancel</button><button class="btn good" id="payYes">Paid $${d.toFixed(2)}</button></div>`);
-    $("#payNo").onclick = closeDialog;
-    $("#payYes").onclick = () => { p.points -= used; p.paidPoints += used; db().payouts.push({ pid:p.id, date:Date.now(), dollars:d, points:used }); H.save(); closeDialog(); openBank(p.id); };
-  });
+  $("#payOut").onclick = () => requirePin(() => payOut(p.id, () => openBank(p.id)));
+}
+
+/* ---------- Pay out ----------
+   The parent picks how much to pay. That many dollars' worth of points comes off the balance,
+   and the payout is recorded in the bank history. */
+function payOut(id, after){
+  const p = H.profile(id); if (!p || p.guest) return;
+  const rate = db().settings.pointsPerDollar;
+  const max = Math.floor(H.dollars(p.points) * 100) / 100;
+  if (max < .01){ dialog(`<h2>Nothing to pay yet</h2><p>${esc(H.first(p))} has ${fmt(p.points)} points, which is less than 1 cent.</p><div class="row"><button class="btn primary" id="payNo">OK</button></div>`); $("#payNo").onclick = closeDialog; return; }
+  const quick = [1, 5, 10, 20].filter(v => v < max);
+  dialog(`<h2>Pay ${esc(H.first(p))}</h2>
+    <p>Balance: <b>${H.money(p.points)}</b> (${fmt(p.points)} points)</p>
+    <label for="payAmt" style="font-weight:600">Amount to pay ($)</label>
+    <input class="pin-input" id="payAmt" type="number" inputmode="decimal" min="0.01" max="${max.toFixed(2)}" step="0.01" value="${max.toFixed(2)}" style="letter-spacing:0">
+    <div class="row" style="flex-wrap:wrap">${quick.map(v => `<button class="btn small" data-amt="${v}">$${v}</button>`).join("")}<button class="btn small" data-amt="${max.toFixed(2)}">All ${H.money(p.points)}</button></div>
+    <p id="payNote"></p>
+    <div class="err" id="payErr"></div>
+    <div class="row"><button class="btn" id="payNo">Cancel</button><button class="btn good" id="payYes">Pay out</button></div>`);
+  const inp = $("#payAmt");
+  const amount = () => Math.round((Number(inp.value) || 0) * 100) / 100;
+  const note = () => {
+    const d = Math.min(amount(), max), left = Math.max(0, p.points - Math.round(d * rate));
+    $("#payNote").textContent = d > 0 ? `Takes ${fmt(Math.round(d * rate))} points out. ${H.first(p)} will have ${H.money(left)} left.` : "";
+    $("#payYes").textContent = d > 0 ? `Pay $${d.toFixed(2)}` : "Pay out";
+  };
+  inp.oninput = note; note();
+  $("#dialog").querySelectorAll("[data-amt]").forEach(b => b.onclick = () => { inp.value = Number(b.dataset.amt).toFixed(2); note(); });
+  $("#payNo").onclick = closeDialog;
+  $("#payYes").onclick = () => {
+    const d = amount();
+    if (!(d > 0)) return $("#payErr").textContent = "Enter an amount more than $0.";
+    if (d > max) return $("#payErr").textContent = `${H.first(p)} only has ${H.money(p.points)}.`;
+    const used = Math.min(p.points, Math.round(d * rate));
+    p.points -= used; p.paidPoints = (p.paidPoints || 0) + used;
+    db().payouts.push({ pid:p.id, date:Date.now(), dollars:d, points:used });
+    H.save(); closeDialog();
+    if (after) after();
+  };
+  inp.focus(); inp.select();
+}
+/* Undo the most recent payout (for a mistake): puts the points back. */
+function undoPayout(id, after){
+  const list = db().payouts; let i = -1;
+  for (let k = list.length - 1; k >= 0; k--) if (list[k].pid === id){ i = k; break; }
+  if (i < 0) return;
+  const x = list[i], p = H.profile(id);
+  dialog(`<h2>Undo payout?</h2><p>This puts ${fmt(x.points)} points ($${x.dollars.toFixed(2)}) from ${date(x.date)} back into ${esc(H.first(p))}'s bank.</p>
+    <div class="row"><button class="btn" id="unNo">Cancel</button><button class="btn primary" id="unYes">Undo it</button></div>`);
+  $("#unNo").onclick = closeDialog;
+  $("#unYes").onclick = () => { p.points += x.points; p.paidPoints = Math.max(0, (p.paidPoints || 0) - x.points); list.splice(i, 1); H.save(); closeDialog(); if (after) after(); };
 }
 
 /* ---------- Parent settings ---------- */
@@ -387,7 +431,12 @@ function renderAllowance(){
   $("#sBody").innerHTML = `<form class="form" id="aform" autocomplete="off">
     <h3>Allowance</h3>
     <div class="field"><label for="f-ppd">Points for $1.00</label><input type="number" id="f-ppd" min="50" step="50" value="${s.pointsPerDollar}"><span class="hint" id="ppdHint"></span></div>
-    <div class="field"><span class="lab">Current balances</span><span class="hint">${db().profiles.map(p => `${esc(p.name)}: ${H.money(p.points)}`).join(" · ") || "No players yet"}</span></div>
+    <h3>Pay out allowance</h3>
+    <div class="field wide" id="payRows">${db().profiles.length ? db().profiles.map(p => { const last = db().payouts.filter(x => x.pid === p.id).slice(-1)[0]; return `
+      <div class="lessonrow"><span class="ic">${avatar(p)}</span>
+        <div><b>${esc(H.first(p))}: ${H.money(p.points)}</b><span class="hint">${fmt(p.points)} points${last ? ` · last paid $${last.dollars.toFixed(2)} on ${date(last.date)}` : ""}</span></div>
+        <div class="row" style="justify-content:flex-end">${last ? `<button type="button" class="btn small" data-undo="${p.id}">Undo last</button>` : ""}<button type="button" class="btn small primary" data-pay="${p.id}" ${H.dollars(p.points) < .01 ? "disabled" : ""}>Pay out</button></div>
+      </div>`; }).join("") : `<span class="hint">No players yet</span>`}</div>
     <h3>Parent PIN</h3>
     <div class="field"><label for="f-pin">PIN (4 to 8 digits)</label><input type="password" id="f-pin" inputmode="numeric" maxlength="8" value="${esc(s.pin)}" placeholder="No PIN set"><span class="hint">Needed to open settings and pay out. Leave blank for no PIN.</span></div>
     <div class="field"><span class="lab">&nbsp;</span><button type="button" class="btn" id="savePin">Save PIN</button></div>
@@ -403,6 +452,8 @@ function renderAllowance(){
   $("#f-sound").onchange = e => { s.sound = e.target.checked; H.save(); };
   $("#f-voice").onchange = e => { s.voice = e.target.checked; H.save(); };
   $("#aform").onsubmit = e => e.preventDefault();
+  $("#sBody").querySelectorAll("[data-pay]").forEach(b => b.onclick = () => payOut(b.dataset.pay, renderAllowance));
+  $("#sBody").querySelectorAll("[data-undo]").forEach(b => b.onclick = () => undoPayout(b.dataset.undo, renderAllowance));
 }
 function renderBackup(){
   $("#sBody").innerHTML = `<form class="form" autocomplete="off">

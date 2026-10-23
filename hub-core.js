@@ -320,46 +320,19 @@ const Hub = {
 };
 window.Hub = Hub;
 
-/* FULL SCREEN — a button on every Learning Den page.
-   Browsers leave full screen when a new page opens, so if it was on, the next tap anywhere turns it back on. */
-(function fullScreen(){
+/* AUTO FULL SCREEN — every game goes full screen by itself.
+   Browsers only allow full screen right after a tap, so the first tap on a game page
+   (usually the Start button) switches it on. If it drops out (a swipe or Esc), the next tap turns it back on.
+   The home page (lesson list, bank, parent settings) stays normal. iPhones don't allow this for web pages;
+   use Add to Home Screen there instead. */
+(function autoFullScreen(){
   const root = document.documentElement;
-  const canFS = !!(root.requestFullscreen || root.webkitRequestFullscreen);
-  if (!canFS) return;
+  const req = root.requestFullscreen || root.webkitRequestFullscreen;
+  if (!req) return;
+  if (document.getElementById("parentBtn")) return;   /* the home page has the Parent settings button; games don't */
   const isFS = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
-  const want = v => { try { if (v === undefined) return sessionStorage.getItem("den-fs") === "1"; sessionStorage.setItem("den-fs", v ? "1" : "0"); } catch(e){ return false; } };
-  const enter = () => { try { const r = (root.requestFullscreen || root.webkitRequestFullscreen).call(root); if (r && r.catch) r.catch(() => {}); } catch(e){} };
-  const exit = () => { try { const r = (document.exitFullscreen || document.webkitExitFullscreen).call(document); if (r && r.catch) r.catch(() => {}); } catch(e){} };
-  function mount(){
-    const st = document.createElement("style");
-    st.textContent = `.den-fs{position:fixed;right:calc(12px + env(safe-area-inset-right, 0px));bottom:calc(12px + env(safe-area-inset-bottom, 0px));z-index:45;
-  width:52px;height:52px;border-radius:16px;border:3px solid rgba(255,255,255,.85);background:rgba(20,26,53,.82);color:#fff;font-size:24px;line-height:1;cursor:pointer;
-  display:grid;place-items:center;box-shadow:0 4px 14px rgba(0,0,0,.25);padding:0}
-.den-fs:hover{background:rgba(20,26,53,.95)}
-.den-fs:focus-visible{outline:3px solid #ffcf3f;outline-offset:2px}
-.den-fs svg{width:26px;height:26px}`;
-    document.head.append(st);
-    const b = document.createElement("button");
-    b.className = "den-fs"; b.type = "button";
-    const draw = () => {
-      const on = isFS();
-      b.setAttribute("aria-label", on ? "Exit full screen" : "Full screen");
-      b.title = on ? "Exit full screen" : "Full screen";
-      b.innerHTML = on
-        ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>`
-        : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>`;
-    };
-    b.onclick = e => { e.stopPropagation(); if (isFS()){ want(false); exit(); } else { want(true); enter(); } };
-    document.addEventListener("fullscreenchange", draw);
-    document.addEventListener("webkitfullscreenchange", draw);
-    draw();
-    document.body.append(b);
-    /* turn it back on with the first tap on a new page */
-    if (want() && !isFS()){
-      const again = () => { document.removeEventListener("pointerdown", again, true); if (want() && !isFS()) enter(); };
-      document.addEventListener("pointerdown", again, true);
-    }
-  }
-  if (document.body) mount(); else document.addEventListener("DOMContentLoaded", mount);
+  const enter = () => { if (isFS()) return; try { const r = req.call(root); if (r && r.catch) r.catch(() => {}); } catch(e){} };
+  document.addEventListener("pointerdown", enter, true);
+  document.addEventListener("keydown", e => { if (e.key !== "Escape") enter(); }, true);
 })();
 })();

@@ -34,4 +34,6 @@ Each player gets an age level for every lesson. Inside each level there are 5 st
 ## Good to know
 
 - Progress is saved in the browser on each device. Use **Parent settings → Backup** to copy it to another device.
+- **Paying allowance:** Parent settings → Allowance & PIN → **Pay out** next to a player (or the player's bank page). Pick an amount; it comes off their balance and shows in their payout history. **Undo last** fixes a mistake.
+- Games switch to full screen by themselves at the first tap. iPhones don't allow that for web pages, so use **Add to Home Screen** there.
 - To update a file, upload a new version with the same name and it replaces the old one.
