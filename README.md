@@ -31,6 +31,19 @@ Learning games for kids. Each player gets lessons picked for their age and inter
 `index.html` is the home page (players, lessons, bank, parent settings).
 `hub-core.js` holds the shared players, curriculum and points. Every page needs it.
 
+## Kids' hubs (CV-1 and HV-1)
+
+Personal home pages for each kid, kept separate from the Den's lessons and bank.
+
+- `cv-1.html`: **CV-1**, pink hub with chores, fun facts, Watch & Play, My Links, and links for cats, cheetahs, cheer, flowers and more.
+- `hv-1.html`: **HV-1**, mission-control hub with picture chores, a fact that's read out loud with the words lit up, Watch & Play, My Links, and links for space, sharks, reptiles, bugs, fishing and chess.
+
+Open them at https://rvannederynen18.github.io/Learning-Den/cv-1.html and https://rvannederynen18.github.io/Learning-Den/hv-1.html.
+
+- No real names are in these files. Tap **Change my name** at the bottom of the page to type a name on each computer.
+- Chores, stars, added links and the name are saved in that browser only. They never touch the Den's points or money.
+- The Learning Den tile opens this site's home page.
+
 ## Adding a new lesson later
 
 1. Add the new game's `.html` file to the repo.

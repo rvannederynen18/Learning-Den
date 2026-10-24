@@ -1,0 +1,516 @@
+<title>HV-1</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Chakra+Petch:wght@600;700&family=Lexend:wght@400;500;600&display=swap">
+<style>
+/* Layout: big name banner → chores + fact side by side → watch/play tiles → interest link groups. Single committed look per kid. */
+:root{
+  color-scheme:dark;
+  --bg:#071226; --ink:#e6f4ff; --card:#0d1d38; --soft:#132a4d; --line:#1f3d66; --track:#16304f;
+  --accent:#33e0a1; --accentInk:#5ff0b9; --onAccent:#052018; --muted:#8fb0cf; --chip:#133b5e; --chipInk:#7fd8ff;
+  --hero:radial-gradient(120% 140% at 85% 0%,#0d6b7a 0%,#0a2a5c 55%,#06132b 100%); --heroInk:#ffffff;
+  --display:"Baloo 2","Trebuchet MS",system-ui,sans-serif;
+  --logo:"Chakra Petch","Trebuchet MS",sans-serif;
+  --body:"Lexend",system-ui,sans-serif;
+  --r:18px;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:8px}
+
+/* banner */
+.banner{position:relative;overflow:hidden;background:var(--hero);color:var(--heroInk);border-radius:28px;padding:26px 28px;display:flex;flex-wrap:wrap;align-items:center;gap:18px 28px}
+.banner canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.logo{position:relative;font-family:var(--logo);font-weight:800;font-size:clamp(56px,11vw,112px);line-height:.9;letter-spacing:.02em}
+.logo small{display:block;font-family:var(--body);font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;opacity:.85;margin-top:8px}
+.hello{position:relative;flex:1;min-width:220px}
+.hello h1{font-family:var(--display);font-size:clamp(26px,4vw,38px);line-height:1.1;margin:0;text-wrap:balance}
+.hello p{margin:6px 0 0;font-size:17px;opacity:.9}
+.clock{position:relative;text-align:right;font-family:var(--display);font-variant-numeric:tabular-nums}
+.clock b{display:block;font-size:clamp(36px,6vw,56px);line-height:1}
+.clock span{font-size:15px;opacity:.9}
+
+/* sections */
+h2{font-family:var(--display);font-size:24px;margin:0 0 10px;line-height:1.2;display:flex;align-items:center;gap:10px}
+h2 .tag{font-family:var(--body);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;background:var(--chip);color:var(--chipInk);padding:3px 10px;border-radius:99px}
+.row{display:grid;grid-template-columns:1.4fr 1fr;gap:22px}
+@media (max-width:820px){.row{grid-template-columns:1fr}}
+.panel{background:var(--card);border:2px solid var(--line);border-radius:var(--r);padding:20px;min-width:0}
+
+/* chores */
+.stars{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:15px}
+.stars .meter{flex:1;height:14px;background:var(--track);border-radius:99px;overflow:hidden}
+.stars .fill{height:100%;width:0;background:var(--accent);border-radius:99px;transition:width .4s}
+.stars b{font-family:var(--display);font-size:20px;font-variant-numeric:tabular-nums}
+ul.chores{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.chore{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;background:var(--soft);cursor:pointer;user-select:none;border:2px solid transparent}
+.chore:hover{border-color:var(--line)}
+.chore input{appearance:none;width:30px;height:30px;flex:none;border-radius:10px;border:3px solid var(--accent);background:var(--card);display:grid;place-items:center;cursor:pointer;margin:0}
+.chore input:checked{background:var(--accent)}
+.chore input:checked::after{content:"";width:9px;height:15px;border:solid var(--onAccent);border-width:0 4px 4px 0;transform:translateY(-2px) rotate(45deg)}
+.chore .t{flex:1;font-size:17px;font-weight:500}
+.chore.done .t{text-decoration:line-through;opacity:.6}
+.chore .ci{font-size:30px;line-height:1;width:38px;text-align:center;flex:none}
+.chore .say,.chore .x{background:var(--card);border:2px solid var(--line);border-radius:10px;font:600 14px var(--body);min-width:38px;height:36px;padding:0 8px;cursor:pointer;flex:none;color:var(--ink)}
+.chore .say{font-size:18px}
+.chore .x{color:var(--muted)}
+.chore .x.sure{background:#e03131;border-color:#e03131;color:#fff}
+.choreTools{display:flex;justify-content:flex-end;margin-top:8px}
+.linkBtn{background:none;border:0;color:var(--muted);font:500 13px var(--body);text-decoration:underline;cursor:pointer;padding:4px}
+.add{display:flex;gap:8px;margin-top:12px}
+.add input{flex:1;min-width:0;font:inherit;padding:10px 12px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink)}
+.btn{font:600 15px var(--body);padding:10px 16px;border-radius:12px;border:0;background:var(--accent);color:var(--onAccent);cursor:pointer}
+.btn.ghost{background:var(--soft);color:var(--ink)}
+.cheer{margin-top:12px;font-family:var(--display);font-size:18px;color:var(--accentInk);min-height:1.5em}
+
+/* fact */
+.fact{display:flex;flex-direction:column;gap:12px}
+.fact .ficon{font-size:64px;line-height:1}
+.fact .big{font-family:var(--display);font-size:22px;line-height:1.3;text-wrap:pretty}
+.fact .w{border-radius:6px;padding:0 2px;margin:0 -2px;transition:background .12s,color .12s}
+.fact .w.on{background:var(--accent);color:var(--onAccent)}
+.fact .w.read{color:var(--accentInk)}
+.fact .src{font-size:13px;color:var(--muted)}
+.pets{display:flex;flex-wrap:wrap;gap:8px}
+.pets span .pi{font-size:22px;margin-right:4px;vertical-align:-3px}
+.pets span{background:var(--chip);color:var(--chipInk);padding:6px 12px;border-radius:99px;font-size:14px;font-weight:500}
+
+/* tiles */
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+.tile{display:flex;flex-direction:column;justify-content:space-between;min-height:110px;padding:16px;border-radius:var(--r);text-decoration:none;color:#fff;font-family:var(--display);font-size:22px;font-weight:700;line-height:1.1;transition:transform .15s,box-shadow .15s;box-shadow:0 3px 0 rgba(0,0,0,.18)}
+.tile .ti{font-size:40px;line-height:1}
+.tile small{font-family:var(--body);font-size:13px;font-weight:500;opacity:.9}
+.tile:hover{transform:translateY(-3px) rotate(-1deg);box-shadow:0 8px 0 rgba(0,0,0,.18)}
+
+/* my links */
+.mywrap{position:relative;display:flex;min-width:0}
+.mywrap .tile{flex:1;min-width:0;word-break:break-word}
+.mywrap .del{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.28);color:#fff;border:0;border-radius:10px;font:600 13px var(--body);min-width:32px;height:30px;padding:0 8px;cursor:pointer}
+.mywrap .del.sure{background:#e03131}
+.linkForm{display:grid;grid-template-columns:1fr 2fr auto auto;gap:8px;margin-top:12px;align-items:center}
+.linkForm input,.linkForm select{font:inherit;padding:10px 12px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);min-width:0}
+@media (max-width:640px){.linkForm{grid-template-columns:1fr 1fr}.linkForm input[type=url]{grid-column:1/-1;grid-row:2}}
+.note{font-size:14px;color:var(--muted);margin:6px 0 0;min-height:1.2em}
+.empty{border:2px dashed var(--line);border-radius:var(--r);padding:18px;color:var(--muted);text-align:center}
+/* link groups */
+.groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.group h3{font-family:var(--display);font-size:19px;margin:0 0 8px;display:flex;gap:8px;align-items:center}
+.group h3 em{font-style:normal;font-size:28px;line-height:1}
+.group a .li{font-style:normal;font-size:22px;width:28px;text-align:center;flex:none}
+.group a b{flex:1}
+.group h3 i{width:14px;height:14px;border-radius:5px;background:var(--dot);flex:none;display:inline-block}
+.group ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px}
+.group a{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:10px;text-decoration:none;font-weight:500}
+.group a:hover{background:var(--soft)}
+.group a span{color:var(--muted);font-size:13px;font-weight:400;text-align:right}
+footer{text-align:center;color:var(--muted);font-size:13px}
+/* touch: big pressable buttons everywhere */
+a,button,input,select,label{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.btn{min-height:52px;padding:12px 20px;font-size:17px;border-radius:14px;box-shadow:0 4px 0 rgba(0,0,0,.18);transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.18)}
+.add input,.linkForm input,.linkForm select{min-height:52px;font-size:17px}
+.chore{min-height:64px;padding:10px 12px}
+.chore input{width:40px;height:40px;border-radius:12px}
+.chore input:checked::after{width:11px;height:20px}
+.chore .say,.chore .x{min-width:48px;height:48px;border-radius:12px;font-size:20px}
+.chore .x.sure{font-size:14px}
+.chore:active{transform:scale(.99)}
+.mywrap .del{min-width:44px;height:44px;font-size:18px;top:6px;right:6px}
+.tile{min-height:120px}
+.tile:active{transform:translateY(2px) scale(.98);box-shadow:0 1px 0 rgba(0,0,0,.18)}
+.group ul{gap:8px}
+.group a{min-height:58px;align-items:center;padding:10px 14px;background:var(--soft);border:2px solid var(--line);border-radius:14px;box-shadow:0 3px 0 var(--line);transition:transform .08s,box-shadow .08s,border-color .15s}
+.group a:hover{background:var(--soft);border-color:var(--accent)}
+.group a:active{transform:translateY(3px);box-shadow:0 0 0 var(--line)}
+.group a b{font-weight:600;font-size:17px}
+.group a::after{content:"›";font-size:26px;line-height:1;color:var(--muted);margin-left:2px}
+.choreTools .btn{min-height:44px;font-size:15px;padding:8px 14px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="banner">
+    <canvas id="fx" aria-hidden="true"></canvas>
+    <div class="logo">HV-1<small>My mission control</small></div>
+    <div class="hello"><h1 id="greet">Hi!</h1><p id="sub">Finish your missions, then explore.</p></div>
+    <div class="clock"><b id="time">--:--</b><span id="date"></span></div>
+  </header>
+
+  <div class="row">
+    <section class="panel" aria-labelledby="chH">
+      <h2 id="chH">Today's Chores <span class="tag" id="starTag">0 stars</span></h2>
+      <div class="stars"><b id="cnt">0/0</b><div class="meter"><div class="fill" id="fill"></div></div></div>
+      <ul class="chores" id="chores"></ul>
+      <form class="add" id="addForm">
+        <label for="newChore" hidden>New chore</label>
+        <input id="newChore" placeholder="Add a chore…" maxlength="60" autocomplete="off">
+        <button class="btn" type="submit">+ Add</button>
+      </form>
+      <div class="choreTools"><button class="btn ghost" id="resetChores" type="button">Put back the original chores</button></div>
+      <div class="cheer" id="cheer" aria-live="polite"></div>
+    </section>
+
+    <section class="panel fact" aria-labelledby="fH">
+      <h2 id="fH">Science Report <span class="tag">Fact of the day</span></h2>
+      <div class="ficon" id="ficon" aria-hidden="true"></div><div class="big" id="fact"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="readFact" type="button" hidden>Read it to me</button><button class="btn ghost" id="nextFact" type="button">Another fact</button></div>
+      <h2 style="margin-top:8px;font-size:20px">Pet roll call</h2>
+      <div class="pets"><span><span class="pi" aria-hidden="true">🐈</span>2 tabby cats</span><span><span class="pi" aria-hidden="true">🐕</span>Aspyn the golden retriever</span><span><span class="pi" aria-hidden="true">🦔</span>Poppi the hedgehog</span><span><span class="pi" aria-hidden="true">🐢</span>Donnie the tortoise (visitor)</span></div>
+    </section>
+  </div>
+
+  <section aria-labelledby="wH">
+    <h2 id="wH">Watch &amp; Play</h2>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <section aria-labelledby="mH">
+    <h2 id="mH">My Links <span class="tag">Add your own</span></h2>
+    <div class="tiles" id="myLinks"></div>
+    <form class="linkForm" id="linkForm">
+      <label for="lkName" hidden>Name</label><input id="lkName" placeholder="Name" maxlength="30" autocomplete="off">
+      <label for="lkUrl" hidden>Link</label><input id="lkUrl" type="url" placeholder="Paste a link here" autocomplete="off">
+      <label for="lkIcon" hidden>Picture</label><select id="lkIcon"></select>
+      <button class="btn" type="submit">+ Add link</button>
+    </form>
+    <p class="note" id="lkNote" aria-live="polite"></p>
+    <div class="choreTools" style="justify-content:flex-start;flex-wrap:wrap;gap:8px">
+      <button class="btn ghost" id="denEdit" type="button">Change the Learning Den link</button>
+    </div>
+    <form class="linkForm" id="denForm" hidden style="grid-template-columns:3fr auto auto">
+      <label for="denUrl" hidden>Learning Den link</label><input id="denUrl" type="url" placeholder="Paste your Learning Den link" autocomplete="off">
+      <button class="btn" type="submit">Save</button>
+      <button class="btn ghost" type="button" id="denReset">Use original</button>
+    </form>
+  </section>
+
+  <section aria-labelledby="lH">
+    <h2 id="lH">Explorer Zone</h2>
+    <div class="groups" id="groups"></div>
+  </section>
+
+  <footer>
+    <div>HV-1 · chores reset every morning · stars stay on this computer</div>
+    <div class="choreTools" style="justify-content:center;flex-wrap:wrap;gap:8px">
+      <button class="btn ghost" id="nameEdit" type="button">Change my name</button>
+    </div>
+    <form class="linkForm" id="nameForm" hidden style="grid-template-columns:3fr auto;max-width:480px;margin:8px auto 0">
+      <label for="nameIn" hidden>Name</label><input id="nameIn" placeholder="Type your name" maxlength="20" autocomplete="off">
+      <button class="btn" type="submit">Save</button>
+    </form>
+  </footer>
+</div>
+
+<script>
+const CFG = {"id": "hv1", "name": "Commander", "chores": [{"t": "Make my bed", "i": "\ud83d\udecf\ufe0f"}, {"t": "Brush teeth", "i": "\ud83e\udea5"}, {"t": "Feed Poppi", "i": "\ud83e\udd94\ud83c\udf7d\ufe0f"}, {"t": "Check Poppi's water", "i": "\ud83e\udd94\ud83d\udca7"}, {"t": "Check on Donnie", "i": "\ud83d\udc22"}, {"t": "Put toys away", "i": "\ud83e\uddf8"}, {"t": "Read with Mom or Dad", "i": "\ud83d\udcd6"}, {"t": "Evening: feed Aspyn & fill her water", "i": "\ud83d\udc15\ud83c\udf19"}], "cheers": ["Blast off!", "Shark attack of awesome!", "Checkmate!", "Gator power!", "Mission complete!", "Speedy as a\u2026 not a sloth!"], "allDone": "All missions complete, Commander! Free time unlocked.", "facts": [{"i": "\ud83d\udef0\ufe0f", "t": "The Space Station zooms around Earth about every 90 minutes, so astronauts see around 16 sunrises a day."}, {"i": "\ud83e\ude90", "t": "A day on Venus is longer than a year on Venus."}, {"i": "\ud83e\ude90", "t": "Jupiter's Great Red Spot is a giant storm bigger than the whole Earth."}, {"i": "\ud83e\udd88", "t": "Sharks were around before trees. Sharks are about 450 million years old; trees are about 385 million."}, {"i": "\ud83e\uddb7", "t": "Sharks lose and regrow teeth their whole lives. Some go through thousands."}, {"i": "\ud83e\udda5", "t": "Sloths can hold their breath for up to 40 minutes. That's longer than dolphins!"}, {"i": "\ud83c\udf44", "t": "Some mushrooms glow in the dark. People call it foxfire."}, {"i": "\ud83e\udeb0", "t": "Dragonflies catch their food about 95 out of 100 times. They're the best hunters in the bug world."}, {"i": "\ud83d\udc0d", "t": "Snakes smell with their tongues. Flick, flick, sniff!"}, {"i": "\ud83d\udc0a", "t": "Alligators can live more than 50 years."}, {"i": "\u265f\ufe0f", "t": "There are more possible chess games than atoms in the whole universe."}, {"i": "\ud83d\udc22", "t": "Florida gopher tortoises dig burrows that more than 350 other kinds of animals use as homes."}, {"i": "\u2728", "t": "Fireflies make their own light with chemicals inside their bodies."}], "tiles": [{"name": "YouTube Kids", "kind": "Watch", "url": "https://www.youtubekids.com", "color": "#1e6fd9", "icon": "\u25b6\ufe0f"}, {"name": "YouTube", "kind": "Watch", "url": "https://www.youtube.com", "color": "#14a37f", "icon": "\ud83d\udcfa"}, {"name": "Disney+", "kind": "Watch", "url": "https://www.disneyplus.com", "color": "#2b8bd6", "icon": "\ud83c\udff0"}, {"name": "Netflix", "kind": "Watch", "url": "https://www.netflix.com", "color": "#0f8a6a", "icon": "\ud83c\udf7f"}, {"name": "Hulu", "kind": "Watch", "url": "https://www.hulu.com", "color": "#3b5bdb", "icon": "\ud83d\udcfa"}, {"name": "Roblox", "kind": "Play", "url": "https://www.roblox.com", "color": "#119da4", "icon": "\ud83c\udfae"}, {"name": "PBS Kids", "kind": "Play", "url": "https://pbskids.org/games", "color": "#2f9e44", "icon": "\ud83e\udde9"}, {"name": "The Learning Den", "kind": "Learn", "url": "./index.html", "color": "#1864ab", "icon": "\ud83d\udc3a"}], "groups": [{"title": "Space Mission Control", "icon": "\ud83d\ude80", "color": "#7fd8ff", "links": [["NASA Space Place", "https://spaceplace.nasa.gov", "Games & facts", "\ud83e\ude90"], ["NASA Kids Club", "https://www.nasa.gov/kidsclub", "NASA", "\ud83d\udc69\u200d\ud83d\ude80"], ["Spot the Station", "https://spotthestation.nasa.gov", "See the ISS fly over", "\ud83d\udef0\ufe0f"], ["Rocket Launches", "https://www.kennedyspacecenter.com/launches-and-events", "Kennedy Space Center", "\ud83d\ude80"]]}, {"title": "Sharks & Ocean", "icon": "\ud83e\udd88", "color": "#2b8bd6", "links": [["Shark Tracker", "https://www.ocearch.org/tracker/", "Real sharks, live", "\ud83d\uddfa\ufe0f"], ["Aquarium Live Cams", "https://www.montereybayaquarium.org/animals/live-cams", "Monterey Bay", "\ud83d\udc20"], ["Marineland", "https://marineland.net", "Dolphins nearby", "\ud83d\udc2c"]]}, {"title": "Reptiles & Gators", "icon": "\ud83d\udc0a", "color": "#33e0a1", "links": [["Alligator Farm", "https://www.alligatorfarm.com", "St. Augustine", "\ud83d\udc0a"], ["Reptile Facts", "https://kids.nationalgeographic.com/animals/reptiles", "Nat Geo Kids", "\ud83e\udd8e"], ["Live Animal Cams", "https://explore.org/livecams", "Sloths, bears & more", "\ud83e\udda5"]]}, {"title": "Bugs, Trees & Mushrooms", "icon": "\ud83d\udc1b", "color": "#94d82d", "links": [["Bug Facts", "https://kids.nationalgeographic.com/animals/invertebrates", "Nat Geo Kids", "\ud83d\udc1e"], ["Seek Nature App", "https://www.inaturalist.org/pages/seek_app", "Identify bugs & plants", "\ud83d\udd0d"], ["Nature Videos", "https://www.youtube.com/results?search_query=bugs+for+kids", "YouTube", "\ud83c\udf44"]]}, {"title": "Fishing", "icon": "\ud83c\udfa3", "color": "#119da4", "links": [["Take Me Fishing", "https://www.takemefishing.org", "Learn to fish", "\ud83c\udfa3"], ["Florida Fishing", "https://myfwc.com/fishing/", "FWC", "\ud83d\udc1f"], ["Fish ID Videos", "https://www.youtube.com/results?search_query=florida+fish+for+kids", "YouTube", "\ud83d\udc21"]]}, {"title": "Chess & Brain Games", "icon": "\u265f\ufe0f", "color": "#ffd43b", "links": [["ChessKid", "https://www.chesskid.com", "Play & learn chess", "\u265f\ufe0f"], ["The Learning Den", "./index.html", "Our games", "\ud83d\udc3a"], ["PBS Kids Games", "https://pbskids.org/games", "PBS", "\ud83e\udde9"]]}, {"title": "Sports", "icon": "\ud83c\udfd2", "color": "#ff8787", "links": [["NHL", "https://www.nhl.com", "Hockey scores", "\ud83c\udfd2"], ["Jacksonville Icemen", "https://www.jacksonvilleicemen.com", "Local hockey", "\ud83e\udd45"], ["Jaguars", "https://www.jaguars.com", "Jacksonville football", "\ud83c\udfc8"]]}], "fx": {"kind": "star", "count": 60, "color": "#9ff7ff"}, "readAloud": true};
+const KEY = CFG.id;
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(KEY+":"+k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(KEY+":"+k, JSON.stringify(v)); }catch(e){} }
+};
+
+/* clock + greeting */
+function tick(){
+  const n = new Date();
+  document.getElementById("time").textContent = n.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+  document.getElementById("date").textContent = n.toLocaleDateString([], {weekday:"long", month:"long", day:"numeric"});
+  const h = n.getHours();
+  const part = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+  document.getElementById("greet").textContent = part + ", " + store.get("name", CFG.name) + "!";
+}
+tick(); setInterval(tick, 15000);
+const nameForm = document.getElementById("nameForm"), nameIn = document.getElementById("nameIn");
+document.getElementById("nameEdit").addEventListener("click", () => {
+  nameForm.hidden = !nameForm.hidden;
+  if (!nameForm.hidden){ nameIn.value = store.get("name", CFG.name); nameIn.focus(); }
+});
+nameForm.addEventListener("submit", e => {
+  e.preventDefault();
+  const v = nameIn.value.trim();
+  if (v) store.set("name", v);
+  nameForm.hidden = true; tick();
+});
+
+/* chores */
+const today = new Date().toISOString().slice(0,10);
+const norm = c => typeof c === "string" ? {t:c, i:""} : c;
+let list = store.get("chores3", CFG.chores.map(norm)).map(norm);
+let done = store.get("done:"+today, []);
+let stars = store.get("stars", 0);
+const ul = document.getElementById("chores");
+function save(){ store.set("chores3", list); store.set("done:"+today, done); store.set("stars", stars); }
+function render(){
+  ul.innerHTML = "";
+  list.forEach((c, i) => {
+    const li = document.createElement("li");
+    const on = done.includes(c.t);
+    li.className = "chore" + (on ? " done" : "");
+    const id = "c" + i;
+    li.innerHTML = `<input type="checkbox" id="${id}" ${on?"checked":""}>${c.i?'<span class="ci" aria-hidden="true"></span>':''}<label class="t" for="${id}"></label>${CFG.readAloud?'<button class="say" type="button" aria-label="Say it">🔊</button>':''}<button class="x" type="button" aria-label="Delete chore">🗑</button>`;
+    li.querySelector("label").textContent = c.t;
+    if (c.i) li.querySelector(".ci").textContent = c.i;
+    const sb = li.querySelector(".say");
+    if (sb) sb.addEventListener("click", () => sayText(c.t));
+    li.querySelector("input").addEventListener("change", e => {
+      if (e.target.checked){ done.push(c.t); stars++; }
+      else { done = done.filter(d => d !== c.t); stars = Math.max(0, stars-1); }
+      save(); render();
+      if (e.target.checked) cheer();
+    });
+    const xb = li.querySelector(".x");
+    xb.addEventListener("click", () => {
+      if (!xb.classList.contains("sure")){
+        xb.classList.add("sure"); xb.textContent = "Delete?";
+        setTimeout(() => { if (xb.isConnected){ xb.classList.remove("sure"); xb.textContent = "🗑"; } }, 3000);
+        return;
+      }
+      list.splice(i,1); done = done.filter(d=>d!==c.t); save(); render();
+    });
+    li.addEventListener("click", e => { if (e.target === li) li.querySelector("input").click(); });
+    ul.appendChild(li);
+  });
+  const d = done.filter(x => list.some(c => c.t === x)).length;
+  document.getElementById("cnt").textContent = d + "/" + list.length;
+  document.getElementById("fill").style.width = (list.length ? d/list.length*100 : 0) + "%";
+  document.getElementById("starTag").textContent = stars + (stars === 1 ? " star" : " stars");
+  if (list.length && d === list.length) document.getElementById("cheer").textContent = CFG.allDone;
+}
+function cheer(){
+  const d = done.filter(x => list.some(c => c.t === x)).length;
+  if (d === list.length) return;
+  document.getElementById("cheer").textContent = CFG.cheers[Math.floor(Math.random()*CFG.cheers.length)];
+  burst();
+}
+document.getElementById("addForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const v = document.getElementById("newChore").value.trim();
+  if (v && !list.some(c => c.t === v)){ list.push({t:v, i: CFG.readAloud ? "⭐" : ""}); save(); render(); }
+  document.getElementById("newChore").value = "";
+});
+const rb = document.getElementById("resetChores");
+rb.addEventListener("click", () => {
+  if (rb.dataset.sure !== "1"){ rb.dataset.sure = "1"; rb.textContent = "Tap again to put back the original list"; setTimeout(()=>{rb.dataset.sure="";rb.textContent="Put back the original chores";},3000); return; }
+  list = CFG.chores.map(norm); rb.dataset.sure = ""; rb.textContent = "Put back the original chores"; save(); render();
+});
+
+/* fact */
+const dayNum = Math.floor(Date.now()/864e5);
+let fi = dayNum % CFG.facts.length;
+const factEl = document.getElementById("fact");
+function showFact(){
+  factEl.innerHTML = "";
+  const f = norm(CFG.facts[fi]);
+  document.getElementById("ficon").textContent = f.i || "";
+  document.getElementById("ficon").hidden = !f.i;
+  f.t.split(/(\s+)/).forEach(part => {
+    if (/^\s+$/.test(part) || !part) { factEl.appendChild(document.createTextNode(part)); return; }
+    const sp = document.createElement("span"); sp.className = "w"; sp.textContent = part; factEl.appendChild(sp);
+  });
+}
+const canSpeak = CFG.readAloud && "speechSynthesis" in window;
+const readBtn = document.getElementById("readFact");
+let timer = null, speaking = false;
+function clearHL(){ factEl.querySelectorAll(".w").forEach(w => w.classList.remove("on","read")); }
+function highlight(i){
+  const ws = factEl.querySelectorAll(".w");
+  ws.forEach((w, k) => { w.classList.toggle("on", k === i); w.classList.toggle("read", k < i); });
+}
+function sayText(t){
+  if (!canSpeak) return;
+  stopRead();
+  const u = new SpeechSynthesisUtterance(t); u.rate = 0.85;
+  const v = pickVoice(); if (v) u.voice = v;
+  speechSynthesis.speak(u);
+}
+function stopRead(){
+  clearTimeout(timer); timer = null; speaking = false;
+  try{ speechSynthesis.cancel(); }catch(e){}
+  readBtn.textContent = "Read it to me";
+}
+function pickVoice(){
+  const vs = speechSynthesis.getVoices().filter(v => /^en(-|_)US/i.test(v.lang));
+  return vs.find(v => /samantha|google us english|aria|jenny|zira/i.test(v.name)) || vs[0] || null;
+}
+function readFact(){
+  stopRead(); clearHL();
+  const words = [...factEl.querySelectorAll(".w")];
+  const text = words.map(w => w.textContent).join(" ");
+  const starts = []; let pos = 0;
+  words.forEach(w => { starts.push(pos); pos += w.textContent.length + 1; });
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate = 0.85; u.pitch = 1.05;
+  const v = pickVoice(); if (v) u.voice = v;
+  let gotBoundary = false;
+  u.onboundary = e => {
+    if (e.name && e.name !== "word") return;
+    gotBoundary = true; clearTimeout(timer);
+    let i = 0; while (i+1 < starts.length && starts[i+1] <= e.charIndex) i++;
+    highlight(i);
+  };
+  u.onstart = () => {
+    highlight(0);
+    // Some voices never report word positions; step through words by length instead.
+    let i = 0;
+    const step = () => {
+      if (gotBoundary || !speaking) return;
+      highlight(i);
+      const len = words[i].textContent.replace(/[^\w]/g,"").length;
+      const pause = /[.!?,;:]$/.test(words[i].textContent) ? 260 : 0;
+      timer = setTimeout(() => { if (++i < words.length) step(); }, (170 + len*55)/u.rate + pause);
+    };
+    timer = setTimeout(step, 250);
+  };
+  u.onend = () => { clearTimeout(timer); speaking = false; highlight(words.length); readBtn.textContent = "Read it again"; };
+  u.onerror = () => stopRead();
+  speaking = true; readBtn.textContent = "Stop";
+  speechSynthesis.speak(u);
+}
+if (canSpeak){
+  readBtn.hidden = false;
+  try{ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => {}; }catch(e){}
+  readBtn.addEventListener("click", () => { speaking ? stopRead() : readFact(); });
+}
+document.getElementById("nextFact").addEventListener("click", () => {
+  fi = (fi+1) % CFG.facts.length; stopRead(); showFact();
+  if (canSpeak) readFact();
+});
+showFact();
+
+/* tiles */
+const tiles = document.getElementById("tiles");
+const DEN_DEFAULT = (CFG.tiles.find(t => t.name === "The Learning Den") || {}).url;
+function fixUrl(v){
+  v = (v || "").trim(); if (!v) return null;
+  if (!/^[a-z][a-z0-9+.-]*:/i.test(v)) v = "https://" + v;
+  try { const u = new URL(v); return /^https?:$/.test(u.protocol) ? u.href : "bad"; } catch(e){ return null; }
+}
+CFG.tiles.forEach(t => {
+  if (t.name === "The Learning Den") t = Object.assign({}, t, {url: store.get("denUrl", t.url)});
+  const a = document.createElement("a");
+  a.className = "tile"; a.href = t.url;
+  if (t.name === "The Learning Den") a.id = "denTile"; a.target = "_blank"; a.rel = "noopener";
+  a.style.background = t.color;
+  a.innerHTML = `${t.icon?'<span class="ti" aria-hidden="true"></span>':''}<small></small><span class="tn"></span>`;
+  if (t.icon) a.querySelector(".ti").textContent = t.icon;
+  a.querySelector("small").textContent = t.kind;
+  a.querySelector(".tn").textContent = t.name;
+  tiles.appendChild(a);
+});
+
+/* my links */
+const myBox = document.getElementById("myLinks");
+const ICONS = CFG.readAloud ? ["⭐","🎮","📺","🚀","🦈","🐊","🐛","🎣","♟️","🏒","🐺","🎨"] : ["⭐","🐱","🌸","📣","🐆","🦊","🎨","💖","📺","🎮","🐺","🏒"];
+const sel = document.getElementById("lkIcon");
+ICONS.forEach(i => { const o = document.createElement("option"); o.value = i; o.textContent = i; sel.appendChild(o); });
+let mine = store.get("myLinks", []);
+const myColors = CFG.tiles.map(t => t.color);
+function renderMine(){
+  myBox.innerHTML = "";
+  if (!mine.length){ const e = document.createElement("div"); e.className = "empty"; e.textContent = "No links yet. Paste one below."; myBox.appendChild(e); return; }
+  mine.forEach((m, i) => {
+    const w = document.createElement("div"); w.className = "mywrap";
+    w.innerHTML = `<a class="tile" target="_blank" rel="noopener"><span class="ti" aria-hidden="true"></span><small></small><span class="tn"></span></a><button class="del" type="button" aria-label="Delete link">🗑</button>`;
+    const a = w.querySelector("a"); a.href = m.url; a.style.background = myColors[i % myColors.length];
+    w.querySelector(".ti").textContent = m.icon || "⭐";
+    try { w.querySelector("small").textContent = new URL(m.url).hostname.replace(/^www\./, ""); } catch(e){}
+    w.querySelector(".tn").textContent = m.name;
+    const d = w.querySelector(".del");
+    d.addEventListener("click", () => {
+      if (!d.classList.contains("sure")){ d.classList.add("sure"); d.textContent = "Delete?"; setTimeout(() => { if (d.isConnected){ d.classList.remove("sure"); d.textContent = "🗑"; } }, 3000); return; }
+      mine.splice(i, 1); store.set("myLinks", mine); renderMine();
+    });
+    myBox.appendChild(w);
+  });
+}
+const note = document.getElementById("lkNote");
+document.getElementById("linkForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const url = fixUrl(document.getElementById("lkUrl").value);
+  if (!url){ note.textContent = "Paste a web link first, like https://www.example.com."; return; }
+  if (url === "bad"){ note.textContent = "That link only works on one computer. Use a link that starts with https://."; return; }
+  let name = document.getElementById("lkName").value.trim();
+  if (!name){ try { name = new URL(url).hostname.replace(/^www\./, ""); } catch(e){ name = "My link"; } }
+  mine.push({ name, url, icon: sel.value }); store.set("myLinks", mine); renderMine();
+  document.getElementById("lkName").value = ""; document.getElementById("lkUrl").value = "";
+  note.textContent = "Added " + name + ".";
+});
+renderMine();
+
+/* learning den link */
+const denForm = document.getElementById("denForm"), denUrl = document.getElementById("denUrl");
+document.getElementById("denEdit").addEventListener("click", () => {
+  denForm.hidden = !denForm.hidden;
+  if (!denForm.hidden){ denUrl.value = store.get("denUrl", DEN_DEFAULT) || ""; denUrl.focus(); }
+});
+function setDen(u, msg){ const t = document.getElementById("denTile"); if (t) t.href = u; note.textContent = msg; denForm.hidden = true; }
+denForm.addEventListener("submit", e => {
+  e.preventDefault();
+  const url = fixUrl(denUrl.value);
+  if (!url){ note.textContent = "Paste the Learning Den link first."; return; }
+  if (url === "bad"){ note.textContent = "That link only works on one computer. Use the Den's https:// link."; return; }
+  store.set("denUrl", url); setDen(url, "The Learning Den tile now opens your link.");
+});
+document.getElementById("denReset").addEventListener("click", () => {
+  try { localStorage.removeItem(KEY + ":denUrl"); } catch(e){}
+  setDen(DEN_DEFAULT, "The Learning Den tile is back to the original link.");
+});
+
+/* link groups */
+const groups = document.getElementById("groups");
+CFG.groups.forEach(g => {
+  const s = document.createElement("div");
+  s.className = "panel group";
+  s.innerHTML = `<h3>${g.icon?'<em aria-hidden="true"></em>':'<i></i>'}<span></span></h3><ul></ul>`;
+  if (g.icon) s.querySelector("em").textContent = g.icon; else s.querySelector("i").style.background = g.color;
+  s.querySelector("h3 > span").textContent = g.title;
+  const ul2 = s.querySelector("ul");
+  g.links.forEach(l => {
+    const li = document.createElement("li");
+    li.innerHTML = `<a target="_blank" rel="noopener">${l[3]?'<em class="li" aria-hidden="true"></em>':''}<b></b><span></span></a>`;
+    if (l[3]) li.querySelector(".li").textContent = l[3];
+    li.querySelector("a").href = l[1];
+    li.querySelector("b").textContent = l[0];
+    li.querySelector("a > span").textContent = l[2] || "";
+    ul2.appendChild(li);
+  });
+  groups.appendChild(s);
+});
+
+/* banner effect */
+const cv = document.getElementById("fx"), ctx = cv.getContext("2d");
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let W, H, parts = [];
+function size(){ const r = cv.getBoundingClientRect(); W = cv.width = r.width*devicePixelRatio; H = cv.height = r.height*devicePixelRatio; }
+size(); addEventListener("resize", size);
+for (let i=0;i<CFG.fx.count;i++) parts.push({x:Math.random(),y:Math.random(),s:Math.random()*0.8+0.4,p:Math.random()*6.28,v:Math.random()*0.0006+0.0002});
+function shape(x,y,r,a){
+  ctx.globalAlpha = a; ctx.fillStyle = CFG.fx.color;
+  if (CFG.fx.kind === "paw"){
+    ctx.beginPath(); ctx.ellipse(x,y+r*0.35,r*0.55,r*0.45,0,0,6.28); ctx.fill();
+    [[-0.55,-0.25],[-0.2,-0.6],[0.2,-0.6],[0.55,-0.25]].forEach(([dx,dy])=>{ctx.beginPath();ctx.arc(x+dx*r,y+dy*r,r*0.2,0,6.28);ctx.fill();});
+  } else {
+    ctx.beginPath();
+    for(let k=0;k<8;k++){const rr=k%2?r*0.28:r;const an=k*Math.PI/4;ctx.lineTo(x+Math.cos(an)*rr,y+Math.sin(an)*rr);}
+    ctx.closePath(); ctx.fill();
+  }
+}
+let bursts = [];
+function burst(){ for(let i=0;i<14;i++) bursts.push({x:0.5,y:0.5,dx:(Math.random()-.5)*0.02,dy:(Math.random()-.5)*0.03,life:1}); }
+function frame(t){
+  ctx.clearRect(0,0,W,H);
+  const u = Math.min(W,H)/10;
+  parts.forEach(p=>{
+    if(!reduce){ p.y -= p.v*(CFG.fx.kind==="paw"?1:0.3); if(p.y<-0.1) p.y=1.1; }
+    const a = CFG.fx.kind==="star" ? (0.25+0.55*Math.abs(Math.sin(t/600*p.s+p.p))) : 0.22;
+    shape(p.x*W,p.y*H,u*0.35*p.s,reduce?0.3:a);
+  });
+  bursts.forEach(b=>{ b.x+=b.dx; b.y+=b.dy; b.life-=0.02; shape(b.x*W,b.y*H,u*0.5,Math.max(0,b.life)); });
+  bursts = bursts.filter(b=>b.life>0);
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+render();
+</script>
