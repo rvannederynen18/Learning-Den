@@ -65,6 +65,9 @@ button:focus-visible{outline:4px solid var(--gold);outline-offset:2px}
 .critter .num{margin-top:-6px;background:var(--paper);color:var(--ink);border:3px solid var(--accent-2);border-radius:14px;min-width:46px;padding:1px 8px;font-size:24px;font-weight:900;font-variant-numeric:tabular-nums;box-shadow:0 3px 0 rgba(0,0,0,.2)}
 .critter.wrong{opacity:.4;pointer-events:none}
 .critter.wrong .num{border-color:var(--bad)}
+.critter.showme{animation:showme .6s ease-in-out infinite;z-index:4}
+.critter.showme .num{border-color:#16a34a;background:#dcfce7}
+@keyframes showme{50%{transform:scale(1.25)}}
 .critter.caught{transition:left .7s ease-in, top .7s ease-in, transform .7s;transform:scale(.4) rotate(-20deg);z-index:5}
 .critter.shake{animation:shake .4s}
 @keyframes shake{25%{translate:-8px 0}50%{translate:8px 0}75%{translate:-4px 0}}
@@ -164,18 +167,20 @@ function renderDots(){
   $("#dots").innerHTML = Array.from({length:ROUND}, (_, i) => `<i class="${i < R.n ? "done" : i === R.n ? "now" : ""}"></i>`).join("");
 }
 function newRound(){
-  R = { n:0, firstTry:0, pts:0, q:null, stage:H.stage(P, "catch-count") };
+  R = { n:0, firstTry:0, pts:0, q:null, stage:H.stage(P, "catch-count"), retry:[] };
   $("#who").textContent = `${H.first(P)} · ${LEVEL[0].toUpperCase() + LEVEL.slice(1)} · stage ${R.stage} of 5`;
   H.sessionPts = 0; H.refreshWallet(true);
   nextProblem();
 }
 function nextProblem(){
-  if (R.n >= ROUND) return endRound();
-  R.q = problem();
+  if (R.n >= ROUND && !R.retry.length) return endRound();
+  const due = R.retry.findIndex(r => r.due <= R.n || R.n >= ROUND);
+  if (due >= 0){ const r = R.retry.splice(due, 1)[0].q; R.q = Object.assign({}, r, { opts:shuffle(r.opts), tries:0, again:true }); }
+  else R.q = problem();
   const q = R.q;
-  $("#problem").innerHTML = `${q.a} ${q.op} ${q.b} = <span class="q">?</span>`;
+  $("#problem").innerHTML = `${q.again ? `<span style="display:block;font-family:var(--body);font-size:16px;color:var(--accent)">Let's try this one again!</span>` : ""}${q.a} ${q.op} ${q.b} = <span class="q">?</span>`;
   const em = GIRL ? "🐟" : "🐞";
-  $("#counters").innerHTML = LEVEL === "minnow" ? `${em.repeat(q.a)}<b>+</b>${em.repeat(q.b)}` : "";
+  $("#counters").innerHTML = LEVEL === "minnow" ? (q.op === "+" ? `${em.repeat(q.a)}<b>+</b>${em.repeat(q.b)}` : `${em.repeat(q.a - q.b)}${'<span style="opacity:.25">' + em.repeat(q.b) + '</span>'}<b>take away ${q.b}</b>`) : "";
   renderDots(); spawnCritters(); speakProblem();
 }
 function spawnCritters(){
@@ -224,8 +229,8 @@ function tap(c){
   if (c.done || !R.q) return;
   if (c.v === R.q.ans){
     critters.forEach(o => o.done = true);
-    const pts = R.q.tries === 0 ? PTS : Math.ceil(PTS / 2);
-    if (R.q.tries === 0) R.firstTry++;
+    const pts = R.q.tries === 0 && !R.q.again ? PTS : Math.ceil(PTS / 2);
+    if (R.q.tries === 0 && !R.q.again) R.firstTry++;
     R.pts += pts; R.n++;
     fx("splash", c.isBug ? "✨" : "💦", c.el.style.left, c.el.style.top);
     fx("points", "+" + pts, c.el.style.left, c.el.style.top);
@@ -240,9 +245,22 @@ function tap(c){
   } else {
     R.q.tries++;
     c.done = true; c.el.classList.add("wrong", "shake");
-    H.say("Try again!");
-    $("#hint").textContent = R.q.op === "+" ? "Not that one. Try counting up!" : "Not that one. Try counting back!";
-    setTimeout(() => $("#hint").textContent = "Tap the critter with the right answer!", 2200);
+    if (R.q.tries >= 2){
+      /* two wrong tries: show the right answer and how to get it, no points, and it comes back later */
+      const q = R.q; R.q = null; R.n++;
+      critters.forEach(o => { if (o.v === q.ans){ o.el.classList.add("showme"); } o.done = true; });
+      const why = q.op === "+" ? `${q.a} + ${q.b} = ${q.ans}. Start at ${Math.max(q.a, q.b)} and count up ${Math.min(q.a, q.b)}: ${Array.from({length:Math.min(q.a, q.b)}, (_, i) => Math.max(q.a, q.b) + i + 1).slice(0, 12).join(", ")}.`
+                               : `${q.a} − ${q.b} = ${q.ans}. Start at ${q.a} and count back ${q.b}${q.b <= 12 ? ": " + Array.from({length:q.b}, (_, i) => q.a - i - 1).join(", ") : ""}.`;
+      $("#problem").innerHTML = `${q.a} ${q.op} ${q.b} = <span class="q">${q.ans}</span>`;
+      $("#hint").innerHTML = `<b>Let's learn it!</b> ${why} We'll try it again soon.`;
+      if (!q.again) R.retry.push({ q, due:R.n + 2 });
+      H.say(`Let's learn it. ${why.replace(/−/g, "minus")}`);
+      setTimeout(() => { $("#hint").textContent = "Tap the critter with the right answer!"; nextProblem(); }, 5200);
+    } else {
+      H.say("Not quite. Try once more!");
+      $("#hint").textContent = R.q.op === "+" ? "Not that one. Try counting up!" : "Not that one. Try counting back!";
+      setTimeout(() => { if (R.q) $("#hint").textContent = "Tap the critter with the right answer!"; }, 2200);
+    }
   }
 }
 function endRound(){

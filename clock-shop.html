@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22#5b5bf0%22/%3E%3Cpath d=%22M19 10 L41 31 L59 31 L81 10 L84 47 Q84 62 72 72 L57 88 Q50 94 43 88 L28 72 Q16 62 16 47 Z%22 fill=%22#7d86b3%22/%3E%3Cpath d=%22M24 20 L37 33 L27 41 Z M76 20 L63 33 L73 41 Z%22 fill=%22#2c3163%22/%3E%3Cpath d=%22M50 40 Q66 42 74 54 Q66 62 60 72 L56 82 Q50 87 44 82 L40 72 Q34 62 26 54 Q34 42 50 40 Z%22 fill=%22#eef1fb%22/%3E%3Cpath d=%22M33 48 L44 50 L36 55 Z M67 48 L56 50 L64 55 Z%22 fill=%22#f5a400%22/%3E%3Ccircle cx=%2239%22 cy=%2251%22 r=%222.6%22 fill=%22#1c2340%22/%3E%3Ccircle cx=%2261%22 cy=%2251%22 r=%222.6%22 fill=%22#1c2340%22/%3E%3Cpath d=%22M43 68 L57 68 L50 76 Z%22 fill=%22#1c2340%22/%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Clock Shop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800;900&display=swap">
+<style>
+/* Shared lesson shell: top bar with wallet, mode tabs, a stage card for the question, answer buttons beside it. */
+:root{
+  --bg:#e6f4ff; --paper:#ffffff; --ink:#0d2a3d; --muted:#4a6b7a; --line:#c6dcec; --soft:#eef6fc;
+  --accent:#1d74e8; --accent-2:#0e9f6e; --gold:#f5a400; --good:#16a34a; --bad:#e5484d;
+  --display:"Lilita One", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Nunito", "Trebuchet MS", system-ui, sans-serif;
+  color-scheme:light;
+  padding-top:env(safe-area-inset-top, 0px);padding-bottom:env(safe-area-inset-bottom, 0px);
+}
+:root[data-style="girl"]{ --bg:#fff0f8; --line:#f3cfe4; --soft:#fde8f3; --accent:#e0479e; --accent-2:#a855f7; --muted:#7d5a72; }
+html,body{margin:0;min-height:100%}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-weight:800;font-size:17px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+button{font-family:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:4px solid var(--gold);outline-offset:2px}
+#app{max-width:1060px;margin:0 auto;padding-block:12px 28px;display:flex;flex-direction:column;gap:14px}
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.bar h1{font-family:var(--display);font-weight:400;font-size:clamp(26px,5vw,38px);margin:0;color:var(--accent)}
+.who{color:var(--muted)}
+#wallet{margin-left:auto}
+.btn{background:var(--paper);border:3px solid var(--line);border-bottom-width:6px;border-radius:14px;padding:9px 16px;font-size:16px;font-weight:800}
+.btn:active{border-bottom-width:3px;translate:0 3px}
+.btn.go{background:var(--accent);border-color:color-mix(in srgb,var(--accent) 70%,#000);color:#fff}
+.btn.small{padding:6px 12px;font-size:15px;border-bottom-width:4px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tab{background:var(--paper);border:3px solid var(--line);border-radius:999px;padding:8px 16px;font-weight:900;font-size:16px;color:var(--muted);display:flex;gap:8px;align-items:center}
+.tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.game{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+.stagecard{background:var(--paper);border:3px solid var(--line);border-radius:24px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.dots{display:flex;gap:5px}
+.dots i{width:13px;height:13px;border-radius:50%;background:var(--line)}
+.dots i.done{background:var(--accent-2)}
+.dots i.now{background:var(--gold)}
+#stage{display:flex;justify-content:center;align-items:center;min-height:240px;position:relative}
+.prompt{font-family:var(--display);font-size:clamp(24px,5vw,34px);line-height:1.15;text-align:center;margin:0}
+.side{display:flex;flex-direction:column;gap:12px}
+.choices{display:grid;gap:10px}
+.choice{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--paper);border:3px solid var(--line);border-bottom-width:7px;border-radius:18px;padding:12px 14px;font-size:22px;font-weight:900;font-variant-numeric:tabular-nums}
+.choice:active{border-bottom-width:3px;translate:0 4px}
+.choice.right{border-color:var(--good);background:#e3f7ec}
+.choice.wrong{border-color:var(--bad);opacity:.45;pointer-events:none}
+.cheer{text-align:center;font-family:var(--display);font-size:28px;min-height:1.2em;color:var(--good)}
+.cheer.no{color:var(--bad)}
+.cheer.learn{color:var(--accent)}
+.choice.shown{animation:shownpulse 1s ease-in-out 3}
+@keyframes shownpulse{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--good) 35%,transparent)}}
+.again{display:inline-block;font-family:var(--body);font-size:15px;font-weight:900;color:var(--accent);background:var(--soft);border-radius:999px;padding:2px 12px;margin-bottom:6px}
+.cheer small{display:block;font-family:var(--body);font-size:16px;color:var(--ink);margin-top:4px;font-weight:800}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(10,30,50,.55);display:grid;place-items:center;
+  padding:max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
+.dialog{background:var(--paper);border-radius:24px;border:4px solid var(--accent);padding:22px;width:min(460px,100%);display:flex;flex-direction:column;gap:12px;text-align:center;max-height:100%;overflow:auto}
+.dialog h2{font-family:var(--display);font-weight:400;font-size:32px;margin:0;color:var(--accent)}
+.dialog p{margin:0;color:var(--muted);line-height:1.4}
+.dialog .big{font-size:60px;line-height:1}
+.dialog .row .btn{flex:1}
+.fact{background:var(--soft);border-radius:14px;padding:10px 12px;color:var(--ink)!important}
+canvas#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
+@media (max-width:759px){ .game{grid-template-columns:1fr} #stage{min-height:200px} }
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.clockwrap{display:flex;flex-direction:column;align-items:center;gap:10px}
+.clock{width:min(66vw,260px);height:auto}
+.setter{display:grid;grid-template-columns:repeat(2,auto);gap:8px;justify-content:center}
+.setter .btn{min-width:130px}
+.target{font-family:var(--display);font-size:clamp(30px,7vw,42px);color:var(--accent)}
+.digital{font-family:var(--display);font-size:34px;background:var(--ink);color:#7ef0b0;border-radius:12px;padding:4px 16px;font-variant-numeric:tabular-nums;letter-spacing:.05em}
+.sched{display:grid;gap:6px;width:100%;max-width:420px}
+.sched div{display:flex;justify-content:space-between;background:var(--soft);border-radius:10px;padding:6px 12px;font-weight:800}
+.tip{color:var(--muted);font-size:15px;text-align:center;max-width:40ch}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="bar">
+    <button class="btn small" id="backBtn">‹ Lessons</button>
+    <h1 id="title">Clock Shop</h1>
+    <span class="who" id="who"></span>
+    <div id="wallet"></div>
+  </div>
+  <div class="tabs" role="tablist" id="modeTabs"></div>
+  <div class="game">
+    <div class="stagecard">
+      <div class="qhead"><div class="dots" id="dots"></div><button class="btn small" id="hearBtn">🔊 Hear it</button></div>
+      <p class="prompt" id="prompt"></p>
+      <div id="stage"></div>
+    </div>
+    <div class="side">
+      <div class="choices" id="choices"></div>
+      <div class="cheer" id="cheer"></div>
+      <div class="row"><button class="btn go" id="nextBtn" hidden>Next ▶</button></div>
+      
+    </div>
+  </div>
+</div>
+<div class="overlay" id="overlay" hidden><div class="dialog" id="dialog"></div></div>
+
+<script src="hub-core.js"></script>
+<script>
+(function(){
+"use strict";
+const H = window.Hub, esc = H.esc;
+const $ = s => document.querySelector(s);
+const rnd = n => Math.floor(Math.random() * n);
+const pick = a => a[rnd(a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const LESSON_ID = "clock-shop";
+const P = H.active();
+const LESSON = H.LESSONS.find(l => l.id === LESSON_ID);
+const LEVEL = P ? (H.levelFor(P, LESSON_ID) || (Number(P.age) >= 8 ? LESSON.levels[1].id : LESSON.levels[0].id)) : LESSON.levels[0].id;
+const HARD = LEVEL === LESSON.levels[1].id;
+const GIRL = P && H.style(P) === "girl";
+const ROUND = 10;
+const PTS = HARD ? 15 : 10;
+
+/* ---- shared round engine ---- */
+const Game = { mode:null, q:null, R:null, modes:[], stage:1 };
+function confetti(emojis){
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  let c = $("#confetti"); if (!c){ c = document.createElement("canvas"); c.id = "confetti"; document.body.append(c); }
+  const ctx = c.getContext("2d"), W = c.width = innerWidth, Hh = c.height = innerHeight;
+  const em = emojis || Game.confetti || ["⭐","✨"];
+  const Pc = Array.from({length:60}, () => ({ x:W/2, y:Hh*.4, vx:(Math.random()-.5)*14, vy:-Math.random()*12-4, s:16+Math.random()*16, e:pick(em) }));
+  let t = 0;
+  (function tick(){ ctx.clearRect(0,0,W,Hh); t++;
+    Pc.forEach(p => { p.vy += .35; p.x += p.vx; p.y += p.vy; ctx.font = `${p.s}px sans-serif`; ctx.fillText(p.e, p.x, p.y); });
+    if (t < 95) requestAnimationFrame(tick); else ctx.clearRect(0,0,W,Hh); })();
+}
+function renderDots(){ $("#dots").innerHTML = Array.from({length:ROUND}, (_, i) => `<i class="${i < Game.R.n ? "done" : i === Game.R.n ? "now" : ""}"></i>`).join(""); }
+function renderTabs(){
+  const list = Game.modes.filter(m => !m.only || m.only.includes(LEVEL));
+  $("#modeTabs").innerHTML = list.map(m => `<button class="tab" role="tab" data-m="${m.id}" aria-selected="${Game.mode && Game.mode.id === m.id}"><span>${m.icon}</span>${m.name}</button>`).join("");
+  $("#modeTabs").querySelectorAll(".tab").forEach(b => b.onclick = () => startMode(b.dataset.m));
+}
+function startMode(id){
+  Game.mode = Game.modes.find(m => m.id === id); renderTabs();
+  Game.R = { n:0, first:0, pts:0 }; Game.retry = []; H.sessionPts = 0; H.refreshWallet(true);
+  if (!Game.baseRight) Game.baseRight = Game.right;
+  Game.stage = H.stage(P, LESSON_ID);
+  const lvl = LESSON.levels.find(l => l.id === LEVEL);
+  $("#who").textContent = `${H.first(P)} · ${lvl ? lvl.name : ""} · stage ${Game.stage} of 5`;
+  H.hush();
+  if (Game.mode.setup) Game.mode.setup();
+  next();
+}
+function next(){
+  if (Game.R.n >= ROUND && !Game.retry.length) return endRound();
+  $("#cheer").textContent = ""; $("#cheer").className = "cheer"; $("#nextBtn").hidden = true;
+  if (Game.baseRight) Game.right = Game.baseRight;   /* drop any one-question helpers */
+  renderDots();
+  const due = Game.retry.findIndex(r => r.due <= Game.R.n || Game.R.n >= ROUND);
+  if (due >= 0){
+    const r = Game.retry.splice(due, 1)[0];
+    Game.ask(Object.assign({}, r.q, { retry:true, choices:r.q.choices ? shuffle(r.q.choices) : r.q.choices, prompt:`<span class="again">Let's try this one again!</span><br>${r.q.prompt || ""}` }));
+    return;
+  }
+  Game.mode.next();
+}
+/* q = { prompt, say, stage (html), choices:[{v,label}], answer, onShow(stageEl) } */
+Game.ask = function(q){
+  Game.q = Object.assign({ tries:0, done:false }, q, { tries:0, done:false });
+  Game.q.src = q.src || q;
+  $("#prompt").innerHTML = q.prompt || "";
+  $("#stage").innerHTML = q.stage || "";
+  $("#choices").style.visibility = ""; $("#choices").style.gridTemplateColumns = "";
+  $("#choices").innerHTML = (q.choices || []).map(c => `<button class="choice" data-v="${esc(c.v)}">${c.label}</button>`).join("");
+  $("#choices").querySelectorAll(".choice").forEach(b => b.onclick = () => {
+    if (Game.q.done) return;
+    if (b.dataset.v === String(Game.q.answer)){ b.classList.add("right"); Game.right(); }
+    else { b.classList.add("wrong"); Game.wrong(); }
+  });
+  if (q.onShow) q.onShow($("#stage"));
+  H.say(q.say || (q.prompt || "").replace(/<[^>]+>/g, ""));
+};
+Game.right = function(msg){
+  const q = Game.q; if (!q || q.done) return; q.done = true;
+  const pts = q.tries === 0 && !q.retry ? PTS : Math.ceil(PTS / 2);
+  if (q.tries === 0 && !q.retry) Game.R.first++;
+  Game.R.pts += pts; Game.R.n++;
+  H.earn(P, pts, LESSON_ID, `${Game.mode.name}`);
+  const cheer = pick(Game.cheers);
+  $("#cheer").innerHTML = `${cheer} +${pts}${msg || q.explain ? `<small>${msg || q.explain}</small>` : ""}`; $("#cheer").className = "cheer";
+  confetti();
+  if (Game.R.n % 4 === 0) H.cheer(`Fun fact: ${H.funFact(P)}`, P, 5500); else H.cheer(cheer, P, 1400);
+  H.say(`${cheer} ${(msg || q.explain || "").replace(/<[^>]+>/g, "")}`);
+  renderDots();
+  if (q.autoNext) setTimeout(next, q.autoNext); else $("#nextBtn").hidden = false;
+};
+Game.wrong = function(msg){
+  const q = Game.q; if (!q || q.done) return;
+  q.tries++;
+  if (q.tries >= 2 && !q.noReveal) return Game.reveal(msg);
+  $("#cheer").innerHTML = `Not quite. Try once more!${msg ? `<small>${msg}</small>` : ""}`; $("#cheer").className = "cheer no";
+  H.say("Not quite. Try once more! " + (msg || "").replace(/<[^>]+>/g, ""));
+};
+/* After two wrong tries: show the right answer and why, give no points, and bring the question back later. */
+Game.reveal = function(msg){
+  const q = Game.q; if (!q || q.done) return; q.done = true;
+  Game.R.n++;
+  let label = "";
+  const btn = q.answer !== undefined ? $("#choices").querySelector(`.choice[data-v="${CSS.escape(String(q.answer))}"]`) : null;
+  if (btn){ btn.classList.add("right", "shown"); label = btn.textContent.trim(); }
+  if (q.reveal) try { q.reveal($("#stage")); } catch(e){}
+  $("#choices").querySelectorAll(".choice").forEach(b => b.disabled = true);
+  const why = q.explain || msg || "";
+  $("#cheer").innerHTML = `Let's learn it!<small>${label ? `The answer is <b>${label}</b>. ` : ""}${why}${q.replay !== false && (q.choices && q.choices.length && !q.onShow || q.replay) ? " We'll try it again soon." : ""}</small>`;
+  $("#cheer").className = "cheer learn";
+  H.say(`Let's learn it. ${label ? "The answer is " + label + ". " : ""}${why.replace(/<[^>]+>/g, "")}`);
+  if (!q.retry && q.replay !== false && (q.choices && q.choices.length && !q.onShow || q.replay)) Game.retry.push({ q:q.src, due:Game.R.n + 2 });
+  renderDots();
+  $("#nextBtn").hidden = false;
+};
+function endRound(){
+  const bonus = Game.R.first >= 8 ? 25 : 0;
+  if (bonus) H.earn(P, bonus, LESSON_ID, "round bonus");
+  const change = H.recordRound(P, LESSON_ID, Game.R.first, ROUND);
+  const note = H.stageNote(change, H.stage(P, LESSON_ID));
+  const fact = H.funFact(P);
+  $("#dialog").innerHTML = `<div class="big">${Game.R.first >= 8 ? "🏆" : Game.mode.icon}</div>
+    <h2>${Game.R.first >= 8 ? Game.winTitle : Game.doneTitle}</h2>
+    <p>${Game.R.first} of ${ROUND} right on the first try. You earned ${Game.R.pts + bonus} points${bonus ? ", with a 25 point bonus" : ""}${P.guest ? "." : ` (${H.money(Game.R.pts + bonus)}).`}</p>
+    <p style="color:var(--ink)">${note}</p>
+    <p class="fact">${GIRL ? "🐱" : "🦔"} Fun fact: ${fact}</p>
+    <div class="row"><button class="btn" id="homeB">Back to lessons</button><button class="btn" id="otherB">Pick another game</button><button class="btn go" id="againB">Play again</button></div>`;
+  $("#overlay").hidden = false;
+  H.say(`${Game.R.first >= 8 ? Game.winTitle : Game.doneTitle}! Fun fact: ${fact}`);
+  $("#againB").onclick = () => { $("#overlay").hidden = true; if (P.guest) P.points = 0; startMode(Game.mode.id); };
+  $("#otherB").onclick = () => { $("#overlay").hidden = true; chooser(); };
+  $("#homeB").onclick = H.goHome;
+}
+function chooser(){
+  const list = Game.modes.filter(m => !m.only || m.only.includes(LEVEL));
+  $("#dialog").innerHTML = `<div class="big">${H.iconOf(LESSON, P)}</div><h2>${esc(H.titleOf(LESSON, P))}</h2><p>Pick a game. Each one has ${ROUND} questions.</p>
+    <div style="display:grid;gap:10px">${list.map(m => `<button class="btn" data-pickm="${m.id}" style="text-align:left;display:flex;gap:12px;align-items:center"><span style="font-size:32px">${m.icon}</span><span><b>${m.name}</b><br><span style="font-weight:700;color:var(--muted);font-size:14px">${m.blurb()}</span></span></button>`).join("")}</div>
+    <div class="row"><button class="btn small" id="homeB">Back to lessons</button></div>`;
+  $("#overlay").hidden = false;
+  $("#dialog").querySelectorAll("[data-pickm]").forEach(b => b.onclick = () => { $("#overlay").hidden = true; startMode(b.dataset.pickm); });
+  $("#homeB").onclick = H.goHome;
+}
+$("#nextBtn").onclick = next;
+$("#hearBtn").onclick = () => Game.q && H.say(Game.q.say || ($("#prompt").textContent));
+$("#backBtn").onclick = H.goHome;
+try { speechSynthesis.getVoices(); } catch(e){}
+
+/* ---- this lesson's games ---- */
+Game.cheers = GIRL ? ["Right on time!","Purr-fect!","Tick-tock, you rock!","Go team!","Clock star!"] : ["Right on time!","Tick-tock, you rock!","Great move!","Clock pro!","Awesome!"];
+Game.confetti = ["🕐","⏰","⭐", GIRL ? "🎀" : "🦔"];
+Game.winTitle = "Time master!"; Game.doneTitle = "Shop closed";
+const fmtT = (h, m) => `${h}:${String(m).padStart(2, "0")}`;
+function addMin(h, m, d){ let t = ((h % 12) * 60 + m + d) % 720; if (t < 0) t += 720; let hh = Math.floor(t / 60); if (hh === 0) hh = 12; return [hh, t % 60]; }
+function clockSVG(h, m, size){
+  const ha = ((h % 12) + m / 60) * 30, ma = m * 6;
+  let nums = "", ticks = "";
+  for (let i = 1; i <= 12; i++){ const a = i * 30 * Math.PI / 180; nums += `<text x="${100 + Math.sin(a) * 72}" y="${100 - Math.cos(a) * 72 + 7}" text-anchor="middle" font-size="20" font-weight="900" fill="var(--ink)">${i}</text>`; }
+  for (let i = 0; i < 60; i++){ const a = i * 6 * Math.PI / 180, r1 = i % 5 ? 88 : 84; ticks += `<line x1="${100 + Math.sin(a) * r1}" y1="${100 - Math.cos(a) * r1}" x2="${100 + Math.sin(a) * 92}" y2="${100 - Math.cos(a) * 92}" stroke="var(--muted)" stroke-width="${i % 5 ? 1 : 3}"/>`; }
+  return `<svg class="clock" viewBox="0 0 200 200" ${size ? `style="width:${size}px"` : ""} role="img" aria-label="Clock">
+    <circle cx="100" cy="100" r="96" fill="#fff" stroke="var(--accent)" stroke-width="6"/>${ticks}${size ? "" : nums}
+    <line x1="100" y1="100" x2="${100 + Math.sin(ha * Math.PI / 180) * 46}" y2="${100 - Math.cos(ha * Math.PI / 180) * 46}" stroke="var(--ink)" stroke-width="8" stroke-linecap="round"/>
+    <line x1="100" y1="100" x2="${100 + Math.sin(ma * Math.PI / 180) * 74}" y2="${100 - Math.cos(ma * Math.PI / 180) * 74}" stroke="var(--accent)" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="100" cy="100" r="6" fill="var(--ink)"/></svg>`;
+}
+/* minutes allowed at each age level and stage: start with o'clock, end with any minute */
+function minuteStep(){
+  const st = Game.stage;
+  if (!HARD) return [60, 30, 30, 15, 15][st - 1];
+  return [5, 5, 5, 1, 1][st - 1];
+}
+function randomTime(){ const step = minuteStep(); return [1 + rnd(12), step >= 60 ? 0 : step * rnd(60 / step)]; }
+function sayTime(h, m){
+  if (m === 0) return `${h} o'clock`;
+  if (m === 30 && !HARD) return `half past ${h}`;
+  if (m === 15 && !HARD) return `quarter past ${h}`;
+  if (m === 45 && !HARD) return `quarter to ${h === 12 ? 1 : h + 1}`;
+  return `${h}:${String(m).padStart(2, "0")}`;
+}
+function howTo(h, m){
+  const hourNote = m === 0 ? `the short hand points right at ${h}` : `the short hand is just past ${h}`;
+  const minNote = m === 0 ? "the long hand points straight up at 12" : `the long hand is on ${m / 5 === Math.floor(m / 5) ? `the ${m / 5 === 0 ? 12 : m / 5}, and you count by 5s to get ${m} minutes` : `${m} minutes (count by 5s, then the little marks)`}`;
+  return `It's ${fmtT(h, m)}: ${hourNote}, and ${minNote}.`;
+}
+function timeOpts(h, m){
+  const step = Math.min(30, minuteStep() >= 60 ? 30 : minuteStep() * 3);
+  const set = new Set([fmtT(h, m), fmtT(...addMin(h, m, 60)), fmtT(...addMin(h, m, step))]);
+  if (m !== 0) set.add(fmtT(h === 12 ? 1 : h + 1, m));
+  const arr = [...set]; return shuffle([arr[0], ...shuffle(arr.slice(1)).slice(0, 2)]);
+}
+
+/* 1. WHAT TIME IS IT? */
+Game.modes.push({ id:"read", name:"What Time Is It?", icon:"🕐",
+  blurb:() => HARD ? "Read the clock to the minute" : "Read the clock: o'clock, half past and quarter past",
+  next(){
+    const [h, m] = randomTime();
+    Game.ask({ prompt:"What time does the clock show?", say:"What time is it? The short hand shows the hour. The long hand shows the minutes.",
+      answer:fmtT(h, m), choices:timeOpts(h, m).map(v => ({ v, label:`⏰ ${v}` })), explain:howTo(h, m),
+      stage:`<div class="clockwrap">${clockSVG(h, m)}<div class="tip">Short hand = hour · Long hand = minutes</div></div>` });
+  } });
+
+/* 2. SET THE CLOCK — move the hands yourself */
+Game.modes.push({ id:"set", name:"Set the Clock", icon:"🔧",
+  blurb:() => "Move the hands to match the time",
+  next(){
+    const [th, tm] = randomTime(), step = Math.max(5, minuteStep() >= 60 ? 30 : minuteStep() === 1 ? 5 : minuteStep());
+    const fine = HARD && Game.stage >= 4;
+    let h = 12, m = 0;
+    Game.ask({ prompt:`Set the clock to <span class="target">${fmtT(th, tm)}</span>`, say:`Set the clock to ${sayTime(th, tm)}.`, explain:howTo(th, tm),
+      stage:`<div class="clockwrap"><div id="setClock">${clockSVG(h, m)}</div>
+        <div class="setter"><button class="btn" data-d="-60">◀ Hour back</button><button class="btn" data-d="60">Hour ahead ▶</button>
+        <button class="btn" data-d="-${step}">◀ ${step} min back</button><button class="btn" data-d="${step}">${step} min ahead ▶</button>
+        ${fine ? `<button class="btn" data-d="-1">◀ 1 min back</button><button class="btn" data-d="1">1 min ahead ▶</button>` : ""}</div>
+        <button class="btn go" id="checkClock">Check my clock</button></div>`,
+      onShow(st){
+        const draw = () => { $("#setClock").innerHTML = clockSVG(h, m); };
+        st.querySelectorAll("[data-d]").forEach(b => b.onclick = () => { if (Game.q.done) return; [h, m] = addMin(h, m, Number(b.dataset.d)); draw(); });
+        $("#checkClock").onclick = () => {
+          if (Game.q.done) return;
+          if (h === th && m === tm) Game.right(`${fmtT(th, tm)}. ${howTo(th, tm)}`);
+          else Game.wrong(`Your clock says ${fmtT(h, m)}. ${h !== th ? "Check the short hour hand." : "The hour is right. Check the long minute hand."}`);
+        };
+      },
+      reveal(){ h = th; m = tm; $("#setClock").innerHTML = clockSVG(h, m); } });
+  } });
+
+/* 3. MATCH IT — digital to analog */
+Game.modes.push({ id:"match", name:"Match It", icon:"🔁",
+  blurb:() => "Find the clock that matches the digital time",
+  next(){
+    const [h, m] = randomTime();
+    const others = timeOpts(h, m).filter(x => x !== fmtT(h, m)).slice(0, 2);
+    const all = shuffle([fmtT(h, m), ...others]);
+    Game.ask({ prompt:"Which clock matches?", say:`Which clock shows ${sayTime(h, m)}?`, answer:fmtT(h, m),
+      choices:all.map(v => { const [a, b] = v.split(":").map(Number); return { v, label:clockSVG(a, b, 90) }; }), explain:howTo(h, m),
+      stage:`<div class="clockwrap"><div class="digital">${fmtT(h, m)}</div></div>`,
+      onShow(){ $("#choices").style.gridTemplateColumns = "repeat(3,1fr)"; } , replay:true });
+  } });
+
+/* 4. TIME DETECTIVE — morning or night, later and earlier, how long */
+const ROUTINE = [["eat breakfast","7:00","AM","morning"],["go to bed","8:00","PM","night"],["eat lunch at school","12:00","PM","daytime (noon)"],["wake up for school","6:30","AM","morning"],
+  ["eat dinner","6:00","PM","evening"],["go to hockey practice after school","4:00","PM","afternoon"],["watch the sunrise at the beach","7:00","AM","morning"],["brush your teeth before bed","7:45","PM","night"]];
+Game.modes.push({ id:"detective", name:"Time Detective", icon:"🕵️",
+  blurb:() => HARD ? "How much time passed? When will it end?" : "Morning or night? What time is one hour later?",
+  next(){
+    const st = Game.stage;
+    if (!HARD){
+      if (Math.random() < .5){
+        const r = pick(ROUTINE);
+        Game.ask({ prompt:`You ${r[0]} at ${r[1]}. Is that AM or PM?`, answer:r[2], choices:[{ v:"AM", label:"🌅 AM (morning)" },{ v:"PM", label:"🌙 PM (afternoon & night)" }],
+          explain:`${r[1]} ${r[2]}. AM is from midnight to noon (the morning). PM is from noon to midnight (afternoon and night). You ${r[0]} in the ${r[3]}.`, stage:`<div class="clockwrap"><div class="digital">${r[1]}</div></div>` });
+        return;
+      }
+      const [h, m] = randomTime(), d = st <= 2 ? 60 : pick([60, 30, 120]);
+      const [eh, em] = addMin(h, m, d);
+      const label = d === 60 ? "1 hour" : d === 30 ? "30 minutes" : "2 hours";
+      Game.ask({ prompt:`It's ${fmtT(h, m)}. What time will it be in ${label}?`, answer:fmtT(eh, em), choices:timeOpts(eh, em).map(v => ({ v, label:`⏰ ${v}` })),
+        explain:`${fmtT(h, m)} plus ${label} is ${fmtT(eh, em)}.${d % 60 === 0 ? " Move the short hand ahead " + d / 60 + (d === 60 ? " number." : " numbers.") : " Move the long hand halfway around."}`, stage:`<div class="clockwrap">${clockSVG(h, m)}</div>` });
+      return;
+    }
+    const type = pick(st <= 2 ? ["end","length"] : ["end","length","sched"]);
+    const h = 1 + rnd(11), m = 5 * rnd(12);
+    if (type === "end"){
+      const d = pick([15, 20, 30, 45, 50, 75, 90].slice(0, 3 + st)), [eh, em] = addMin(h, m, d);
+      const what = pick(["Hockey practice","Cheer practice","The movie","Chess club","A trip to the beach"]);
+      Game.ask({ prompt:`${what} starts at ${fmtT(h, m)} and lasts ${d} minutes. When does it end?`, answer:fmtT(eh, em),
+        choices:shuffle([fmtT(eh, em), fmtT(...addMin(eh, em, 10)), fmtT(...addMin(eh, em, -15))]).map(v => ({ v, label:`⏰ ${v}` })),
+        explain:`${fmtT(h, m)} + ${d} minutes = ${fmtT(eh, em)}. ${d > 60 ? `That's 1 hour and ${d - 60} minutes.` : "Count up by 5s or 15s from the start time."}`, stage:`<div class="clockwrap">${clockSVG(h, m)}<div class="tip">Starts now</div></div>` });
+    } else if (type === "length"){
+      const d = pick([10, 15, 25, 30, 40, 45, 60, 90]), [eh, em] = addMin(h, m, d);
+      Game.ask({ prompt:`You started reading at ${fmtT(h, m)} and stopped at ${fmtT(eh, em)}. How long did you read?`, answer:String(d),
+        choices:shuffle([...new Set([d, d + 10, Math.max(5, d - 10)])]).map(v => ({ v:String(v), label:`${v} minutes` })),
+        explain:`From ${fmtT(h, m)} to ${fmtT(eh, em)} is ${d} minutes. Count from the start time up to the end time.`, stage:`<div class="clockwrap">${clockSVG(eh, em)}<div class="tip">Stopped at ${fmtT(eh, em)}</div></div>` });
+    } else {
+      const start = [3, 0], items = [["Snack", 15], ["Homework", 30], ["Play outside", 45]];
+      let t = start; const rows = items.map(([n, d]) => { const r = [n, fmtT(...t), d]; t = addMin(t[0], t[1], d); return r; });
+      Game.ask({ prompt:"After school: when does playing outside end?", answer:fmtT(...t),
+        choices:shuffle([fmtT(...t), fmtT(...addMin(t[0], t[1], -15)), fmtT(...addMin(t[0], t[1], 30))]).map(v => ({ v, label:`⏰ ${v}` })),
+        explain:`3:00 + 15 min snack = 3:15, + 30 min homework = 3:45, + 45 min outside = ${fmtT(...t)}.`,
+        stage:`<div class="sched">${rows.map(r => `<div><span>${r[0]}</span><span>starts ${r[1]} · ${r[2]} min</span></div>`).join("")}</div>` });
+    }
+  } });
+
+
+/* ---- boot ---- */
+if (!P){
+  $("#dialog").innerHTML = `<h2>Who's playing?</h2><p>Pick a player on the home page first.</p><div class="row"><button class="btn go" id="toHub">Go to the home page</button></div>`;
+  $("#overlay").hidden = false; $("#toHub").onclick = () => { location.href = H.homeUrl; };
+} else {
+  document.documentElement.dataset.style = H.style(P);
+  $("#title").textContent = H.titleOf(LESSON, P); document.title = H.titleOf(LESSON, P);
+  const lvl = LESSON.levels.find(l => l.id === LEVEL);
+  $("#who").textContent = `${H.first(P)} · ${lvl ? lvl.name : ""} level`;
+  H.mountWallet($("#wallet"), P);
+  chooser();
+}
+})();
+</script>
+</body>
+</html>

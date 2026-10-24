@@ -50,7 +50,7 @@ const LESSONS = [
       { id:"rookie",  name:"Rookie",  minAge:5, maxAge:7,  blurb:"Count by 2s, 5s and 10s, spell short words, halves and quarters" },
       { id:"captain", name:"Captain", minAge:8, maxAge:12, blurb:"Skip-count for times tables, cheer-spell big words, 8-count fractions" }
     ] },
-  { id:"chess-club", file:"chess-club.html", title:"Chess Club", subject:"Logic & Math", icon:"♟️", autoFor:["boy"],
+  { id:"chess-club", file:"chess-club.html", title:"Chess Club", subject:"Logic & Math", icon:"♟️",
     levels:[
       { id:"pawn",   name:"Pawn",   minAge:5, maxAge:7,  blurb:"How each piece moves, board squares, and knight-hop adding" },
       { id:"knight", name:"Knight", minAge:8, maxAge:12, blurb:"Fewest-move puzzles, square names, and knight-hop times tables" }
@@ -65,6 +65,52 @@ const LESSONS = [
     levels:[
       { id:"helper", name:"Helper", minAge:4, maxAge:7,  blurb:"Clean up the park: trash or recycling?" },
       { id:"ranger", name:"Eco Ranger", minAge:8, maxAge:12, blurb:"Sort trash, recycling and compost, plus Earth facts" }
+    ] },
+  { id:"share-divide", file:"share-divide.html", title:"Share & Divide", subject:"Math", icon:"🍪",
+    titles:{ girl:"Kitty Share & Divide" }, icons:{ girl:"🐟" },
+    levels:[
+      { id:"sharer",  name:"Sharer",  minAge:6, maxAge:7,  blurb:"Share treats fairly and count how many each one gets" },
+      { id:"divider", name:"Divider", minAge:8, maxAge:12, blurb:"Division by sharing, groups and fact families, plus story problems" }
+    ] },
+  { id:"shape-lab", file:"shape-lab.html", title:"Shape Lab", subject:"Math", icon:"🔷",
+    levels:[
+      { id:"builder",   name:"Builder",   minAge:4, maxAge:7,  blurb:"Name shapes, count sides and corners, find shapes all around you" },
+      { id:"architect", name:"Architect", minAge:8, maxAge:12, blurb:"Polygons, 3D shapes, symmetry, area and perimeter" }
+    ] },
+  { id:"clock-shop", file:"clock-shop.html", title:"Clock Shop", subject:"Math", icon:"🕐",
+    levels:[
+      { id:"tick", name:"Tick", minAge:4, maxAge:7,  blurb:"Read and set clocks to the hour and half hour" },
+      { id:"tock", name:"Tock", minAge:8, maxAge:12, blurb:"Read clocks to the minute, set them, and figure out how much time passed" }
+    ] },
+  { id:"story-time", file:"story-time.html", title:"Story Time", subject:"Reading", icon:"📖",
+    levels:[
+      { id:"reader",   name:"Reader",   minAge:4, maxAge:7,  blurb:"Short stories read out loud, with easy questions" },
+      { id:"bookworm", name:"Bookworm", minAge:8, maxAge:12, blurb:"Longer stories with why, how and word-meaning questions" }
+    ] },
+  { id:"snack-shack", file:"snack-shack.html", title:"Snack Shack", subject:"Health & Math", icon:"🍦",
+    levels:[
+      { id:"helper", name:"Helper", minAge:4, maxAge:7,  blurb:"Build a healthy lunch box, scoop ice cream, find dairy-free foods" },
+      { id:"chef",   name:"Chef",   minAge:8, maxAge:12, blurb:"Balanced lunches, ice cream shop prices and change, reading for dairy" }
+    ] },
+  { id:"body-lab", file:"body-lab.html", title:"Body & Health Lab", subject:"Science & Health", icon:"💪",
+    levels:[
+      { id:"junior",    name:"Junior Doc",     minAge:4, maxAge:7,  blurb:"Body parts, healthy habits, skin care and move breaks" },
+      { id:"scientist", name:"Body Scientist", minAge:8, maxAge:12, blurb:"How organs work, fitness, sleep, sun safety and skin care" }
+    ] },
+  { id:"pet-care", file:"pet-care.html", title:"Pet Care", subject:"Life Skills", icon:"🐾",
+    levels:[
+      { id:"pal", name:"Pet Pal", minAge:4, maxAge:7,  blurb:"What pets need every day and what they like to eat" },
+      { id:"pro", name:"Pet Pro", minAge:8, maxAge:12, blurb:"Pet care, safe and unsafe foods, and reading body language" }
+    ] },
+  { id:"storm-chaser", file:"storm-chaser.html", title:"Storm Chaser", subject:"Science", icon:"⛈️",
+    levels:[
+      { id:"spotter",  name:"Storm Spotter",  minAge:4, maxAge:7,  blurb:"Make clouds, rain and rainbows, fly a hot air balloon, count to the thunder" },
+      { id:"forecaster", name:"Forecaster", minAge:8, maxAge:12, blurb:"Storms, snow, fog and hurricanes, sea breezes, and how far away lightning is" }
+    ] },
+  { id:"gator-chomp", file:"gator-chomp.html", title:"Gator Chomp", subject:"Math & More", icon:"🐊",
+    levels:[
+      { id:"hatchling", name:"Hatchling", minAge:4, maxAge:7,  blurb:"Steer the gator to gobble the right answers. Slow and friendly" },
+      { id:"chomper",   name:"Chomper",   minAge:8, maxAge:12, blurb:"Faster gator, times tables, shapes and healthy-food rounds" }
     ] }
 ];
 
@@ -126,6 +172,22 @@ const PETS = ["Tabby isn't a breed of cat. It's a coat pattern of stripes, swirl
   "Gopher tortoises are protected in Florida, so they stay wild and free.","Gopher tortoises can live 40 to 60 years in the wild.",
   "Tortoises love to munch on grasses, leaves and flowers.","Slow and steady: a tortoise walks less than half a mile an hour."];
 FUN.girl.push(...PETS); FUN.boy.push(...PETS);
+/* Interest tips: skin care and health for the girl style, nature and reptiles for the boy style, alligators for both. */
+const GATORS = ["Florida has about 1.3 million wild alligators!","A baby alligator is called a hatchling.","Alligators can live 35 to 50 years in the wild.",
+  "An alligator can grow thousands of new teeth in its lifetime.","Alligators have a rounded, U-shaped snout. Crocodiles have a pointier, V-shaped snout.",
+  "The warmth of an alligator nest decides if the babies will be boys or girls.","Alligators can hold their breath underwater for a long time when resting.",
+  "Never feed an alligator. It teaches them to come close to people.","Alligator moms guard their nests and carry the hatchlings to the water in their mouths."];
+FUN.girl.push(...GATORS, "Tip: wear sunscreen even on cloudy days. The sun's rays go right through clouds.","Tip: wash your face gently with lukewarm water, not hot water.",
+  "Tip: drinking water helps your skin stay soft and glowy.","Tip: kids' skin only needs a gentle wash, moisturizer and sunscreen.","Tip: lip balm with SPF protects your lips from sunburn.",
+  "Tip: sleep is when your skin and body do their repairs. Aim for 9 to 12 hours.","Tip: wash your pillowcase every week to keep your skin happy.",
+  "Tip: fruits and veggies with lots of colors give your skin vitamins.","Tip: never share makeup or lip balm. Germs spread easily.","Tip: stretch before cheer practice to warm up your muscles.",
+  "Tip: eat a snack with protein after exercise to help your muscles recover.","Tip: give your eyes a break from screens: every 20 minutes, look at something far away for 20 seconds.");
+FUN.boy.push(...GATORS, "Snakes shed their whole skin, usually in one piece!","Lizards are cold-blooded, so they bask in the sun to warm up.",
+  "Anoles can change from green to brown.","Turtles and tortoises have been around for more than 200 million years.","A tortoise can't swim, but most turtles can.",
+  "Most snakes in Florida are harmless and eat pests like rats and mice.","Tip: if you see a snake, back away slowly and give it space.","Tip: never pick up a wild turtle or tortoise. Watch it and let it go its own way.",
+  "Mushrooms are related more closely to animals than to plants!","Oak trees can make tens of thousands of acorns in a single year.","Moss can grow without soil, on rocks and tree bark.",
+  "A tree's roots can spread out wider than its branches.","Fireflies light up to talk to each other.","Tip: leave logs and rocks where you find them. They're homes for bugs, frogs and salamanders.",
+  "Box turtles can close their shells up tight like a box.");
 function newId(){ return "p" + Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
 function newProfile(name, age, gender){
   return { id:newId(), name, age, gender:gender || "girl", color:COLORS[Math.floor(Math.random()*COLORS.length)],
@@ -156,6 +218,28 @@ function save(){
   try { sessionStorage.setItem(KEY, s); } catch(e){}
 }
 
+/* SAVED COPIES — so a parent can restore points and money if something gets deleted.
+   One copy is saved automatically each day (the first time the Den opens that day), plus a copy
+   right before anything risky (removing a player, paying out, adjusting a balance, restoring).
+   Copies live in this browser next to the main save. Keeps the last 14 daily copies and 15 event copies. */
+const SNAP_KEY = "family-learning-hub-snapshots";
+function readSnaps(){ try { return JSON.parse(localStorage.getItem(SNAP_KEY) || "[]") || []; } catch(e){ return []; } }
+function writeSnaps(list){
+  for (let tries = 0; tries < 4; tries++){
+    try { localStorage.setItem(SNAP_KEY, JSON.stringify(list)); return true; } catch(e){ list.splice(0, Math.max(1, Math.ceil(list.length / 3))); }
+  }
+  return false;
+}
+function snapshot(reason){
+  if (!db || !Array.isArray(db.profiles)) return;
+  const list = readSnaps(), now = new Date(), day = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  if (!reason && list.some(s => s.day === day && !s.reason)) return;
+  list.push({ t:Date.now(), day, reason:reason || "", data:JSON.stringify(db) });
+  const daily = list.filter(s => !s.reason).slice(-14), events = list.filter(s => s.reason).slice(-15);
+  writeSnaps(daily.concat(events).sort((x, y) => x.t - y.t));
+}
+snapshot();
+
 /* Guest player lives only in memory on each page; nothing it does is saved. */
 let guestObj = null;
 function guest(){
@@ -184,6 +268,14 @@ const Hub = {
   get db(){ return db; },
   set db(v){ db = v; },
   save, newProfile, guest, levelFor, curriculum, autoLevel,
+  snapshot, snapshots(){ return readSnaps().slice().reverse(); },
+  restoreSnapshot(t){
+    const s = readSnaps().find(x => x.t === t); if (!s) return false;
+    let d; try { d = JSON.parse(s.data); } catch(e){ return false; }
+    if (!d || !Array.isArray(d.profiles)) return false;
+    snapshot("before restoring a saved copy");
+    db = d; save(); return true;
+  },
   profile(id){ return id === "guest" ? guest() : db.profiles.find(p => p.id === id); },
   active(){ return db.active ? Hub.profile(db.active) : null; },
   setActive(id){ db.active = id; save(); },

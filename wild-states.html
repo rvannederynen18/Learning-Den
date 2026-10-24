@@ -126,6 +126,9 @@ svg.map .marker.pulse{animation:pulse 1.2s ease-in-out infinite;transform-box:fi
 .choice.right{border-color:var(--grass);background:#e3f7ec}
 .choice.wrong{border-color:var(--wrong);opacity:.45}
 .cheer{text-align:center;font-family:var(--display);font-size:30px;min-height:1.2em;color:var(--grass)}
+.hintbox{min-height:0;text-align:center;font-size:18px;font-weight:800;color:var(--zap)}
+.hintbox:empty{display:none}
+.choice:disabled{cursor:default}
 .cheer.no{color:var(--wrong)}
 .trophy{font-size:60px;text-align:center;line-height:1}
 .voice{display:flex;align-items:center;gap:8px;font-weight:800;color:var(--muted);font-size:15px}
@@ -188,9 +191,11 @@ svg.map .marker.pulse{animation:pulse 1.2s ease-in-out infinite;transform-box:fi
         <div class="scoreboard"><div><span>Score</span><b id="qScore">0</b></div><div><span>Streak</span><b id="qStreak">0</b></div><div><span>Best</span><b id="qBest">0</b></div></div>
         <div class="question" id="qText">Who lives here?</div>
         <div class="choices" id="choices"></div>
+        <div class="hintbox" id="hintBox" aria-live="polite"></div>
         <div class="cheer" id="cheer"></div>
         <div class="row" style="justify-content:center">
           <button class="btn small" id="hearQ">Hear it again</button>
+          <button class="btn small" id="hintQ">💡 Hint</button>
           <button class="btn go" id="nextQ" hidden>Next state ▶</button>
         </div>
       </div>
@@ -480,14 +485,18 @@ resetBtn.onclick = () => {
 
 /* QUIZ */
 const quizMap = $("#quizMap"); drawMap(quizMap);
-const Q = { score:0, streak:0, deck:[], cur:null, done:false };
+const Q = { score:0, streak:0, deck:[], cur:null, done:false, count:0, retry:[] };
 const CHEERS = H.style(P) === "boy" ? ["Big catch!","Bug-tastic!","Blast off!","Checkmate!","He shoots, he scores!"] : ["Purr-fect!","Paw-some!","Go team!","Gimme a YAY!","She shoots, she scores!"];
 const qBest = () => (P && P.ws.best) || 0;
 $("#qBest").textContent = qBest();
+const article = w => /^[AEIOU]/i.test(w) ? "an" : "a";
 function nextQuestion(){
   if (!Q.deck.length) Q.deck = shuffle(S.map(s => s.name));
-  const name = Q.deck.pop(), s = byName[name];
-  const type = RANGER ? ["animal","capital","flash"][rnd(3)] : "animal";
+  /* a question they missed comes back two questions later */
+  const due = Q.retry.findIndex(r => r.due <= Q.count);
+  const again = due >= 0 ? Q.retry.splice(due, 1)[0] : null;
+  const name = again ? again.name : Q.deck.pop(), s = byName[name];
+  const type = again ? again.type : RANGER ? ["animal","capital","flash"][rnd(3)] : "animal";
   let opts, text, spoken;
   if (type === "animal"){
     const others = shuffle(Object.keys(A).filter(k => k !== s.a && A[k].e !== A[s.a].e)).slice(0, 2);
@@ -503,40 +512,82 @@ function nextQuestion(){
     text = "Which state is flashing?"; spoken = text;
   }
   const answer = type === "animal" ? s.a : type === "capital" ? F[name][0] : name;
-  Q.cur = { name, type, answer, spoken }; Q.done = false;
-  $("#qText").textContent = text;
+  /* three hints, from small to big; each one used lowers the points a little */
+  const ansText = type === "animal" ? A[s.a].n : answer;
+  const hints = type === "animal"
+    ? [`It starts with the letter ${ansText[0]}.`, "remove", `Clue: ${A[s.a].f[0]}`]
+    : type === "capital"
+    ? [`It starts with the letter ${ansText[0]}.`, "remove", `It has ${ansText.replace(/[^A-Za-z]/g, "").length} letters and starts with "${ansText.slice(0, 2)}".`]
+    : [`It's in the ${s.region} region.`, "remove", `Its nickname is the ${F[name][1].replace(/^The /, "")}.`];
+  Q.cur = { name, type, answer, spoken, tries:0, hints:0, hintList:hints, again:!!again }; Q.done = false; Q.count++;
+  $("#qText").innerHTML = (again ? `<span style="display:block;font-size:16px;color:var(--grass)">Let's try this one again!</span>` : "") + esc(text);
   $("#cheer").textContent = ""; $("#cheer").className = "cheer"; $("#nextQ").hidden = true;
+  $("#hintBox").textContent = ""; $("#hintQ").hidden = false; $("#hintQ").disabled = false; $("#hintQ").textContent = "💡 Hint";
   $("#choices").innerHTML = opts.map(o => `<button class="choice" data-v="${esc(o.v)}">${o.html}</button>`).join("");
   $("#choices").querySelectorAll(".choice").forEach(b => b.onclick = () => answerQ(b));
   markMap(quizMap, { hl:name, ring:true });
   say(spoken);
 }
+function giveHint(){
+  const c = Q.cur; if (!c || Q.done || c.hints >= c.hintList.length) return;
+  const h = c.hintList[c.hints++];
+  if (h === "remove"){
+    const wrong = [...$("#choices").querySelectorAll(".choice:not(.wrong)")].filter(b => b.dataset.v !== c.answer);
+    if (wrong.length){ const b = wrong[rnd(wrong.length)]; b.classList.add("wrong"); b.disabled = true; }
+    $("#hintBox").textContent = "💡 I took away one wrong answer.";
+    say("I took away one wrong answer.");
+  } else { $("#hintBox").textContent = "💡 " + h; say(h); }
+  $("#hintQ").textContent = c.hints < c.hintList.length ? `💡 Another hint (${c.hintList.length - c.hints} left)` : "💡 No more hints";
+  $("#hintQ").disabled = c.hints >= c.hintList.length;
+}
+function answerLineFor(c){
+  const s = byName[c.name];
+  return c.type === "animal" ? `The ${A[s.a].n} stands for ${s.name}.`
+    : c.type === "capital" ? `${F[s.name][0]} is the capital of ${s.name}.` : `That's ${s.name}! It's in the ${s.region} region.`;
+}
 function answerQ(b){
   if (Q.done || b.classList.contains("wrong")) return;
-  const s = byName[Q.cur.name];
-  if (b.dataset.v === Q.cur.answer){
+  const c = Q.cur, s = byName[c.name];
+  if (b.dataset.v === c.answer){
     Q.done = true; Q.score++; Q.streak++;
-    b.classList.add("right");
+    b.classList.add("right"); $("#hintQ").hidden = true;
     if (P && Q.score > P.ws.best){ P.ws.best = Q.score; if (!P.guest) H.save(); }
-    const pts = PTS[Q.cur.type];
+    /* full points on the first try with no hints; less for a second try, hints, or a retried question */
+    let pts = PTS[c.type];
+    if (c.tries || c.again) pts = Math.ceil(pts / 2);
+    pts = Math.max(1, Math.round(pts * (1 - c.hints / 4)));
     H.earn(P, pts, "wild-states", `quiz score ${Q.score}`);
     markFound(s.name);
     const cheer = Q.streak % 10 === 0 ? "Champion! 🏆" : CHEERS[rnd(CHEERS.length)];
-    const fact = randomFact(s.name);
-    const answerLine = Q.cur.type === "animal" ? `The ${A[s.a].n} stands for ${s.name}.`
-      : Q.cur.type === "capital" ? `${F[s.name][0]} is the capital of ${s.name}.` : `That's ${s.name}!`;
+    const fact = randomFact(s.name), answerLine = answerLineFor(c);
     $("#cheer").innerHTML = `${cheer} <span style="font-size:20px">+${pts} pts</span><div style="font-family:var(--body);font-size:17px;font-weight:800;color:var(--ink);margin-top:6px">${answerLine} Did you know? ${fact}</div>`;
     $("#nextQ").hidden = false;
     confetti();
     if (Q.score % 3 === 0) H.cheer(`Fun fact: ${H.funFact(P)}`, P, 5500); else H.cheer(null, P, 1400);
     say(`${cheer.replace(" 🏆","")} ${answerLine} Did you know? ${fact}`);
   } else {
-    Q.streak = 0; b.classList.add("wrong");
-    $("#cheer").textContent = "Try again!"; $("#cheer").className = "cheer no";
-    say("Try again!");
+    Q.streak = 0; b.classList.add("wrong"); c.tries++;
+    if (c.tries >= 2){
+      /* two wrong tries: show the answer and why, no points, and it comes back later */
+      Q.done = true; $("#hintQ").hidden = true;
+      const right = [...$("#choices").querySelectorAll(".choice")].find(x => x.dataset.v === c.answer);
+      if (right) right.classList.add("right");
+      $("#choices").querySelectorAll(".choice").forEach(x => x.disabled = true);
+      const line = answerLineFor(c);
+      const tip = c.type === "capital" ? ` Memory trick: say it together, "${F[s.name][0]}, ${s.name}," three times.` : c.type === "animal" ? ` ${A[s.a].f[0]}` : "";
+      $("#cheer").innerHTML = `Let's learn it!<div style="font-family:var(--body);font-size:17px;font-weight:800;color:var(--ink);margin-top:6px">${line}${tip} We'll try it again soon.</div>`;
+      $("#cheer").className = "cheer";
+      if (!c.again) Q.retry.push({ name:c.name, type:c.type, due:Q.count + 2 });
+      $("#nextQ").hidden = false;
+      say(`Let's learn it. ${line}${tip}`);
+    } else {
+      $("#cheer").textContent = "Not quite. Try once more, or tap Hint!"; $("#cheer").className = "cheer no";
+      say("Not quite. Try once more, or tap hint!");
+    }
   }
   $("#qScore").textContent = Q.score; $("#qStreak").textContent = Q.streak; $("#qBest").textContent = qBest();
 }
+$("#hintQ").onclick = giveHint;
 $("#nextQ").onclick = nextQuestion;
 $("#hearQ").onclick = () => Q.cur && say(Q.cur.spoken);
 

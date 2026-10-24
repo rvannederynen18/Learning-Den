@@ -257,6 +257,11 @@ function useDivision(level){
 }
 function fadeFrac(level){ const f = CFG.fadeBy; if (f >= 99) return 0; if (f <= 1) return 1; return Math.max(0, Math.min(1, (level - 1) / (f - 1))); }
 function gen(){
+  /* a fact they missed comes back a couple of blocks later */
+  if (G.retryQ && G.retryQ.length && G.retryQ[0].due <= (G.spawned || 0)){
+    const r = G.retryQ.shift().q;
+    return { text:r.text, show:r.show, ans:r.ans, r:r.r, c:r.c, div:r.div, again:true, color:pick(TH.colors), icon:pick(TH.icons) };
+  }
   const max = tableMax(G.level); let q, tries = 0;
   do {
     let a = Math.random() < .4 ? max : 1 + rnd(max), b = 1 + rnd(max);
@@ -297,8 +302,9 @@ function releaseWake(){ try { wakeLock?.release(); } catch(e){} wakeLock = null;
 function spawn(){
   const open = []; for (let c = 0; c < COLS; c++) if (G.stack[c].length < ROWS) open.push(c);
   if (!open.length) return gameOver();
+  G.spawned = (G.spawned || 0) + 1;
   const q = G.next; G.next = gen();
-  q.col = pick(open); q.y = -0.6;
+  q.col = pick(open); q.y = -0.6; q.tries = 0;
   G.active = q; G.input = "";
   const el = $("#activeBlock"); el.hidden = false;
   el.style.left = (q.col * 100 / COLS) + "%"; el.style.setProperty("--c", q.color);
@@ -340,9 +346,9 @@ function fxAt(col, row, html, big){
   Object.assign(b.style, { left:Math.min(80, Math.max(20, (col+.5)*100/COLS))+"%", top:(Math.max(0,row)*100/ROWS)+"%" });
   fx.append(p, b); setTimeout(() => { p.remove(); b.remove(); }, 950);
 }
-function showBanner(title, sub){
+function showBanner(title, sub, ms){
   const el = $("#banner"); el.innerHTML = `<b>${esc(title)}</b><span>${esc(sub)}</span>`; el.hidden = false;
-  clearTimeout(showBanner.t); showBanner.t = setTimeout(() => el.hidden = true, 1800);
+  clearTimeout(showBanner.t); showBanner.t = setTimeout(() => el.hidden = true, ms || 1800);
 }
 function submit(){
   const a = G && G.active; if (!a || G.paused || G.input === "") return;
@@ -366,10 +372,24 @@ function submit(){
     renderStreak(); updateHud(); spawn();
   } else {
     sfx.wrong(); G.streak = 0; G.input = "";
-    a.y = Math.min(landingRow(a.col), a.y + 1); drawActive();
-    $("#ansText").textContent = "?";
+    a.tries = (a.tries || 0) + 1;
     box.classList.remove("wrong"); void box.offsetWidth; box.classList.add("wrong");
     renderStreak();
+    if (a.tries >= 2){
+      /* two wrong tries: show the answer and why, then the block drops with the answer on it, and the fact comes back soon */
+      G.paused = true;
+      $("#ansText").textContent = a.ans;
+      const why = a.div ? `${a.r * a.c} ÷ ${a.r} = ${a.c}, because ${a.r} × ${a.c} = ${a.r * a.c}.`
+                        : `${a.r} × ${a.c} = ${a.ans}. That's ${a.r} group${a.r === 1 ? "" : "s"} of ${a.c}.`;
+      showBanner("Let's learn it!", why, 3800);
+      H.say(`Let's learn it. ${why.replace(/÷/g, "divided by").replace(/×/g, "times")}`);
+      G.retryQ = G.retryQ || [];
+      if (!a.again) G.retryQ.push({ q:{ text:a.text, show:a.show, ans:a.ans, r:a.r, c:a.c, div:a.div }, due:(G.spawned || 0) + 2 });
+      setTimeout(() => { if (!G || G.over) return; G.paused = false; if (G.active === a){ a.y = landingRow(a.col); lockActive(); } if (G.over) return; if ($("#overlay").hidden) resume(); else G.paused = true; }, 3800);
+      return;
+    }
+    $("#ansText").textContent = "?";
+    a.y = Math.min(landingRow(a.col), a.y + 1); drawActive();
   }
 }
 function levelUp(){

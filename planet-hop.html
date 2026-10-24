@@ -324,7 +324,7 @@ function sunInfo(){
 }
 
 /* QUIZ */
-const Q = { n:0, score:0, streak:0, firstTry:0, cur:null, done:false };
+const Q = { n:0, score:0, streak:0, firstTry:0, cur:null, done:false, retry:[] };
 const qBest = () => (P && P.ph.best) || 0;
 function makeQuestion(){
   const p = pick(PL);
@@ -337,7 +337,7 @@ function makeQuestion(){
   let text, show = "", answer, opts;
   if (type === "which"){ text = "Which planet is this?"; show = planetSVG(p, 180); answer = p.n; opts = shuffle([p, ...others(p.n)]).map(x => x.n); }
   else if (type === "order"){ text = `Which planet is ${ORD[p.i]} from the Sun?`; answer = p.n; opts = shuffle([p, ...others(p.n)]).map(x => x.n); }
-  else if (type === "clue"){ text = `Which planet is ${p.clue}?`; answer = p.n; opts = shuffle([p, ...others(p.n)]).map(x => x.n); }
+  else if (type === "clue"){ text = `Which one is ${p.clue}?`; answer = p.n; opts = shuffle([p, ...others(p.n)]).map(x => x.n); }
   else if (type === "after"){ text = `Which planet comes right after ${p.n}?`; const a = PL[p.i + 1]; answer = a.n; opts = shuffle([a, ...others(a.n)]).map(x => x.n); show = planetSVG(p, 120); }
   else if (type === "year"){ text = `How long is one year on ${p.n}?`; answer = p.year; opts = shuffle([p.year, ...shuffle(PL.filter(x => x.year !== p.year)).slice(0, 2).map(x => x.year)]); show = planetSVG(p, 140); }
   else { text = `How many moons does ${p.n} have?`; answer = p.moons; opts = shuffle(["0","1","2","4"].filter(x => x !== p.moons).slice(0, 2).concat(p.moons)); show = planetSVG(p, 140); }
@@ -345,10 +345,11 @@ function makeQuestion(){
 }
 function renderQDots(){ $("#qDots").innerHTML = Array.from({length:ROUND}, (_, i) => `<i class="${i < Q.n ? "done" : i === Q.n ? "now" : ""}"></i>`).join(""); }
 function nextQuestion(){
-  if (Q.n >= ROUND) return endQuiz();
-  Q.cur = makeQuestion(); Q.done = false;
+  if (Q.n >= ROUND && !Q.retry.length) return endQuiz();
+  const due = Q.retry.findIndex(r => r.due <= Q.n || Q.n >= ROUND);
+  Q.cur = due >= 0 ? (r => Object.assign(r, { tries:0, again:true, opts:shuffle(r.opts) }))(Q.retry.splice(due, 1)[0].q) : makeQuestion(); Q.done = false;
   const q = Q.cur;
-  $("#qview").innerHTML = `${q.show}<p class="question">${q.text}</p>`;
+  $("#qview").innerHTML = `${q.show}<p class="question">${q.again ? `<span style="display:block;font-family:var(--body);font-size:16px;color:var(--accent)">Let's try this one again!</span>` : ""}${q.text}</p>`;
   $("#choices").innerHTML = q.opts.map(o => {
     const pl = byName[o];
     return `<button class="choice" data-v="${esc(o)}">${pl ? planetSVG(Object.assign({}, pl, { rings:false }), 44) : "<span style='font-size:30px'>🪐</span>"}${esc(o)}</button>`;
@@ -362,8 +363,8 @@ function answer(b){
   const q = Q.cur;
   if (b.dataset.v === q.answer){
     Q.done = true; Q.n++; Q.score++; Q.streak++;
-    const pts = q.tries === 0 ? PTS.quiz : Math.ceil(PTS.quiz / 2);
-    if (q.tries === 0) Q.firstTry++;
+    const pts = q.tries === 0 && !q.again ? PTS.quiz : Math.ceil(PTS.quiz / 2);
+    if (q.tries === 0 && !q.again) Q.firstTry++;
     b.classList.add("right");
     H.earn(P, pts, "planet-hop", `quiz score ${Q.score}`);
     if (P && Q.score > P.ph.best){ P.ph.best = Q.score; if (!P.guest) H.save(); }
@@ -375,8 +376,26 @@ function answer(b){
     H.say(`${cheer} ${fact}`);
   } else {
     q.tries++; Q.streak = 0; b.classList.add("wrong");
-    $("#cheer").textContent = "Try again!"; $("#cheer").className = "cheer no";
-    H.say("Try again!");
+    if (q.tries >= 2){
+      /* two wrong tries: show the answer and why, no points, and ask it again later */
+      Q.done = true; Q.n++;
+      const right = [...$("#choices").querySelectorAll(".choice")].find(x => x.dataset.v === q.answer);
+      if (right) right.classList.add("right");
+      $("#choices").querySelectorAll(".choice").forEach(x => x.disabled = true);
+      const why = q.type === "order" ? `${q.p.n} is the ${ORD[q.p.i]} planet from the Sun.`
+        : q.type === "after" ? `After ${q.p.n} comes ${q.answer}. In order: ${PL.map(x => x.n).join(", ")}.`
+        : q.type === "clue" ? `${q.p.n} is ${q.p.clue}.`
+        : q.type === "year" ? `One year on ${q.p.n} lasts ${q.p.year}.`
+        : q.type === "moons" ? `${q.p.n} has ${q.p.moons} moon${q.p.moons === "1" ? "" : "s"}.`
+        : `This is ${q.p.n}. ${pick(HARD ? q.p.hard : q.p.easy)}`;
+      $("#cheer").innerHTML = `Let's learn it!<small>The answer is <b>${esc(q.answer)}</b>. ${why} We'll try it again soon.</small>`; $("#cheer").className = "cheer";
+      if (!q.again) Q.retry.push({ q, due:Q.n + 2 });
+      $("#nextQ").hidden = false;
+      H.say(`Let's learn it. The answer is ${q.answer}. ${why}`);
+    } else {
+      $("#cheer").textContent = "Not quite. Try once more!"; $("#cheer").className = "cheer no";
+      H.say("Not quite. Try once more!");
+    }
   }
   $("#qScore").textContent = Q.score; $("#qStreak").textContent = Q.streak; $("#qBest").textContent = qBest();
   renderQDots();

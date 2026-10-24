@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22#5b5bf0%22/%3E%3Cpath d=%22M19 10 L41 31 L59 31 L81 10 L84 47 Q84 62 72 72 L57 88 Q50 94 43 88 L28 72 Q16 62 16 47 Z%22 fill=%22#7d86b3%22/%3E%3Cpath d=%22M24 20 L37 33 L27 41 Z M76 20 L63 33 L73 41 Z%22 fill=%22#2c3163%22/%3E%3Cpath d=%22M50 40 Q66 42 74 54 Q66 62 60 72 L56 82 Q50 87 44 82 L40 72 Q34 62 26 54 Q34 42 50 40 Z%22 fill=%22#eef1fb%22/%3E%3Cpath d=%22M33 48 L44 50 L36 55 Z M67 48 L56 50 L64 55 Z%22 fill=%22#f5a400%22/%3E%3Ccircle cx=%2239%22 cy=%2251%22 r=%222.6%22 fill=%22#1c2340%22/%3E%3Ccircle cx=%2261%22 cy=%2251%22 r=%222.6%22 fill=%22#1c2340%22/%3E%3Cpath d=%22M43 68 L57 68 L50 76 Z%22 fill=%22#1c2340%22/%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gator Chomp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800;900&display=swap">
+<style>
+/* Layout: prompt bar over a swamp grid, D-pad underneath for touch. Swamp greens (boy) or lily-pad pinks (girl). */
+:root{
+  --bg:#e5f6ea; --paper:#ffffff; --ink:#0d2a1f; --muted:#4a6b5a; --line:#bfe3cc; --soft:#e6f7ec;
+  --accent:#15803d; --accent-2:#0ea5e9; --gold:#f5a400; --good:#16a34a; --bad:#e5484d;
+  --water-a:#1f7a5a; --water-b:#0f4d3a; --pad:#4ade80;
+  --display:"Lilita One", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Nunito", "Trebuchet MS", system-ui, sans-serif;
+  color-scheme:light;
+  padding-top:env(safe-area-inset-top, 0px);padding-bottom:env(safe-area-inset-bottom, 0px);
+}
+:root[data-style="girl"]{ --bg:#fff0f8; --line:#f3cfe4; --soft:#fde8f3; --accent:#db2777; --muted:#7d5a72; --water-a:#2d8a7a; --water-b:#1d5f61; --pad:#86efac; }
+html,body{margin:0;min-height:100%}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-weight:800;font-size:17px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+button{font-family:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:4px solid var(--gold);outline-offset:2px}
+#app{max-width:900px;margin:0 auto;padding-block:10px 20px;display:flex;flex-direction:column;gap:10px}
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.bar h1{font-family:var(--display);font-weight:400;font-size:clamp(26px,5vw,36px);margin:0;color:var(--accent)}
+.who{color:var(--muted)}
+#wallet{margin-left:auto}
+.btn{background:var(--paper);border:3px solid var(--line);border-bottom-width:6px;border-radius:14px;padding:9px 16px;font-size:16px;font-weight:800}
+.btn:active{border-bottom-width:3px;translate:0 3px}
+.btn.go{background:var(--accent);border-color:color-mix(in srgb,var(--accent) 70%,#000);color:#fff}
+.btn.small{padding:6px 12px;font-size:15px;border-bottom-width:4px}
+.promptbar{background:var(--paper);border:3px solid var(--line);border-radius:18px;padding:8px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.promptbar .eat{font-family:var(--display);font-size:clamp(24px,5.5vw,34px);flex:1 1 220px;min-width:0}
+.promptbar .eat b{white-space:nowrap}
+.promptbar .eat b{color:var(--accent);font-weight:400}
+.dots{display:flex;gap:5px}
+.dots i{width:12px;height:12px;border-radius:50%;background:var(--line)}
+.dots i.done{background:var(--good)} .dots i.now{background:var(--gold)}
+.msg{min-height:1.3em;text-align:center;font-size:17px;font-weight:900}
+.msg.no{color:var(--bad)} .msg.yes{color:var(--good)} .msg.learn{color:var(--accent)}
+.swamp{position:relative;width:100%;border-radius:20px;overflow:hidden;border:4px solid var(--paper);box-shadow:0 8px 24px rgba(0,40,20,.18);touch-action:none}
+canvas{display:block;width:100%;height:auto}
+.pad{display:grid;grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,56px);gap:6px;justify-content:center}
+.pad button{border:3px solid var(--line);border-bottom-width:6px;border-radius:14px;background:var(--paper);font-size:26px;touch-action:manipulation}
+.pad button:active{border-bottom-width:3px;translate:0 3px}
+.pad .u{grid-column:2} .pad .l{grid-column:1;grid-row:2} .pad .d{grid-column:2;grid-row:2} .pad .r{grid-column:3;grid-row:2}
+.help{color:var(--muted);font-size:14px;text-align:center}
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(10,40,25,.55);display:grid;place-items:center;
+  padding:max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
+.dialog{background:var(--paper);border-radius:24px;border:4px solid var(--accent);padding:22px;width:min(460px,100%);display:flex;flex-direction:column;gap:12px;text-align:center;max-height:100%;overflow:auto}
+.dialog h2{font-family:var(--display);font-weight:400;font-size:32px;margin:0;color:var(--accent)}
+.dialog p{margin:0;color:var(--muted);line-height:1.4}
+.dialog .big{font-size:60px;line-height:1}
+.dialog .row{display:flex;gap:10px;flex-wrap:wrap}
+.dialog .row .btn{flex:1}
+.fact{background:var(--soft);border-radius:14px;padding:10px 12px;color:var(--ink)!important}
+@media (min-width:900px){ .pad{display:none} }
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="bar">
+    <button class="btn small" id="backBtn">‹ Lessons</button>
+    <h1>Gator Chomp</h1>
+    <span class="who" id="who"></span>
+    <div id="wallet"></div>
+  </div>
+  <div class="promptbar"><div class="eat" id="eat">Get ready!</div><div class="dots" id="dots"></div><button class="btn small" id="pauseBtn">⏸ Pause</button></div>
+  <div class="msg" id="msg" aria-live="polite"></div>
+  <div class="swamp" id="swamp"><canvas id="cv" width="900" height="600" aria-label="Swamp game board"></canvas></div>
+  <div class="pad" aria-label="Steer the gator">
+    <button class="u" data-dir="up" aria-label="Up">⬆️</button><button class="l" data-dir="left" aria-label="Left">⬅️</button>
+    <button class="d" data-dir="down" aria-label="Down">⬇️</button><button class="r" data-dir="right" aria-label="Right">➡️</button>
+  </div>
+  <div class="help">Steer with the arrows, arrow keys, or swipe on the swamp.</div>
+</div>
+<div class="overlay" id="overlay" hidden><div class="dialog" id="dialog"></div></div>
+
+<script src="hub-core.js"></script>
+<script>
+(function(){
+"use strict";
+const H = window.Hub, esc = H.esc;
+const $ = s => document.querySelector(s);
+const rnd = n => Math.floor(Math.random() * n);
+const pick = a => a[rnd(a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const P = H.active();
+const LEVEL = P ? (H.levelFor(P, "gator-chomp") || (Number(P.age) >= 8 ? "chomper" : "hatchling")) : "hatchling";
+const HARD = LEVEL === "chomper";
+const GIRL = P && H.style(P) === "girl";
+const ROUND = 10;
+let COLS = 15, ROWS = 10;   /* phones get a smaller, chunkier grid (set in setGrid) */
+function setGrid(){ const w = document.getElementById("swamp").clientWidth; if (w < 600){ COLS = 10; ROWS = 9; } else { COLS = 15; ROWS = 10; } }
+const PTS = HARD ? 15 : 10;
+let STAGE = 1;
+const cv = $("#cv"), ctx = cv.getContext("2d");
+const DIRS = { up:[0,-1], down:[0,1], left:[-1,0], right:[1,0] };
+
+/* ---------- prompts: what the gator should eat ---------- */
+function mathPrompt(){
+  if (!HARD){ const top = [5,7,10,10,12][STAGE - 1]; const a = 1 + rnd(top - 1), b = 1 + rnd(Math.max(1, top - a)); return { text:`${a} + ${b}`, show:`<b>${a} + ${b}</b>`, ans:String(a + b), why:`${a} + ${b} = ${a + b}. Start at ${Math.max(a, b)} and count up ${Math.min(a, b)}.`, wrong:nearN(a + b) }; }
+  if (STAGE >= 3 && Math.random() < .35){ const a = 2 + rnd(8), b = 2 + rnd(8); return { text:`${a * b} ÷ ${a}`, show:`<b>${a * b} ÷ ${a}</b>`, ans:String(b), why:`${a * b} ÷ ${a} = ${b}, because ${a} × ${b} = ${a * b}.`, wrong:nearN(b) }; }
+  const m = 4 + STAGE * 1.5, a = 2 + rnd(m), b = 2 + rnd(m); return { text:`${a} × ${b}`, show:`<b>${a} × ${b}</b>`, ans:String(a * b), why:`${a} × ${b} = ${a * b}. That's ${a} groups of ${b}.`, wrong:nearN(a * b) };
+}
+function nearN(n){ const s = new Set(); for (const d of shuffle([1,-1,2,-2,3,10])){ if (s.size >= 3) break; if (n + d > 0 && n + d !== n) s.add(String(n + d)); } return [...s]; }
+const SHAPES = [["🔺","triangle"],["🟦","square"],["⚪","circle"],["⭐","star"],["❤️","heart"],["🔶","diamond"]];
+const HEALTHY = [["🍎","apple"],["🥕","carrot"],["🥦","broccoli"],["🍌","banana"],["🫐","blueberries"],["🥚","egg"]], JUNK = [["🍩","donut"],["🍬","candy"],["🥤","soda"],["🍭","lollipop"],["🍟","fries"]];
+const REPTILES = [["🐍","snake"],["🦎","lizard"],["🐢","turtle"],["🐊","alligator"]], NOTREP = [["🐸","frog"],["🐟","fish"],["🐦","bird"],["🐞","ladybug"]];
+function prompt(){
+  const r = Math.random();
+  if (r < (HARD ? .55 : .45)) return mathPrompt();
+  if (r < .65){
+    const [e, n] = pick(SHAPES), others = shuffle(SHAPES.filter(s => s[1] !== n)).slice(0, 3);
+    return { text:`the ${n}`, show:`the <b>${n}</b>`, ans:e, why:`That's the ${n} ${e}.`, wrong:others.map(o => o[0]), emoji:true };
+  }
+  if (r < .82 || !HARD){
+    const h = pick(HEALTHY), j = shuffle(JUNK).slice(0, 3);
+    return { text:"the healthy food", show:"the <b>healthy food</b>", ans:h[0], why:`${h[1][0].toUpperCase() + h[1].slice(1)} ${h[0]} gives you vitamins and energy. Treats are OK sometimes!`, wrong:j.map(x => x[0]), emoji:true };
+  }
+  if (Math.random() < .5){
+    const n = 2 + rnd(30), even = n % 2 === 0, list = [String(n)]; while (list.length < 4){ const m = 2 + rnd(30); if ((m % 2 === 0) !== even && !list.includes(String(m))) list.push(String(m)); }
+    return { text:`the ${even ? "even" : "odd"} number`, show:`the <b>${even ? "even" : "odd"} number</b>`, ans:String(n), why:`${n} is ${even ? "even. Even numbers end in 0, 2, 4, 6 or 8" : "odd. Odd numbers end in 1, 3, 5, 7 or 9"}.`, wrong:list.slice(1) };
+  }
+  const rep = pick(REPTILES), not = shuffle(NOTREP).slice(0, 3);
+  return { text:"the reptile", show:"the <b>reptile</b>", ans:rep[0], why:`The ${rep[1]} is a reptile: scaly skin, and it's cold-blooded. Frogs are amphibians, not reptiles!`, wrong:not.map(x => x[0]), emoji:true };
+}
+
+/* ---------- game state ---------- */
+let G = null, raf = 0, last = 0, acc = 0;
+function speed(){ return (HARD ? 4.6 : 3.2) + STAGE * (HARD ? .45 : .3); }
+function free(x, y){ return !G.body.some(s => s[0] === x && s[1] === y) && !G.items.some(i => i.x === x && i.y === y); }
+function placeItems(){
+  const q = G.q, labels = shuffle([q.ans, ...q.wrong.slice(0, HARD ? 3 : 2)]);
+  const [hx, hy] = G.body[0];
+  G.items = [];
+  labels.forEach(l => {
+    let x, y, t = 0;
+    do { x = 1 + rnd(COLS - 2); y = 1 + rnd(ROWS - 2); t++; } while ((!free(x, y) || Math.abs(x - hx) + Math.abs(y - hy) < 4) && t < 300);
+    G.items.push({ x, y, label:l, right:l === q.ans });
+  });
+}
+function nextPrompt(){
+  if (G.n >= ROUND && !G.retry.length) return endRound();
+  const due = G.retry.findIndex(r => r.due <= G.n || G.n >= ROUND);
+  G.q = due >= 0 ? Object.assign({}, G.retry.splice(due, 1)[0], { again:true }) : prompt();
+  G.q.tries = 0;
+  $("#eat").innerHTML = `${G.q.again ? `<span style="font-family:var(--body);font-size:15px;color:var(--accent)">Try this one again!</span><br>` : ""}Eat ${G.q.show}`;
+  H.say(`Eat ${G.q.text.replace(/×/g, "times").replace(/÷/g, "divided by")}`);
+  placeItems(); renderDots();
+}
+function renderDots(){ $("#dots").innerHTML = Array.from({length:ROUND}, (_, i) => `<i class="${i < G.n ? "done" : i === G.n ? "now" : ""}"></i>`).join(""); }
+function msg(text, cls, ms){ const m = $("#msg"); m.innerHTML = text; m.className = "msg " + (cls || ""); clearTimeout(msg.t); if (ms) msg.t = setTimeout(() => { m.textContent = ""; m.className = "msg"; }, ms); }
+function start(){
+  setGrid(); size();
+  STAGE = H.stage(P, "gator-chomp");
+  const lvl = H.LESSONS.find(l => l.id === "gator-chomp").levels.find(l => l.id === LEVEL);
+  $("#who").textContent = `${H.first(P)} · ${lvl.name} · stage ${STAGE} of 5`;
+  G = { body:[[4,5],[3,5],[2,5]], dir:"right", next:"right", grow:0, items:[], q:null, n:0, first:0, pts:0, retry:[], paused:false, over:false, freeze:0, wobble:0 };
+  H.sessionPts = 0; H.refreshWallet(true);
+  nextPrompt(); last = performance.now(); acc = 0;
+  if (!raf) raf = requestAnimationFrame(loop);
+}
+function turn(d){ if (!G || G.paused) return; const [dx, dy] = DIRS[d], [cx, cy] = DIRS[G.dir]; if (dx === -cx && dy === -cy) return; G.next = d; }
+function step(){
+  G.dir = G.next;
+  const [dx, dy] = DIRS[G.dir];
+  let [x, y] = G.body[0]; x += dx; y += dy;
+  if (x < 0 || y < 0 || x >= COLS || y >= ROWS){
+    if (!HARD){ x = (x + COLS) % COLS; y = (y + ROWS) % ROWS; }       /* hatchlings swim around the edge */
+    else { bump("Bonk! The gator bumped the bank."); return; }
+  }
+  if (HARD && G.body.slice(0, -1).some(s => s[0] === x && s[1] === y)){ bump("Oops! The gator bit its own tail."); return; }
+  G.body.unshift([x, y]);
+  if (G.grow > 0) G.grow--; else G.body.pop();
+  const hit = G.items.findIndex(i => i.x === x && i.y === y);
+  if (hit >= 0) chomp(G.items[hit]);
+}
+function bump(text){
+  G.freeze = .9; G.wobble = 1;
+  G.body = G.body.slice(0, Math.max(3, G.body.length - 2));
+  const [hx, hy] = G.body[0];
+  G.dir = G.next = hx < COLS / 2 ? "right" : "left";
+  if (hy <= 0 || hy >= ROWS - 1) G.dir = G.next = hy <= 0 ? "down" : "up";
+  msg(text + " It got a little shorter.", "no", 1800);
+}
+function chomp(it){
+  const q = G.q;
+  if (it.right){
+    const pts = q.tries === 0 && !q.again ? PTS : Math.ceil(PTS / 2);
+    if (q.tries === 0 && !q.again) G.first++;
+    G.pts += pts; G.n++; G.grow += 2;
+    H.earn(P, pts, "gator-chomp", `${LEVEL} level`);
+    const cheer = pick(GIRL ? ["Chomp-tastic!","Purr-fect!","Go gator!","Snap snap!"] : ["Chomp-tastic!","Snap snap!","Gator power!","Great move!"]);
+    msg(`${cheer} +${pts} · ${q.why}`, "yes", 2600);
+    if (G.n % 4 === 0) H.cheer(`Fun fact: ${H.funFact(P)}`, P, 5500); else H.cheer(cheer, P, 1300);
+    H.say(`${cheer} ${q.why.replace(/×/g, "times").replace(/÷/g, "divided by").replace(/−/g, "minus")}`);
+    nextPrompt();
+  } else {
+    q.tries++;
+    G.items = G.items.filter(i => i !== it);
+    G.body = G.body.slice(0, Math.max(3, G.body.length - 1)); G.wobble = 1;
+    if (q.tries >= 2){
+      /* two wrong bites: show the right one and why, then move on (it comes back later) */
+      G.n++; G.freeze = 3.4;
+      G.items.forEach(i => i.show = i.right);
+      G.items = G.items.filter(i => i.right);
+      msg(`Let's learn it! ${q.why} We'll try it again soon.`, "learn", 3400);
+      H.say(`Let's learn it. ${q.why.replace(/×/g, "times").replace(/÷/g, "divided by")}`);
+      if (!q.again) G.retry.push(Object.assign({}, q, { due:G.n + 2 }));
+      setTimeout(() => { if (G && !G.over) nextPrompt(); }, 3400);
+    } else {
+      msg(`Not that one${q.emoji ? "" : ` (that was ${esc(it.label)})`}. Try once more!`, "no", 2200);
+      H.say("Not quite. Try once more!");
+    }
+  }
+}
+
+/* ---------- drawing ---------- */
+function size(){
+  const w = $("#swamp").clientWidth, cell = Math.floor(w / COLS);
+  cv.width = cell * COLS * devicePixelRatio; cv.height = cell * ROWS * devicePixelRatio;
+  cv.style.height = (cell * ROWS) + "px";
+  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  G && (G.cell = cell); size.cell = cell;
+}
+function draw(t){
+  const c = size.cell, W = c * COLS, Hh = c * ROWS, cs = getComputedStyle(document.documentElement);
+  const g = ctx.createLinearGradient(0, 0, 0, Hh); g.addColorStop(0, cs.getPropertyValue("--water-a")); g.addColorStop(1, cs.getPropertyValue("--water-b"));
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, Hh);
+  ctx.globalAlpha = .18; ctx.fillStyle = cs.getPropertyValue("--pad");
+  for (let i = 0; i < 9; i++){ const px = (i * 137) % W, py = (i * 89) % Hh; ctx.beginPath(); ctx.arc(px, py, c * .7, .4, Math.PI * 2 - .2); ctx.lineTo(px, py); ctx.fill(); }
+  ctx.globalAlpha = 1;
+  if (!G) return;
+  /* items */
+  G.items.forEach(it => {
+    const x = it.x * c + c / 2, y = it.y * c + c / 2, pulse = it.show ? 1 + .15 * Math.sin(t / 120) : 1;
+    ctx.beginPath(); ctx.arc(x, y, c * .46 * pulse, 0, 7); ctx.fillStyle = it.show ? "#dcfce7" : "#ffffff"; ctx.fill();
+    ctx.lineWidth = 3; ctx.strokeStyle = it.show ? "#16a34a" : "rgba(0,0,0,.25)"; ctx.stroke();
+    ctx.fillStyle = "#0d2a1f"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    const len = String(it.label).length;
+    ctx.font = `900 ${Math.round(c * (len > 2 ? .36 : .46))}px Nunito, sans-serif`;
+    ctx.fillText(it.label, x, y + 1);
+  });
+  /* gator body */
+  const wob = G.wobble > 0 ? Math.sin(t / 30) * 2 * G.wobble : 0;
+  for (let i = G.body.length - 1; i >= 1; i--){
+    const [bx, by] = G.body[i], x = bx * c + c / 2 + wob, y = by * c + c / 2;
+    ctx.beginPath(); ctx.arc(x, y, c * (i === G.body.length - 1 ? .3 : .42), 0, 7);
+    ctx.fillStyle = i % 2 ? "#3f9b4f" : "#4fb560"; ctx.fill();
+    ctx.fillStyle = "#2f7a3c"; ctx.beginPath(); ctx.arc(x, y - c * .12, c * .1, 0, 7); ctx.fill();
+  }
+  /* head */
+  const [hx, hy] = G.body[0], [dx, dy] = DIRS[G.dir], x = hx * c + c / 2 + wob, y = hy * c + c / 2;
+  ctx.save(); ctx.translate(x, y); ctx.rotate(Math.atan2(dy, dx));
+  ctx.fillStyle = "#3f9b4f"; ctx.beginPath(); ctx.ellipse(c * .12, 0, c * .62, c * .4, 0, 0, 7); ctx.fill();
+  const open = Math.abs(Math.sin(t / 160)) * .14;
+  ctx.fillStyle = "#c2414c"; ctx.beginPath(); ctx.moveTo(c * .2, 0); ctx.lineTo(c * .74, -c * open); ctx.lineTo(c * .74, c * open); ctx.fill();
+  ctx.fillStyle = "#fff"; [-1, 1].forEach(s => { ctx.beginPath(); ctx.arc(c * -.05, s * c * .24, c * .12, 0, 7); ctx.fill(); });
+  ctx.fillStyle = "#0d2a1f"; [-1, 1].forEach(s => { ctx.beginPath(); ctx.arc(c * -.02, s * c * .24, c * .06, 0, 7); ctx.fill(); });
+  ctx.fillStyle = "#fff"; for (let i = 0; i < 3; i++){ ctx.beginPath(); ctx.moveTo(c * (.3 + i * .14), -c * .16); ctx.lineTo(c * (.37 + i * .14), -c * .04); ctx.lineTo(c * (.44 + i * .14), -c * .16); ctx.fill(); }
+  if (GIRL){ ctx.fillStyle = "#f472b6"; ctx.beginPath(); ctx.arc(-c * .3, -c * .3, c * .12, 0, 7); ctx.arc(-c * .3, -c * .12, c * .08, 0, 7); ctx.fill(); }
+  ctx.restore();
+}
+function loop(t){
+  const dt = Math.min(.05, (t - last) / 1000); last = t;
+  if (G && !G.paused && !G.over && $("#overlay").hidden){
+    if (G.freeze > 0) G.freeze -= dt;
+    else { acc += dt * speed(); while (acc >= 1){ acc -= 1; step(); if (!G || G.over || G.freeze > 0) break; } }
+    if (G && G.wobble > 0) G.wobble = Math.max(0, G.wobble - dt * 2);
+  }
+  draw(t);
+  raf = requestAnimationFrame(loop);
+}
+function endRound(){
+  G.over = true;
+  const bonus = G.first >= 8 ? 25 : 0;
+  if (bonus) H.earn(P, bonus, "gator-chomp", "round bonus");
+  const note = H.stageNote(H.recordRound(P, "gator-chomp", G.first, ROUND), H.stage(P, "gator-chomp"));
+  const fact = H.funFact(P);
+  $("#dialog").innerHTML = `<div class="big">${G.first >= 8 ? "🏆" : "🐊"}</div><h2>${G.first >= 8 ? "Top chomper!" : "Gator's full!"}</h2>
+    <p>${G.first} of ${ROUND} chomped right on the first try. You earned ${G.pts + bonus} points${bonus ? ", with a 25 point bonus" : ""}${P.guest ? "." : ` (${H.money(G.pts + bonus)}).`}</p>
+    <p style="color:var(--ink)">${note}</p><p class="fact">🐊 Fun fact: ${fact}</p>
+    <div class="row"><button class="btn" id="homeB">Back to lessons</button><button class="btn go" id="againB">Chomp again</button></div>`;
+  $("#overlay").hidden = false;
+  H.say(`${G.first >= 8 ? "Top chomper!" : "Gator's full!"} Fun fact: ${fact}`);
+  $("#againB").onclick = () => { $("#overlay").hidden = true; if (P.guest) P.points = 0; start(); };
+  $("#homeB").onclick = H.goHome;
+}
+function pause(){
+  if (!G || G.over) return; G.paused = true;
+  $("#dialog").innerHTML = `<div class="big">⏸</div><h2>Paused</h2><p>${G.n} of ${ROUND} done.</p><div class="row"><button class="btn" id="homeB">Back to lessons</button><button class="btn go" id="resB">Keep chomping</button></div>`;
+  $("#overlay").hidden = false;
+  $("#resB").onclick = () => { $("#overlay").hidden = true; G.paused = false; last = performance.now(); };
+  $("#homeB").onclick = H.goHome;
+}
+
+/* ---------- controls ---------- */
+document.addEventListener("keydown", e => {
+  const k = { ArrowUp:"up", ArrowDown:"down", ArrowLeft:"left", ArrowRight:"right", w:"up", s:"down", a:"left", d:"right", W:"up", S:"down", A:"left", D:"right" }[e.key];
+  if (k && $("#overlay").hidden){ turn(k); e.preventDefault(); }
+  if (e.key === "p" || e.key === " ") { if ($("#overlay").hidden) pause(); e.preventDefault(); }
+});
+document.querySelectorAll("[data-dir]").forEach(b => b.addEventListener("pointerdown", e => { e.preventDefault(); turn(b.dataset.dir); }));
+let sw = null;
+$("#swamp").addEventListener("pointerdown", e => { sw = [e.clientX, e.clientY]; });
+$("#swamp").addEventListener("pointerup", e => {
+  if (!sw) return; const dx = e.clientX - sw[0], dy = e.clientY - sw[1]; sw = null;
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < 18) return;
+  turn(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up"));
+});
+$("#pauseBtn").onclick = pause;
+$("#backBtn").onclick = H.goHome;
+document.addEventListener("visibilitychange", () => { if (document.hidden) pause(); });
+addEventListener("resize", () => { if (!G) setGrid(); size(); });
+try { speechSynthesis.getVoices(); } catch(e){}
+
+/* ---------- boot ---------- */
+setGrid(); size();
+if (!P){
+  $("#dialog").innerHTML = `<h2>Who's playing?</h2><p>Pick a player on the home page first.</p><div class="row"><button class="btn go" id="toHub">Go to the home page</button></div>`;
+  $("#overlay").hidden = false; $("#toHub").onclick = () => { location.href = H.homeUrl; };
+  raf = requestAnimationFrame(loop);
+} else {
+  document.documentElement.dataset.style = H.style(P);
+  H.mountWallet($("#wallet"), P);
+  $("#dialog").innerHTML = `<div class="big">🐊</div><h2>Gator Chomp!</h2>
+    <p>Steer the gator to gobble the right answer. Right answers make it grow. ${HARD ? "Don't bump the bank or your own tail!" : "Your gator can swim right through the edges."}</p>
+    <div class="row"><button class="btn" id="homeB">Back</button><button class="btn go" id="startB">Start chomping</button></div>`;
+  $("#overlay").hidden = false;
+  $("#startB").onclick = () => { $("#overlay").hidden = true; start(); };
+  $("#homeB").onclick = H.goHome;
+  raf = requestAnimationFrame(loop);
+}
+})();
+</script>
+</body>
+</html>

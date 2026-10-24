@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22#5b5bf0%22/%3E%3Cpath d=%22M19 10 L41 31 L59 31 L81 10 L84 47 Q84 62 72 72 L57 88 Q50 94 43 88 L28 72 Q16 62 16 47 Z%22 fill=%22#7d86b3%22/%3E%3Cpath d=%22M24 20 L37 33 L27 41 Z M76 20 L63 33 L73 41 Z%22 fill=%22#2c3163%22/%3E%3Cpath d=%22M50 40 Q66 42 74 54 Q66 62 60 72 L56 82 Q50 87 44 82 L40 72 Q34 62 26 54 Q34 42 50 40 Z%22 fill=%22#eef1fb%22/%3E%3Cpath d=%22M33 48 L44 50 L36 55 Z M67 48 L56 50 L64 55 Z%22 fill=%22#f5a400%22/%3E%3Ccircle cx=%2239%22 cy=%2251%22 r=%222.6%22 fill=%22#1c2340%22/%3E%3Ccircle cx=%2261%22 cy=%2251%22 r=%222.6%22 fill=%22#1c2340%22/%3E%3Cpath d=%22M43 68 L57 68 L50 76 Z%22 fill=%22#1c2340%22/%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Body &amp; Health Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800;900&display=swap">
+<style>
+/* Shared lesson shell: top bar with wallet, mode tabs, a stage card for the question, answer buttons beside it. */
+:root{
+  --bg:#e6f4ff; --paper:#ffffff; --ink:#0d2a3d; --muted:#4a6b7a; --line:#c6dcec; --soft:#eef6fc;
+  --accent:#1d74e8; --accent-2:#0e9f6e; --gold:#f5a400; --good:#16a34a; --bad:#e5484d;
+  --display:"Lilita One", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Nunito", "Trebuchet MS", system-ui, sans-serif;
+  color-scheme:light;
+  padding-top:env(safe-area-inset-top, 0px);padding-bottom:env(safe-area-inset-bottom, 0px);
+}
+:root[data-style="girl"]{ --bg:#fff0f8; --line:#f3cfe4; --soft:#fde8f3; --accent:#e0479e; --accent-2:#a855f7; --muted:#7d5a72; }
+html,body{margin:0;min-height:100%}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-weight:800;font-size:17px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+button{font-family:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:4px solid var(--gold);outline-offset:2px}
+#app{max-width:1060px;margin:0 auto;padding-block:12px 28px;display:flex;flex-direction:column;gap:14px}
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.bar h1{font-family:var(--display);font-weight:400;font-size:clamp(26px,5vw,38px);margin:0;color:var(--accent)}
+.who{color:var(--muted)}
+#wallet{margin-left:auto}
+.btn{background:var(--paper);border:3px solid var(--line);border-bottom-width:6px;border-radius:14px;padding:9px 16px;font-size:16px;font-weight:800}
+.btn:active{border-bottom-width:3px;translate:0 3px}
+.btn.go{background:var(--accent);border-color:color-mix(in srgb,var(--accent) 70%,#000);color:#fff}
+.btn.small{padding:6px 12px;font-size:15px;border-bottom-width:4px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tab{background:var(--paper);border:3px solid var(--line);border-radius:999px;padding:8px 16px;font-weight:900;font-size:16px;color:var(--muted);display:flex;gap:8px;align-items:center}
+.tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.game{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+.stagecard{background:var(--paper);border:3px solid var(--line);border-radius:24px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.dots{display:flex;gap:5px}
+.dots i{width:13px;height:13px;border-radius:50%;background:var(--line)}
+.dots i.done{background:var(--accent-2)}
+.dots i.now{background:var(--gold)}
+#stage{display:flex;justify-content:center;align-items:center;min-height:240px;position:relative}
+.prompt{font-family:var(--display);font-size:clamp(24px,5vw,34px);line-height:1.15;text-align:center;margin:0}
+.side{display:flex;flex-direction:column;gap:12px}
+.choices{display:grid;gap:10px}
+.choice{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--paper);border:3px solid var(--line);border-bottom-width:7px;border-radius:18px;padding:12px 14px;font-size:22px;font-weight:900;font-variant-numeric:tabular-nums}
+.choice:active{border-bottom-width:3px;translate:0 4px}
+.choice.right{border-color:var(--good);background:#e3f7ec}
+.choice.wrong{border-color:var(--bad);opacity:.45;pointer-events:none}
+.cheer{text-align:center;font-family:var(--display);font-size:28px;min-height:1.2em;color:var(--good)}
+.cheer.no{color:var(--bad)}
+.cheer.learn{color:var(--accent)}
+.choice.shown{animation:shownpulse 1s ease-in-out 3}
+@keyframes shownpulse{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--good) 35%,transparent)}}
+.again{display:inline-block;font-family:var(--body);font-size:15px;font-weight:900;color:var(--accent);background:var(--soft);border-radius:999px;padding:2px 12px;margin-bottom:6px}
+.cheer small{display:block;font-family:var(--body);font-size:16px;color:var(--ink);margin-top:4px;font-weight:800}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(10,30,50,.55);display:grid;place-items:center;
+  padding:max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
+.dialog{background:var(--paper);border-radius:24px;border:4px solid var(--accent);padding:22px;width:min(460px,100%);display:flex;flex-direction:column;gap:12px;text-align:center;max-height:100%;overflow:auto}
+.dialog h2{font-family:var(--display);font-weight:400;font-size:32px;margin:0;color:var(--accent)}
+.dialog p{margin:0;color:var(--muted);line-height:1.4}
+.dialog .big{font-size:60px;line-height:1}
+.dialog .row .btn{flex:1}
+.fact{background:var(--soft);border-radius:14px;padding:10px 12px;color:var(--ink)!important}
+canvas#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
+@media (max-width:759px){ .game{grid-template-columns:1fr} #stage{min-height:200px} }
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.bodymap{width:min(64vw,250px);height:auto}
+.bodymap .part{transition:filter .2s}
+.bodymap .part.glow{filter:drop-shadow(0 0 6px #facc15) drop-shadow(0 0 12px #facc15);animation:glowp 1s ease-in-out infinite}
+@keyframes glowp{50%{opacity:.6}}
+.habit{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;max-width:520px}
+.habit .big{font-size:80px;line-height:1}
+.habit .stmt{font-size:clamp(20px,4.5vw,26px);line-height:1.35}
+.move{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.move .big{font-size:96px;line-height:1;animation:bop 1s ease-in-out infinite}
+@keyframes bop{50%{transform:translateY(-10px)}}
+.move .what{font-family:var(--display);font-size:clamp(26px,6vw,36px);color:var(--accent)}
+.timer{font-family:var(--display);font-size:56px;font-variant-numeric:tabular-nums;color:var(--ink)}
+.tip{color:var(--muted);font-size:15px;text-align:center;max-width:42ch}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="bar">
+    <button class="btn small" id="backBtn">‹ Lessons</button>
+    <h1 id="title">Body &amp; Health Lab</h1>
+    <span class="who" id="who"></span>
+    <div id="wallet"></div>
+  </div>
+  <div class="tabs" role="tablist" id="modeTabs"></div>
+  <div class="game">
+    <div class="stagecard">
+      <div class="qhead"><div class="dots" id="dots"></div><button class="btn small" id="hearBtn">🔊 Hear it</button></div>
+      <p class="prompt" id="prompt"></p>
+      <div id="stage"></div>
+    </div>
+    <div class="side">
+      <div class="choices" id="choices"></div>
+      <div class="cheer" id="cheer"></div>
+      <div class="row"><button class="btn go" id="nextBtn" hidden>Next ▶</button></div>
+      
+    </div>
+  </div>
+</div>
+<div class="overlay" id="overlay" hidden><div class="dialog" id="dialog"></div></div>
+
+<script src="hub-core.js"></script>
+<script>
+(function(){
+"use strict";
+const H = window.Hub, esc = H.esc;
+const $ = s => document.querySelector(s);
+const rnd = n => Math.floor(Math.random() * n);
+const pick = a => a[rnd(a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const LESSON_ID = "body-lab";
+const P = H.active();
+const LESSON = H.LESSONS.find(l => l.id === LESSON_ID);
+const LEVEL = P ? (H.levelFor(P, LESSON_ID) || (Number(P.age) >= 8 ? LESSON.levels[1].id : LESSON.levels[0].id)) : LESSON.levels[0].id;
+const HARD = LEVEL === LESSON.levels[1].id;
+const GIRL = P && H.style(P) === "girl";
+const ROUND = 10;
+const PTS = HARD ? 15 : 10;
+
+/* ---- shared round engine ---- */
+const Game = { mode:null, q:null, R:null, modes:[], stage:1 };
+function confetti(emojis){
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  let c = $("#confetti"); if (!c){ c = document.createElement("canvas"); c.id = "confetti"; document.body.append(c); }
+  const ctx = c.getContext("2d"), W = c.width = innerWidth, Hh = c.height = innerHeight;
+  const em = emojis || Game.confetti || ["⭐","✨"];
+  const Pc = Array.from({length:60}, () => ({ x:W/2, y:Hh*.4, vx:(Math.random()-.5)*14, vy:-Math.random()*12-4, s:16+Math.random()*16, e:pick(em) }));
+  let t = 0;
+  (function tick(){ ctx.clearRect(0,0,W,Hh); t++;
+    Pc.forEach(p => { p.vy += .35; p.x += p.vx; p.y += p.vy; ctx.font = `${p.s}px sans-serif`; ctx.fillText(p.e, p.x, p.y); });
+    if (t < 95) requestAnimationFrame(tick); else ctx.clearRect(0,0,W,Hh); })();
+}
+function renderDots(){ $("#dots").innerHTML = Array.from({length:ROUND}, (_, i) => `<i class="${i < Game.R.n ? "done" : i === Game.R.n ? "now" : ""}"></i>`).join(""); }
+function renderTabs(){
+  const list = Game.modes.filter(m => !m.only || m.only.includes(LEVEL));
+  $("#modeTabs").innerHTML = list.map(m => `<button class="tab" role="tab" data-m="${m.id}" aria-selected="${Game.mode && Game.mode.id === m.id}"><span>${m.icon}</span>${m.name}</button>`).join("");
+  $("#modeTabs").querySelectorAll(".tab").forEach(b => b.onclick = () => startMode(b.dataset.m));
+}
+function startMode(id){
+  Game.mode = Game.modes.find(m => m.id === id); renderTabs();
+  Game.R = { n:0, first:0, pts:0 }; Game.retry = []; H.sessionPts = 0; H.refreshWallet(true);
+  if (!Game.baseRight) Game.baseRight = Game.right;
+  Game.stage = H.stage(P, LESSON_ID);
+  const lvl = LESSON.levels.find(l => l.id === LEVEL);
+  $("#who").textContent = `${H.first(P)} · ${lvl ? lvl.name : ""} · stage ${Game.stage} of 5`;
+  H.hush();
+  if (Game.mode.setup) Game.mode.setup();
+  next();
+}
+function next(){
+  if (Game.R.n >= ROUND && !Game.retry.length) return endRound();
+  $("#cheer").textContent = ""; $("#cheer").className = "cheer"; $("#nextBtn").hidden = true;
+  if (Game.baseRight) Game.right = Game.baseRight;   /* drop any one-question helpers */
+  renderDots();
+  const due = Game.retry.findIndex(r => r.due <= Game.R.n || Game.R.n >= ROUND);
+  if (due >= 0){
+    const r = Game.retry.splice(due, 1)[0];
+    Game.ask(Object.assign({}, r.q, { retry:true, choices:r.q.choices ? shuffle(r.q.choices) : r.q.choices, prompt:`<span class="again">Let's try this one again!</span><br>${r.q.prompt || ""}` }));
+    return;
+  }
+  Game.mode.next();
+}
+/* q = { prompt, say, stage (html), choices:[{v,label}], answer, onShow(stageEl) } */
+Game.ask = function(q){
+  Game.q = Object.assign({ tries:0, done:false }, q, { tries:0, done:false });
+  Game.q.src = q.src || q;
+  $("#prompt").innerHTML = q.prompt || "";
+  $("#stage").innerHTML = q.stage || "";
+  $("#choices").style.visibility = ""; $("#choices").style.gridTemplateColumns = "";
+  $("#choices").innerHTML = (q.choices || []).map(c => `<button class="choice" data-v="${esc(c.v)}">${c.label}</button>`).join("");
+  $("#choices").querySelectorAll(".choice").forEach(b => b.onclick = () => {
+    if (Game.q.done) return;
+    if (b.dataset.v === String(Game.q.answer)){ b.classList.add("right"); Game.right(); }
+    else { b.classList.add("wrong"); Game.wrong(); }
+  });
+  if (q.onShow) q.onShow($("#stage"));
+  H.say(q.say || (q.prompt || "").replace(/<[^>]+>/g, ""));
+};
+Game.right = function(msg){
+  const q = Game.q; if (!q || q.done) return; q.done = true;
+  const pts = q.tries === 0 && !q.retry ? PTS : Math.ceil(PTS / 2);
+  if (q.tries === 0 && !q.retry) Game.R.first++;
+  Game.R.pts += pts; Game.R.n++;
+  H.earn(P, pts, LESSON_ID, `${Game.mode.name}`);
+  const cheer = pick(Game.cheers);
+  $("#cheer").innerHTML = `${cheer} +${pts}${msg || q.explain ? `<small>${msg || q.explain}</small>` : ""}`; $("#cheer").className = "cheer";
+  confetti();
+  if (Game.R.n % 4 === 0) H.cheer(`Fun fact: ${H.funFact(P)}`, P, 5500); else H.cheer(cheer, P, 1400);
+  H.say(`${cheer} ${(msg || q.explain || "").replace(/<[^>]+>/g, "")}`);
+  renderDots();
+  if (q.autoNext) setTimeout(next, q.autoNext); else $("#nextBtn").hidden = false;
+};
+Game.wrong = function(msg){
+  const q = Game.q; if (!q || q.done) return;
+  q.tries++;
+  if (q.tries >= 2 && !q.noReveal) return Game.reveal(msg);
+  $("#cheer").innerHTML = `Not quite. Try once more!${msg ? `<small>${msg}</small>` : ""}`; $("#cheer").className = "cheer no";
+  H.say("Not quite. Try once more! " + (msg || "").replace(/<[^>]+>/g, ""));
+};
+/* After two wrong tries: show the right answer and why, give no points, and bring the question back later. */
+Game.reveal = function(msg){
+  const q = Game.q; if (!q || q.done) return; q.done = true;
+  Game.R.n++;
+  let label = "";
+  const btn = q.answer !== undefined ? $("#choices").querySelector(`.choice[data-v="${CSS.escape(String(q.answer))}"]`) : null;
+  if (btn){ btn.classList.add("right", "shown"); label = btn.textContent.trim(); }
+  if (q.reveal) try { q.reveal($("#stage")); } catch(e){}
+  $("#choices").querySelectorAll(".choice").forEach(b => b.disabled = true);
+  const why = q.explain || msg || "";
+  $("#cheer").innerHTML = `Let's learn it!<small>${label ? `The answer is <b>${label}</b>. ` : ""}${why}${q.replay !== false && (q.choices && q.choices.length && !q.onShow || q.replay) ? " We'll try it again soon." : ""}</small>`;
+  $("#cheer").className = "cheer learn";
+  H.say(`Let's learn it. ${label ? "The answer is " + label + ". " : ""}${why.replace(/<[^>]+>/g, "")}`);
+  if (!q.retry && q.replay !== false && (q.choices && q.choices.length && !q.onShow || q.replay)) Game.retry.push({ q:q.src, due:Game.R.n + 2 });
+  renderDots();
+  $("#nextBtn").hidden = false;
+};
+function endRound(){
+  const bonus = Game.R.first >= 8 ? 25 : 0;
+  if (bonus) H.earn(P, bonus, LESSON_ID, "round bonus");
+  const change = H.recordRound(P, LESSON_ID, Game.R.first, ROUND);
+  const note = H.stageNote(change, H.stage(P, LESSON_ID));
+  const fact = H.funFact(P);
+  $("#dialog").innerHTML = `<div class="big">${Game.R.first >= 8 ? "🏆" : Game.mode.icon}</div>
+    <h2>${Game.R.first >= 8 ? Game.winTitle : Game.doneTitle}</h2>
+    <p>${Game.R.first} of ${ROUND} right on the first try. You earned ${Game.R.pts + bonus} points${bonus ? ", with a 25 point bonus" : ""}${P.guest ? "." : ` (${H.money(Game.R.pts + bonus)}).`}</p>
+    <p style="color:var(--ink)">${note}</p>
+    <p class="fact">${GIRL ? "🐱" : "🦔"} Fun fact: ${fact}</p>
+    <div class="row"><button class="btn" id="homeB">Back to lessons</button><button class="btn" id="otherB">Pick another game</button><button class="btn go" id="againB">Play again</button></div>`;
+  $("#overlay").hidden = false;
+  H.say(`${Game.R.first >= 8 ? Game.winTitle : Game.doneTitle}! Fun fact: ${fact}`);
+  $("#againB").onclick = () => { $("#overlay").hidden = true; if (P.guest) P.points = 0; startMode(Game.mode.id); };
+  $("#otherB").onclick = () => { $("#overlay").hidden = true; chooser(); };
+  $("#homeB").onclick = H.goHome;
+}
+function chooser(){
+  const list = Game.modes.filter(m => !m.only || m.only.includes(LEVEL));
+  $("#dialog").innerHTML = `<div class="big">${H.iconOf(LESSON, P)}</div><h2>${esc(H.titleOf(LESSON, P))}</h2><p>Pick a game. Each one has ${ROUND} questions.</p>
+    <div style="display:grid;gap:10px">${list.map(m => `<button class="btn" data-pickm="${m.id}" style="text-align:left;display:flex;gap:12px;align-items:center"><span style="font-size:32px">${m.icon}</span><span><b>${m.name}</b><br><span style="font-weight:700;color:var(--muted);font-size:14px">${m.blurb()}</span></span></button>`).join("")}</div>
+    <div class="row"><button class="btn small" id="homeB">Back to lessons</button></div>`;
+  $("#overlay").hidden = false;
+  $("#dialog").querySelectorAll("[data-pickm]").forEach(b => b.onclick = () => { $("#overlay").hidden = true; startMode(b.dataset.pickm); });
+  $("#homeB").onclick = H.goHome;
+}
+$("#nextBtn").onclick = next;
+$("#hearBtn").onclick = () => Game.q && H.say(Game.q.say || ($("#prompt").textContent));
+$("#backBtn").onclick = H.goHome;
+try { speechSynthesis.getVoices(); } catch(e){}
+
+/* ---- this lesson's games ---- */
+Game.cheers = GIRL ? ["Healthy and happy!","Purr-fect!","Super doc!","Go team!","Glow-tastic!"] : ["Healthy and strong!","Super doc!","Great move!","Awesome!","Body pro!"];
+Game.confetti = ["💪","❤️","🧠","⭐", GIRL ? "🎀" : "🦔"];
+Game.winTitle = "Super doc!"; Game.doneTitle = "Check-up complete";
+/* A friendly body with parts that can glow */
+function bodySVG(){
+  return `<svg class="bodymap" viewBox="0 0 200 330" role="img" aria-label="Body diagram">
+    <g class="part" data-part="skin"><circle cx="100" cy="46" r="36" fill="#f6c9a8" stroke="#c98b65" stroke-width="3"/>
+      <rect x="58" y="84" width="84" height="122" rx="30" fill="#f6c9a8" stroke="#c98b65" stroke-width="3"/>
+      <rect x="22" y="92" width="34" height="98" rx="16" fill="#f6c9a8" stroke="#c98b65" stroke-width="3"/><rect x="144" y="92" width="34" height="98" rx="16" fill="#f6c9a8" stroke="#c98b65" stroke-width="3"/>
+      <rect x="64" y="200" width="32" height="118" rx="15" fill="#f6c9a8" stroke="#c98b65" stroke-width="3"/><rect x="104" y="200" width="32" height="118" rx="15" fill="#f6c9a8" stroke="#c98b65" stroke-width="3"/></g>
+    <g class="part" data-part="brain"><path d="M76 40 C76 20 124 20 124 40 C134 44 130 62 118 62 L82 62 C70 62 66 44 76 40 Z" fill="#f9a8d4" stroke="#be185d" stroke-width="2.5"/><path d="M90 30 q6 6 0 12 M104 28 q6 8 0 16 M114 36 q-4 6 2 12" fill="none" stroke="#be185d" stroke-width="2"/></g>
+    <g class="part" data-part="lungs"><path d="M78 98 C64 104 64 148 72 154 C82 160 92 150 92 140 L92 104 C92 96 84 95 78 98 Z" fill="#fca5a5" stroke="#b91c1c" stroke-width="2.5"/><path d="M122 98 C136 104 136 148 128 154 C118 160 108 150 108 140 L108 104 C108 96 116 95 122 98 Z" fill="#fca5a5" stroke="#b91c1c" stroke-width="2.5"/></g>
+    <g class="part" data-part="heart"><path d="M104 132 C96 122 84 126 86 136 C88 146 104 154 104 154 C104 154 120 146 122 136 C124 126 112 122 104 132 Z" fill="#dc2626" stroke="#7f1d1d" stroke-width="2.5"/></g>
+    <g class="part" data-part="stomach"><path d="M104 160 C124 156 132 170 124 180 C116 190 96 186 92 176 C90 168 96 162 104 160 Z" fill="#fdba74" stroke="#c2410c" stroke-width="2.5"/></g>
+    <g class="part" data-part="intestines"><path d="M76 190 q10 -8 20 0 t20 0 t20 0 M76 200 q10 8 20 0 t20 0 t20 0" fill="none" stroke="#d97706" stroke-width="6" stroke-linecap="round"/></g>
+    <g class="part" data-part="muscles"><path d="M150 108 C166 104 172 128 160 140 C150 146 146 124 150 108 Z" fill="#ef4444" opacity=".85"/></g>
+    <g class="part" data-part="bones"><path d="M80 226 L80 306 M120 226 L120 306" stroke="#fff" stroke-width="8" stroke-linecap="round"/><circle cx="80" cy="226" r="6" fill="#fff"/><circle cx="80" cy="306" r="6" fill="#fff"/><circle cx="120" cy="226" r="6" fill="#fff"/><circle cx="120" cy="306" r="6" fill="#fff"/></g>
+  </svg>`;
+}
+const PARTS = {
+  brain:["Brain","is the boss of your body. It thinks, remembers and sends messages through your nerves.","Your brain sends messages through nerves faster than a race car."],
+  heart:["Heart","pumps blood all around your body. It's a muscle about the size of your fist.","Your heart beats about 100,000 times every day."],
+  lungs:["Lungs","breathe in oxygen from the air and breathe out carbon dioxide.","You take about 20,000 breaths every day."],
+  stomach:["Stomach","mashes up your food with special juices so your body can use it.","Your stomach can stretch to hold a big meal, then shrink back."],
+  intestines:["Intestines","take the good stuff (nutrients) out of your food and into your blood.","A grown-up's small intestine is about 20 feet long, all folded up!"],
+  muscles:["Muscles","pull on your bones so you can move, run, jump and smile.","You have more than 600 muscles."],
+  bones:["Bones","hold you up and protect the soft parts inside, like your brain and heart.","Grown-ups have 206 bones. Babies have about 300, and some join together as they grow."],
+  skin:["Skin","covers and protects your whole body, and helps you feel hot, cold and touch.","Skin is your body's biggest organ."]
+};
+/* 1. BODY MAP */
+Game.modes.push({ id:"map", name:"Body Map", icon:"🫀",
+  blurb:() => HARD ? "What does each organ do?" : "Name the glowing body part",
+  next(){
+    const keys = Object.keys(PARTS).slice(0, HARD ? 8 : Math.min(8, 4 + Game.stage));
+    const k = pick(keys), p = PARTS[k], byJob = HARD && Game.stage >= 2 && Math.random() < .6;
+    const others = shuffle(keys.filter(x => x !== k)).slice(0, 2);
+    Game.ask({ prompt: byJob ? `Which part ${p[1].split(".")[0]}?` : "What body part is glowing?", answer:k,
+      choices:shuffle([k, ...others]).map(v => ({ v, label:PARTS[v][0] })), explain:`Your ${p[0].toLowerCase()} ${p[1]} ${p[2]}`, stage:bodySVG(), replay:true,
+      onShow(st){ if (!byJob) st.querySelector(`[data-part="${k}"]`).classList.add("glow"); },
+      reveal(st){ st.querySelector(`[data-part="${k}"]`).classList.add("glow"); } });
+  } });
+
+/* 2. HEALTHY HABITS — health, fitness, sleep, sun and skin care */
+const TF = [
+  ["🧴","Wearing sunscreen at the beach helps protect your skin from sunburn.",true,"Sunscreen blocks the sun's UV rays. Use SPF 30 or higher."],
+  ["🏖️","You only need sunscreen once a day, even if you swim.",false,"Put it on again every 2 hours, and after swimming or sweating."],
+  ["🧼","Wash your hands for about 20 seconds, as long as singing Happy Birthday twice.",true,"Scrubbing that long washes away germs."],
+  ["🪥","Brush your teeth for 2 minutes, two times a day.",true,"Morning and night, 2 minutes each time, keeps teeth healthy."],
+  ["😴","Kids your age need about 9 to 12 hours of sleep each night.",true,"Sleep helps your body grow and your brain remember what you learned."],
+  ["🏃","Kids should move and play for about 60 minutes every day.",true,"An hour of active play keeps your heart, muscles and bones strong."],
+  ["💧","Soda is the best drink when you're thirsty.",false,"Water is the best drink. Your body is mostly water!"],
+  ["🧽","Kids' skin only needs simple care: a gentle wash, moisturizer and sunscreen.",true,"Strong grown-up products, like anti-aging creams, aren't made for kids' skin."],
+  ["😣","Popping pimples makes them heal faster.",false,"Popping can cause redness and scars. Wash gently and let them heal."],
+  ["🧢","A hat and sunglasses help protect you from the sun.",true,"They shade your face and protect your eyes."],
+  ["🥦","Eating lots of colorful fruits and veggies helps your body stay healthy.",true,"Different colors give you different vitamins."],
+  ["📱","Staring at a screen right before bed helps you fall asleep.",false,"Screens can keep your brain awake. Read a book instead."],
+  ["🤧","Sneezing into your elbow helps stop germs from spreading.",true,"Your elbow catches the germs instead of your hands."],
+  ["💄","Sharing lip balm or makeup with friends is a good idea.",false,"Sharing can spread germs. Keep your own."],
+  ["🫁","Your heart beats faster when you exercise.",true,"Your muscles need more oxygen, so your heart pumps faster to bring it."]
+];
+const MC = [
+  ["What helps your skin the most at the beach?","Sunscreen, a hat and shade",["Lots of lotion with no SPF","Staying in the sun all day"],"Sunscreen, hats and shade protect against sunburn."],
+  ["What's the best way to wash your face?","Gently, with lukewarm water and a mild cleanser",["Scrubbing really hard","With hot water and dish soap"],"Be gentle. Harsh scrubbing and hot water can bother your skin."],
+  ["Which food helps build strong bones?","Foods with calcium, like yogurt, broccoli or fortified oat milk",["Candy","Chips"],"Calcium makes bones strong. It's in dairy, leafy greens and fortified plant milks."],
+  ["What does stretching before you play help with?","It warms up your muscles",["It makes you taller","It makes you sleepy"],"Warm muscles are less likely to get hurt."],
+  ["How do you know you're drinking enough water?","You're not thirsty and your pee is light yellow",["You feel dizzy","Your lips are dry"],"Light yellow means your body has plenty of water."],
+  ["Which is a heart-healthy activity?","Riding your bike",["Watching TV all day","Skipping breakfast"],"Biking makes your heart pump hard, which makes it stronger."],
+  ["What's the job of moisturizer?","Keeps skin soft and stops it drying out",["Changes your skin color","Blocks all germs"],"Moisturizer locks water into your skin."]
+];
+Game.modes.push({ id:"habits", name:"Healthy Habits", icon:"🧴",
+  blurb:() => "Health, fitness, sleep, sun safety and skin care",
+  setup(){ Game.usedH = new Set(); },
+  next(){
+    const useMC = HARD ? Math.random() < .5 : Game.stage >= 3 && Math.random() < .3;
+    const bank = useMC ? MC : TF;
+    let i = shuffle(bank.map((_, k) => k)).find(k => !Game.usedH.has((useMC ? "m" : "t") + k)); if (i === undefined){ Game.usedH = new Set(); i = rnd(bank.length); }
+    Game.usedH.add((useMC ? "m" : "t") + i);
+    const q = bank[i];
+    if (useMC) Game.ask({ prompt:q[0], answer:q[1], choices:shuffle([q[1], ...q[2]]).map(v => ({ v, label:v })), explain:q[3], stage:`<div class="habit"><div class="big">💡</div></div>` });
+    else Game.ask({ prompt:"True or false?", say:`True or false? ${q[1]}`, answer:String(q[2]), choices:[{ v:"true", label:"👍 True" },{ v:"false", label:"👎 False" }],
+      explain:`${q[2] ? "True!" : "False!"} ${q[3]}`, stage:`<div class="habit"><div class="big">${q[0]}</div><div class="stmt">${q[1]}</div></div>` });
+  } });
+
+/* 3. MOVE BREAK — real exercise with a timer, then a fitness fact */
+const MOVES = [["🤸","10 jumping jacks",20,"Jumping jacks get your heart pumping. Feel your heartbeat. It's faster now!"],["🦵","Balance on one foot",15,"Balancing makes your core and leg muscles stronger."],
+  ["🏃","Run in place",20,"Running in place works your heart and lungs."],["🙆","Reach up high and touch your toes, 5 times",20,"Stretching keeps your muscles loose so you don't get hurt."],
+  ["🦘","Hop like a kangaroo 10 times",20,"Hopping builds strong leg muscles and bones."],["🐻","Bear crawl across the room",20,"Bear crawls work your arms, legs and tummy all at once."],
+  ["🧘","Take 5 slow, deep breaths",20,"Deep breaths fill your lungs with oxygen and help you feel calm."],["🐸","5 frog jumps",20,"Frog jumps power up your leg muscles."],["⭐","5 star jumps",15,"Star jumps stretch your whole body."]];
+Game.modes.push({ id:"move", name:"Move Break", icon:"🤸",
+  blurb:() => "Get up and move! Real exercises with a timer",
+  next(){
+    const mv = pick(MOVES), secs = mv[2] + (HARD ? 10 : 0);
+    let left = secs, tm = 0;
+    Game.ask({ prompt:`Move break: ${mv[1]}!`, say:`Move break! ${mv[1]}. Tap start when you're ready.`, noReveal:true,
+      stage:`<div class="move"><div class="big">${mv[0]}</div><div class="what">${mv[1]}</div><div class="timer" id="mvT">${secs}</div>
+        <button class="btn go" id="mvGo">▶ Start</button><div class="tip">Make sure you have space around you.</div></div>`,
+      onShow(st){
+        $("#mvGo").onclick = () => {
+          if (Game.q.done || tm) return;
+          $("#mvGo").disabled = true; $("#mvGo").textContent = "Keep going!";
+          tm = setInterval(() => {
+            left--; const el = $("#mvT"); if (!el){ clearInterval(tm); return; }
+            el.textContent = left;
+            if (left <= 0){ clearInterval(tm); el.textContent = "✓"; const b = $("#mvGo"); b.disabled = false; b.textContent = "I did it! 💪"; b.onclick = () => Game.right(mv[3]); H.say("Time! Great job."); }
+          }, 1000);
+        };
+      } });
+  } });
+
+
+/* ---- boot ---- */
+if (!P){
+  $("#dialog").innerHTML = `<h2>Who's playing?</h2><p>Pick a player on the home page first.</p><div class="row"><button class="btn go" id="toHub">Go to the home page</button></div>`;
+  $("#overlay").hidden = false; $("#toHub").onclick = () => { location.href = H.homeUrl; };
+} else {
+  document.documentElement.dataset.style = H.style(P);
+  $("#title").textContent = H.titleOf(LESSON, P); document.title = H.titleOf(LESSON, P);
+  const lvl = LESSON.levels.find(l => l.id === LEVEL);
+  $("#who").textContent = `${H.first(P)} · ${lvl ? lvl.name : ""} level`;
+  H.mountWallet($("#wallet"), P);
+  chooser();
+}
+})();
+</script>
+</body>
+</html>

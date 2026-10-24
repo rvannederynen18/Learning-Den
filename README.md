@@ -18,6 +18,15 @@ Learning games for kids. Each player gets lessons picked for their age and inter
 | `chess-club.html` | Chess Club | Chess moves, board squares, knight-hop math |
 | `green-lab.html` | Flower Power Lab / Forest Lab | Photosynthesis, plant and tree parts, nature facts |
 | `litter-bug.html` | Litter Bug | Sorting trash, recycling and compost; Earth facts |
+| `share-divide.html` | Share & Divide | Division by sharing, groups, fact families and story problems |
+| `shape-lab.html` | Shape Lab | Shapes, sides and corners, symmetry, area and perimeter |
+| `clock-shop.html` | Clock Shop | Reading and setting clocks, AM/PM, elapsed time |
+| `story-time.html` | Story Time | Reading comprehension with stories read out loud |
+| `snack-shack.html` | Snack Shack | Healthy lunches, ice cream shop money math, dairy-free swaps |
+| `body-lab.html` | Body & Health Lab | How the body works, healthy habits, skin care, move breaks |
+| `pet-care.html` | Pet Care | Caring for cats, dogs, hedgehogs and tortoises |
+| `storm-chaser.html` | Storm Chaser | Weather: clouds, rain, storms, hot air, lightning distance |
+| `gator-chomp.html` | Gator Chomp | Snake-style game: steer the gator to the right answers |
 
 `index.html` is the home page (players, lessons, bank, parent settings).
 `hub-core.js` holds the shared players, curriculum and points. Every page needs it.
@@ -30,6 +39,16 @@ Learning games for kids. Each player gets lessons picked for their age and inter
 ## How difficulty works
 
 Each player gets an age level for every lesson. Inside each level there are 5 stages. Everyone starts at stage 1, moves up after two strong rounds in a row (8 or more of 10 right on the first try), and moves back down after one rough round (under 5 of 10). Times Tower also speeds up and adds tables as they play.
+
+## Learning from mistakes
+
+One wrong answer gets a nudge to try again. After two wrong tries the game shows the right answer and explains why, gives no points for it, and brings the question back a couple of questions later. Wild States also has a 💡 Hint button (three hints, each worth a few points less).
+
+## Restoring points and money
+
+- **Saved copies:** the Den saves a copy every day and right before payouts, balance changes and removing a player. Parent settings → Backup → Saved copies on this device → **Restore**.
+- **Removed a player by mistake?** Parent settings → Players → Recently removed → **Bring back** (their points and payouts come back too).
+- **Lost everything on a device?** Parent settings → Allowance & PIN → **Adjust** next to a player to add, take away or set their balance from your own records.
 
 ## Good to know
 

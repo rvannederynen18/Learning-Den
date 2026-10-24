@@ -55,6 +55,10 @@ button:focus-visible{outline:4px solid var(--gold);outline-offset:2px}
 .choice.wrong{border-color:var(--bad);opacity:.45;pointer-events:none}
 .cheer{text-align:center;font-family:var(--display);font-size:28px;min-height:1.2em;color:var(--good)}
 .cheer.no{color:var(--bad)}
+.cheer.learn{color:var(--accent)}
+.choice.shown{animation:shownpulse 1s ease-in-out 3}
+@keyframes shownpulse{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--good) 35%,transparent)}}
+.again{display:inline-block;font-family:var(--body);font-size:15px;font-weight:900;color:var(--accent);background:var(--soft);border-radius:999px;padding:2px 12px;margin-bottom:6px}
 .cheer small{display:block;font-family:var(--body);font-size:16px;color:var(--ink);margin-top:4px;font-weight:800}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
 .overlay{position:fixed;inset:0;z-index:20;background:rgba(10,30,50,.55);display:grid;place-items:center;
@@ -167,7 +171,8 @@ function renderTabs(){
 }
 function startMode(id){
   Game.mode = Game.modes.find(m => m.id === id); renderTabs();
-  Game.R = { n:0, first:0, pts:0 }; H.sessionPts = 0; H.refreshWallet(true);
+  Game.R = { n:0, first:0, pts:0 }; Game.retry = []; H.sessionPts = 0; H.refreshWallet(true);
+  if (!Game.baseRight) Game.baseRight = Game.right;
   Game.stage = H.stage(P, LESSON_ID);
   const lvl = LESSON.levels.find(l => l.id === LEVEL);
   $("#who").textContent = `${H.first(P)} · ${lvl ? lvl.name : ""} · stage ${Game.stage} of 5`;
@@ -176,16 +181,25 @@ function startMode(id){
   next();
 }
 function next(){
-  if (Game.R.n >= ROUND) return endRound();
+  if (Game.R.n >= ROUND && !Game.retry.length) return endRound();
   $("#cheer").textContent = ""; $("#cheer").className = "cheer"; $("#nextBtn").hidden = true;
+  if (Game.baseRight) Game.right = Game.baseRight;   /* drop any one-question helpers */
   renderDots();
+  const due = Game.retry.findIndex(r => r.due <= Game.R.n || Game.R.n >= ROUND);
+  if (due >= 0){
+    const r = Game.retry.splice(due, 1)[0];
+    Game.ask(Object.assign({}, r.q, { retry:true, choices:r.q.choices ? shuffle(r.q.choices) : r.q.choices, prompt:`<span class="again">Let's try this one again!</span><br>${r.q.prompt || ""}` }));
+    return;
+  }
   Game.mode.next();
 }
 /* q = { prompt, say, stage (html), choices:[{v,label}], answer, onShow(stageEl) } */
 Game.ask = function(q){
-  Game.q = Object.assign({ tries:0, done:false }, q);
+  Game.q = Object.assign({ tries:0, done:false }, q, { tries:0, done:false });
+  Game.q.src = q.src || q;
   $("#prompt").innerHTML = q.prompt || "";
   $("#stage").innerHTML = q.stage || "";
+  $("#choices").style.visibility = ""; $("#choices").style.gridTemplateColumns = "";
   $("#choices").innerHTML = (q.choices || []).map(c => `<button class="choice" data-v="${esc(c.v)}">${c.label}</button>`).join("");
   $("#choices").querySelectorAll(".choice").forEach(b => b.onclick = () => {
     if (Game.q.done) return;
@@ -197,8 +211,8 @@ Game.ask = function(q){
 };
 Game.right = function(msg){
   const q = Game.q; if (!q || q.done) return; q.done = true;
-  const pts = q.tries === 0 ? PTS : Math.ceil(PTS / 2);
-  if (q.tries === 0) Game.R.first++;
+  const pts = q.tries === 0 && !q.retry ? PTS : Math.ceil(PTS / 2);
+  if (q.tries === 0 && !q.retry) Game.R.first++;
   Game.R.pts += pts; Game.R.n++;
   H.earn(P, pts, LESSON_ID, `${Game.mode.name}`);
   const cheer = pick(Game.cheers);
@@ -212,8 +226,26 @@ Game.right = function(msg){
 Game.wrong = function(msg){
   const q = Game.q; if (!q || q.done) return;
   q.tries++;
-  $("#cheer").innerHTML = `Try again!${msg ? `<small>${msg}</small>` : ""}`; $("#cheer").className = "cheer no";
-  H.say("Try again! " + (msg || "").replace(/<[^>]+>/g, ""));
+  if (q.tries >= 2 && !q.noReveal) return Game.reveal(msg);
+  $("#cheer").innerHTML = `Not quite. Try once more!${msg ? `<small>${msg}</small>` : ""}`; $("#cheer").className = "cheer no";
+  H.say("Not quite. Try once more! " + (msg || "").replace(/<[^>]+>/g, ""));
+};
+/* After two wrong tries: show the right answer and why, give no points, and bring the question back later. */
+Game.reveal = function(msg){
+  const q = Game.q; if (!q || q.done) return; q.done = true;
+  Game.R.n++;
+  let label = "";
+  const btn = q.answer !== undefined ? $("#choices").querySelector(`.choice[data-v="${CSS.escape(String(q.answer))}"]`) : null;
+  if (btn){ btn.classList.add("right", "shown"); label = btn.textContent.trim(); }
+  if (q.reveal) try { q.reveal($("#stage")); } catch(e){}
+  $("#choices").querySelectorAll(".choice").forEach(b => b.disabled = true);
+  const why = q.explain || msg || "";
+  $("#cheer").innerHTML = `Let's learn it!<small>${label ? `The answer is <b>${label}</b>. ` : ""}${why}${q.replay !== false && (q.choices && q.choices.length && !q.onShow || q.replay) ? " We'll try it again soon." : ""}</small>`;
+  $("#cheer").className = "cheer learn";
+  H.say(`Let's learn it. ${label ? "The answer is " + label + ". " : ""}${why.replace(/<[^>]+>/g, "")}`);
+  if (!q.retry && q.replay !== false && (q.choices && q.choices.length && !q.onShow || q.replay)) Game.retry.push({ q:q.src, due:Game.R.n + 2 });
+  renderDots();
+  $("#nextBtn").hidden = false;
 };
 function endRound(){
   const bonus = Game.R.first >= 8 ? 25 : 0;

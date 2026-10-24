@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22#5b5bf0%22/%3E%3Cpath d=%22M19 10 L41 31 L59 31 L81 10 L84 47 Q84 62 72 72 L57 88 Q50 94 43 88 L28 72 Q16 62 16 47 Z%22 fill=%22#7d86b3%22/%3E%3Cpath d=%22M24 20 L37 33 L27 41 Z M76 20 L63 33 L73 41 Z%22 fill=%22#2c3163%22/%3E%3Cpath d=%22M50 40 Q66 42 74 54 Q66 62 60 72 L56 82 Q50 87 44 82 L40 72 Q34 62 26 54 Q34 42 50 40 Z%22 fill=%22#eef1fb%22/%3E%3Cpath d=%22M33 48 L44 50 L36 55 Z M67 48 L56 50 L64 55 Z%22 fill=%22#f5a400%22/%3E%3Ccircle cx=%2239%22 cy=%2251%22 r=%222.6%22 fill=%22#1c2340%22/%3E%3Ccircle cx=%2261%22 cy=%2251%22 r=%222.6%22 fill=%22#1c2340%22/%3E%3Cpath d=%22M43 68 L57 68 L50 76 Z%22 fill=%22#1c2340%22/%3E%3C/svg%3E">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Story Time</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800;900&display=swap">
+<style>
+/* Shared lesson shell: top bar with wallet, mode tabs, a stage card for the question, answer buttons beside it. */
+:root{
+  --bg:#e6f4ff; --paper:#ffffff; --ink:#0d2a3d; --muted:#4a6b7a; --line:#c6dcec; --soft:#eef6fc;
+  --accent:#1d74e8; --accent-2:#0e9f6e; --gold:#f5a400; --good:#16a34a; --bad:#e5484d;
+  --display:"Lilita One", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Nunito", "Trebuchet MS", system-ui, sans-serif;
+  color-scheme:light;
+  padding-top:env(safe-area-inset-top, 0px);padding-bottom:env(safe-area-inset-bottom, 0px);
+}
+:root[data-style="girl"]{ --bg:#fff0f8; --line:#f3cfe4; --soft:#fde8f3; --accent:#e0479e; --accent-2:#a855f7; --muted:#7d5a72; }
+html,body{margin:0;min-height:100%}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-weight:800;font-size:17px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+button{font-family:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:4px solid var(--gold);outline-offset:2px}
+#app{max-width:1060px;margin:0 auto;padding-block:12px 28px;display:flex;flex-direction:column;gap:14px}
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.bar h1{font-family:var(--display);font-weight:400;font-size:clamp(26px,5vw,38px);margin:0;color:var(--accent)}
+.who{color:var(--muted)}
+#wallet{margin-left:auto}
+.btn{background:var(--paper);border:3px solid var(--line);border-bottom-width:6px;border-radius:14px;padding:9px 16px;font-size:16px;font-weight:800}
+.btn:active{border-bottom-width:3px;translate:0 3px}
+.btn.go{background:var(--accent);border-color:color-mix(in srgb,var(--accent) 70%,#000);color:#fff}
+.btn.small{padding:6px 12px;font-size:15px;border-bottom-width:4px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tab{background:var(--paper);border:3px solid var(--line);border-radius:999px;padding:8px 16px;font-weight:900;font-size:16px;color:var(--muted);display:flex;gap:8px;align-items:center}
+.tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.game{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+.stagecard{background:var(--paper);border:3px solid var(--line);border-radius:24px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.dots{display:flex;gap:5px}
+.dots i{width:13px;height:13px;border-radius:50%;background:var(--line)}
+.dots i.done{background:var(--accent-2)}
+.dots i.now{background:var(--gold)}
+#stage{display:flex;justify-content:center;align-items:center;min-height:240px;position:relative}
+.prompt{font-family:var(--display);font-size:clamp(24px,5vw,34px);line-height:1.15;text-align:center;margin:0}
+.side{display:flex;flex-direction:column;gap:12px}
+.choices{display:grid;gap:10px}
+.choice{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--paper);border:3px solid var(--line);border-bottom-width:7px;border-radius:18px;padding:12px 14px;font-size:22px;font-weight:900;font-variant-numeric:tabular-nums}
+.choice:active{border-bottom-width:3px;translate:0 4px}
+.choice.right{border-color:var(--good);background:#e3f7ec}
+.choice.wrong{border-color:var(--bad);opacity:.45;pointer-events:none}
+.cheer{text-align:center;font-family:var(--display);font-size:28px;min-height:1.2em;color:var(--good)}
+.cheer.no{color:var(--bad)}
+.cheer.learn{color:var(--accent)}
+.choice.shown{animation:shownpulse 1s ease-in-out 3}
+@keyframes shownpulse{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--good) 35%,transparent)}}
+.again{display:inline-block;font-family:var(--body);font-size:15px;font-weight:900;color:var(--accent);background:var(--soft);border-radius:999px;padding:2px 12px;margin-bottom:6px}
+.cheer small{display:block;font-family:var(--body);font-size:16px;color:var(--ink);margin-top:4px;font-weight:800}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
+.overlay{position:fixed;inset:0;z-index:20;background:rgba(10,30,50,.55);display:grid;place-items:center;
+  padding:max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
+.dialog{background:var(--paper);border-radius:24px;border:4px solid var(--accent);padding:22px;width:min(460px,100%);display:flex;flex-direction:column;gap:12px;text-align:center;max-height:100%;overflow:auto}
+.dialog h2{font-family:var(--display);font-weight:400;font-size:32px;margin:0;color:var(--accent)}
+.dialog p{margin:0;color:var(--muted);line-height:1.4}
+.dialog .big{font-size:60px;line-height:1}
+.dialog .row .btn{flex:1}
+.fact{background:var(--soft);border-radius:14px;padding:10px 12px;color:var(--ink)!important}
+canvas#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
+@media (max-width:759px){ .game{grid-template-columns:1fr} #stage{min-height:200px} }
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.book{background:var(--soft);border-radius:18px;padding:14px 18px;max-width:62ch;width:100%;display:flex;flex-direction:column;gap:8px}
+.book h3{font-family:var(--display);font-weight:400;font-size:24px;margin:0;color:var(--accent);display:flex;align-items:center;gap:10px}
+.book h3 span{font-size:34px}
+.book p{margin:0;font-size:clamp(18px,4vw,21px);line-height:1.6;font-weight:700}
+.book .read{align-self:flex-start}
+#stage{align-items:stretch}
+.qnum{font-size:14px;color:var(--muted);font-weight:900}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="bar">
+    <button class="btn small" id="backBtn">‹ Lessons</button>
+    <h1 id="title">Story Time</h1>
+    <span class="who" id="who"></span>
+    <div id="wallet"></div>
+  </div>
+  <div class="tabs" role="tablist" id="modeTabs"></div>
+  <div class="game">
+    <div class="stagecard">
+      <div class="qhead"><div class="dots" id="dots"></div><button class="btn small" id="hearBtn">🔊 Hear it</button></div>
+      <p class="prompt" id="prompt"></p>
+      <div id="stage"></div>
+    </div>
+    <div class="side">
+      <div class="choices" id="choices"></div>
+      <div class="cheer" id="cheer"></div>
+      <div class="row"><button class="btn go" id="nextBtn" hidden>Next ▶</button></div>
+      
+    </div>
+  </div>
+</div>
+<div class="overlay" id="overlay" hidden><div class="dialog" id="dialog"></div></div>
+
+<script src="hub-core.js"></script>
+<script>
+(function(){
+"use strict";
+const H = window.Hub, esc = H.esc;
+const $ = s => document.querySelector(s);
+const rnd = n => Math.floor(Math.random() * n);
+const pick = a => a[rnd(a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--){ const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const LESSON_ID = "story-time";
+const P = H.active();
+const LESSON = H.LESSONS.find(l => l.id === LESSON_ID);
+const LEVEL = P ? (H.levelFor(P, LESSON_ID) || (Number(P.age) >= 8 ? LESSON.levels[1].id : LESSON.levels[0].id)) : LESSON.levels[0].id;
+const HARD = LEVEL === LESSON.levels[1].id;
+const GIRL = P && H.style(P) === "girl";
+const ROUND = 10;
+const PTS = HARD ? 15 : 10;
+
+/* ---- shared round engine ---- */
+const Game = { mode:null, q:null, R:null, modes:[], stage:1 };
+function confetti(emojis){
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  let c = $("#confetti"); if (!c){ c = document.createElement("canvas"); c.id = "confetti"; document.body.append(c); }
+  const ctx = c.getContext("2d"), W = c.width = innerWidth, Hh = c.height = innerHeight;
+  const em = emojis || Game.confetti || ["⭐","✨"];
+  const Pc = Array.from({length:60}, () => ({ x:W/2, y:Hh*.4, vx:(Math.random()-.5)*14, vy:-Math.random()*12-4, s:16+Math.random()*16, e:pick(em) }));
+  let t = 0;
+  (function tick(){ ctx.clearRect(0,0,W,Hh); t++;
+    Pc.forEach(p => { p.vy += .35; p.x += p.vx; p.y += p.vy; ctx.font = `${p.s}px sans-serif`; ctx.fillText(p.e, p.x, p.y); });
+    if (t < 95) requestAnimationFrame(tick); else ctx.clearRect(0,0,W,Hh); })();
+}
+function renderDots(){ $("#dots").innerHTML = Array.from({length:ROUND}, (_, i) => `<i class="${i < Game.R.n ? "done" : i === Game.R.n ? "now" : ""}"></i>`).join(""); }
+function renderTabs(){
+  const list = Game.modes.filter(m => !m.only || m.only.includes(LEVEL));
+  $("#modeTabs").innerHTML = list.map(m => `<button class="tab" role="tab" data-m="${m.id}" aria-selected="${Game.mode && Game.mode.id === m.id}"><span>${m.icon}</span>${m.name}</button>`).join("");
+  $("#modeTabs").querySelectorAll(".tab").forEach(b => b.onclick = () => startMode(b.dataset.m));
+}
+function startMode(id){
+  Game.mode = Game.modes.find(m => m.id === id); renderTabs();
+  Game.R = { n:0, first:0, pts:0 }; Game.retry = []; H.sessionPts = 0; H.refreshWallet(true);
+  if (!Game.baseRight) Game.baseRight = Game.right;
+  Game.stage = H.stage(P, LESSON_ID);
+  const lvl = LESSON.levels.find(l => l.id === LEVEL);
+  $("#who").textContent = `${H.first(P)} · ${lvl ? lvl.name : ""} · stage ${Game.stage} of 5`;
+  H.hush();
+  if (Game.mode.setup) Game.mode.setup();
+  next();
+}
+function next(){
+  if (Game.R.n >= ROUND && !Game.retry.length) return endRound();
+  $("#cheer").textContent = ""; $("#cheer").className = "cheer"; $("#nextBtn").hidden = true;
+  if (Game.baseRight) Game.right = Game.baseRight;   /* drop any one-question helpers */
+  renderDots();
+  const due = Game.retry.findIndex(r => r.due <= Game.R.n || Game.R.n >= ROUND);
+  if (due >= 0){
+    const r = Game.retry.splice(due, 1)[0];
+    Game.ask(Object.assign({}, r.q, { retry:true, choices:r.q.choices ? shuffle(r.q.choices) : r.q.choices, prompt:`<span class="again">Let's try this one again!</span><br>${r.q.prompt || ""}` }));
+    return;
+  }
+  Game.mode.next();
+}
+/* q = { prompt, say, stage (html), choices:[{v,label}], answer, onShow(stageEl) } */
+Game.ask = function(q){
+  Game.q = Object.assign({ tries:0, done:false }, q, { tries:0, done:false });
+  Game.q.src = q.src || q;
+  $("#prompt").innerHTML = q.prompt || "";
+  $("#stage").innerHTML = q.stage || "";
+  $("#choices").style.visibility = ""; $("#choices").style.gridTemplateColumns = "";
+  $("#choices").innerHTML = (q.choices || []).map(c => `<button class="choice" data-v="${esc(c.v)}">${c.label}</button>`).join("");
+  $("#choices").querySelectorAll(".choice").forEach(b => b.onclick = () => {
+    if (Game.q.done) return;
+    if (b.dataset.v === String(Game.q.answer)){ b.classList.add("right"); Game.right(); }
+    else { b.classList.add("wrong"); Game.wrong(); }
+  });
+  if (q.onShow) q.onShow($("#stage"));
+  H.say(q.say || (q.prompt || "").replace(/<[^>]+>/g, ""));
+};
+Game.right = function(msg){
+  const q = Game.q; if (!q || q.done) return; q.done = true;
+  const pts = q.tries === 0 && !q.retry ? PTS : Math.ceil(PTS / 2);
+  if (q.tries === 0 && !q.retry) Game.R.first++;
+  Game.R.pts += pts; Game.R.n++;
+  H.earn(P, pts, LESSON_ID, `${Game.mode.name}`);
+  const cheer = pick(Game.cheers);
+  $("#cheer").innerHTML = `${cheer} +${pts}${msg || q.explain ? `<small>${msg || q.explain}</small>` : ""}`; $("#cheer").className = "cheer";
+  confetti();
+  if (Game.R.n % 4 === 0) H.cheer(`Fun fact: ${H.funFact(P)}`, P, 5500); else H.cheer(cheer, P, 1400);
+  H.say(`${cheer} ${(msg || q.explain || "").replace(/<[^>]+>/g, "")}`);
+  renderDots();
+  if (q.autoNext) setTimeout(next, q.autoNext); else $("#nextBtn").hidden = false;
+};
+Game.wrong = function(msg){
+  const q = Game.q; if (!q || q.done) return;
+  q.tries++;
+  if (q.tries >= 2 && !q.noReveal) return Game.reveal(msg);
+  $("#cheer").innerHTML = `Not quite. Try once more!${msg ? `<small>${msg}</small>` : ""}`; $("#cheer").className = "cheer no";
+  H.say("Not quite. Try once more! " + (msg || "").replace(/<[^>]+>/g, ""));
+};
+/* After two wrong tries: show the right answer and why, give no points, and bring the question back later. */
+Game.reveal = function(msg){
+  const q = Game.q; if (!q || q.done) return; q.done = true;
+  Game.R.n++;
+  let label = "";
+  const btn = q.answer !== undefined ? $("#choices").querySelector(`.choice[data-v="${CSS.escape(String(q.answer))}"]`) : null;
+  if (btn){ btn.classList.add("right", "shown"); label = btn.textContent.trim(); }
+  if (q.reveal) try { q.reveal($("#stage")); } catch(e){}
+  $("#choices").querySelectorAll(".choice").forEach(b => b.disabled = true);
+  const why = q.explain || msg || "";
+  $("#cheer").innerHTML = `Let's learn it!<small>${label ? `The answer is <b>${label}</b>. ` : ""}${why}${q.replay !== false && (q.choices && q.choices.length && !q.onShow || q.replay) ? " We'll try it again soon." : ""}</small>`;
+  $("#cheer").className = "cheer learn";
+  H.say(`Let's learn it. ${label ? "The answer is " + label + ". " : ""}${why.replace(/<[^>]+>/g, "")}`);
+  if (!q.retry && q.replay !== false && (q.choices && q.choices.length && !q.onShow || q.replay)) Game.retry.push({ q:q.src, due:Game.R.n + 2 });
+  renderDots();
+  $("#nextBtn").hidden = false;
+};
+function endRound(){
+  const bonus = Game.R.first >= 8 ? 25 : 0;
+  if (bonus) H.earn(P, bonus, LESSON_ID, "round bonus");
+  const change = H.recordRound(P, LESSON_ID, Game.R.first, ROUND);
+  const note = H.stageNote(change, H.stage(P, LESSON_ID));
+  const fact = H.funFact(P);
+  $("#dialog").innerHTML = `<div class="big">${Game.R.first >= 8 ? "🏆" : Game.mode.icon}</div>
+    <h2>${Game.R.first >= 8 ? Game.winTitle : Game.doneTitle}</h2>
+    <p>${Game.R.first} of ${ROUND} right on the first try. You earned ${Game.R.pts + bonus} points${bonus ? ", with a 25 point bonus" : ""}${P.guest ? "." : ` (${H.money(Game.R.pts + bonus)}).`}</p>
+    <p style="color:var(--ink)">${note}</p>
+    <p class="fact">${GIRL ? "🐱" : "🦔"} Fun fact: ${fact}</p>
+    <div class="row"><button class="btn" id="homeB">Back to lessons</button><button class="btn" id="otherB">Pick another game</button><button class="btn go" id="againB">Play again</button></div>`;
+  $("#overlay").hidden = false;
+  H.say(`${Game.R.first >= 8 ? Game.winTitle : Game.doneTitle}! Fun fact: ${fact}`);
+  $("#againB").onclick = () => { $("#overlay").hidden = true; if (P.guest) P.points = 0; startMode(Game.mode.id); };
+  $("#otherB").onclick = () => { $("#overlay").hidden = true; chooser(); };
+  $("#homeB").onclick = H.goHome;
+}
+function chooser(){
+  const list = Game.modes.filter(m => !m.only || m.only.includes(LEVEL));
+  $("#dialog").innerHTML = `<div class="big">${H.iconOf(LESSON, P)}</div><h2>${esc(H.titleOf(LESSON, P))}</h2><p>Pick a game. Each one has ${ROUND} questions.</p>
+    <div style="display:grid;gap:10px">${list.map(m => `<button class="btn" data-pickm="${m.id}" style="text-align:left;display:flex;gap:12px;align-items:center"><span style="font-size:32px">${m.icon}</span><span><b>${m.name}</b><br><span style="font-weight:700;color:var(--muted);font-size:14px">${m.blurb()}</span></span></button>`).join("")}</div>
+    <div class="row"><button class="btn small" id="homeB">Back to lessons</button></div>`;
+  $("#overlay").hidden = false;
+  $("#dialog").querySelectorAll("[data-pickm]").forEach(b => b.onclick = () => { $("#overlay").hidden = true; startMode(b.dataset.pickm); });
+  $("#homeB").onclick = H.goHome;
+}
+$("#nextBtn").onclick = next;
+$("#hearBtn").onclick = () => Game.q && H.say(Game.q.say || ($("#prompt").textContent));
+$("#backBtn").onclick = H.goHome;
+try { speechSynthesis.getVoices(); } catch(e){}
+
+/* ---- this lesson's games ---- */
+Game.cheers = GIRL ? ["Great reading!","Purr-fect!","Bookworm power!","Go team!","You found it!"] : ["Great reading!","You found it!","Super reader!","Great move!","Awesome!"];
+Game.confetti = ["📖","⭐","✨", GIRL ? "🐱" : "🦔"];
+Game.winTitle = "Super reader!"; Game.doneTitle = "The end";
+/* Each story: [title, emoji, text, [question, answer, [wrong, wrong], why]...] */
+const EASY = [
+  ["The Tortoise Visit","🐢","Every morning, a tortoise named Donnie walks across the yard. He likes to eat the yellow flowers by the fence. He moves very slowly. When the dog barks, Donnie hides in his shell.",
+    [["What does Donnie like to eat?","Yellow flowers",["Fish","Pizza"],"The story says he likes to eat the yellow flowers by the fence."],
+     ["How does Donnie move?","Very slowly",["Very fast","He hops"],"The story says he moves very slowly. Tortoises are slow walkers."],
+     ["What does Donnie do when the dog barks?","Hides in his shell",["Runs away fast","Barks back"],"When the dog barks, Donnie hides in his shell to feel safe."]]],
+  ["Kitty Nap","🐱","Two tabby cats live in a cozy house. The big cat likes the top of the cat tree. The little cat likes the warm spot by the window. After lunch, both cats take a long nap.",
+    [["How many cats are in the story?","Two",["One","Three"],"The story says two tabby cats live in the house."],
+     ["Where does the little cat like to sit?","By the window",["On the cat tree","In the bathtub"],"The little cat likes the warm spot by the window."],
+     ["What do the cats do after lunch?","Take a nap",["Go swimming","Play hockey"],"After lunch, both cats take a long nap."]]],
+  ["Beach Day","🏖️","Sam and Mia went to the beach. They built a big sandcastle with a moat. A crab walked sideways past the castle. Then a wave came and filled the moat with water!",
+    [["Where did Sam and Mia go?","The beach",["The zoo","The store"],"The first sentence says they went to the beach."],
+     ["What did they build?","A sandcastle",["A snowman","A treehouse"],"They built a big sandcastle with a moat."],
+     ["What filled the moat with water?","A wave",["The rain","A hose"],"A wave came and filled the moat with water."]]],
+  ["Hockey Hero","🏒","Leo put on his skates and his helmet. He skated fast down the ice. He passed the puck to his friend. His friend shot the puck into the net. Goal! The team cheered.",
+    [["What did Leo put on?","Skates and a helmet",["A swimsuit","Slippers"],"Leo put on his skates and his helmet before skating."],
+     ["Who scored the goal?","Leo's friend",["Leo","The coach"],"Leo passed the puck and his friend shot it into the net."],
+     ["How did the team feel?","Happy",["Sad","Sleepy"],"The team cheered, and people cheer when they are happy."]]],
+  ["The Hedgehog's Snack","🦔","At night, a little hedgehog wakes up. It is hungry. It sniffs the grass with its tiny nose. It finds a beetle and gobbles it up. Then it curls into a ball and goes to sleep.",
+    [["When does the hedgehog wake up?","At night",["In the morning","At lunch"],"The story says the hedgehog wakes up at night. Hedgehogs are night animals."],
+     ["What does the hedgehog find to eat?","A beetle",["A carrot","A cookie"],"It finds a beetle and gobbles it up."],
+     ["What does it do at the end?","Curls up and sleeps",["Goes swimming","Climbs a tree"],"At the end, it curls into a ball and goes to sleep."]]],
+  ["Ice Cream Stand","🍦","Ava opened an ice cream stand. She had chocolate and strawberry. Her first customer wanted two scoops of chocolate. Ava added sprinkles on top. The customer smiled and said thank you.",
+    [["What flavors did Ava have?","Chocolate and strawberry",["Vanilla and mint","Lemon and lime"],"Ava had chocolate and strawberry."],
+     ["How many scoops did the customer want?","Two",["One","Five"],"The first customer wanted two scoops of chocolate."],
+     ["What did Ava put on top?","Sprinkles",["Ketchup","Cheese"],"Ava added sprinkles on top."]]],
+  ["The Golden Pup","🐕","Goldie is a small golden dog. She loves to swim in the pond. When she gets out, she shakes and water flies everywhere! Then she lies in the sun to dry.",
+    [["What does Goldie love to do?","Swim",["Climb trees","Fly"],"The story says she loves to swim in the pond."],
+     ["What happens when she shakes?","Water flies everywhere",["She falls asleep","She barks"],"When she shakes, water flies everywhere!"],
+     ["How does Goldie get dry?","She lies in the sun",["She uses a towel","She runs a race"],"She lies in the sun to dry."]]]
+];
+const HARDS = [
+  ["The Night of the Turtle Nest","🐢","On a warm summer night, Maya and her dad walked along the beach with a red flashlight. Red light doesn't confuse sea turtles the way white light does. Near the dunes, they saw a big loggerhead turtle digging a hole with her back flippers. She laid her eggs, covered them with sand and crawled slowly back to the ocean. The next morning, Maya called the beach patrol so they could put a little fence around the nest. \"In about two months, the babies will hatch,\" the ranger said. Maya smiled. She had helped protect a whole family of turtles.",
+    [["Why did they use a red flashlight?","Red light doesn't confuse sea turtles",["Red light is brighter","It was the only one they had"],"The story says red light doesn't confuse sea turtles the way white light does."],
+     ["What did the turtle use to dig the hole?","Her back flippers",["Her mouth","Her shell"],"She dug the hole with her back flippers."],
+     ["Why did Maya call the beach patrol?","To put a fence around the nest",["To report a lost dog","To ask about the weather"],"She called so they could put a little fence around the nest to protect it."],
+     ["How did Maya feel at the end?","Proud",["Scared","Bored"],"She smiled because she had helped protect the turtles. That's feeling proud."]]],
+  ["Checkmate in the Library","♟️","Eli had never beaten his big sister at chess. Every Saturday they played at the library, and every Saturday she won. One week, Eli practiced a new trick: moving his knight early to the middle of the board. On Saturday he tried it. His sister frowned and thought for a long time. Twenty moves later, Eli moved his queen and said quietly, \"Checkmate.\" His sister laughed and shook his hand. \"You've been practicing,\" she said. \"Rematch next week?\"",
+    [["Where did Eli and his sister play chess?","At the library",["At the beach","At school"],"Every Saturday they played at the library."],
+     ["What did Eli practice?","Moving his knight to the middle early",["Moving only pawns","Hiding his king"],"He practiced moving his knight early to the middle of the board."],
+     ["Which piece did Eli use to win?","His queen",["His knight","His king"],"Twenty moves later, Eli moved his queen and said checkmate."],
+     ["What does \"rematch\" mean?","Play again",["Give up","Clean up the board"],"A rematch is another game between the same players."]]],
+  ["The Cheer Competition","📣","The Tigers cheer squad had practiced their routine for six weeks. On the day of the competition, Lily felt butterflies in her stomach. Her job was to be the flyer at the top of the pyramid. Her bases, Grace and Nora, gave her a thumbs-up. The music started. One, two, three, four, five, six, seven, eight! They lifted Lily high, and she held her pose and smiled. When the scores came in, the Tigers had won second place. \"Next year, first!\" Lily shouted, and the whole squad cheered.",
+    [["How long had the squad practiced?","Six weeks",["Six days","Six months"],"The story says they practiced their routine for six weeks."],
+     ["What does \"butterflies in her stomach\" mean here?","She felt nervous",["She ate butterflies","She felt sick from food"],"It's a saying that means feeling nervous or excited."],
+     ["Who were Lily's bases?","Grace and Nora",["Her coach and her mom","The judges"],"Her bases, Grace and Nora, gave her a thumbs-up."],
+     ["What place did the Tigers win?","Second place",["First place","Last place"],"When the scores came in, the Tigers had won second place."]]],
+  ["The Storm at Sea","⛈️","Captain Ruiz checked the sky before the fishing trip. Dark, tall clouds were piling up in the west. \"Those are cumulonimbus clouds,\" she told the kids on the boat. \"They bring thunderstorms.\" Instead of going far out, she kept the boat close to shore. An hour later, lightning flashed over the water and rain poured down. Everyone was already safe at the dock. \"A good captain watches the weather,\" she said, \"and changes the plan when she needs to.\"",
+    [["What kind of clouds did the captain see?","Cumulonimbus",["Fog","Cirrus"],"She said, those are cumulonimbus clouds. They're the tall clouds that bring thunderstorms."],
+     ["Why did she keep the boat close to shore?","A storm was coming",["The fish were near shore","The boat was too small"],"She saw storm clouds, so she stayed close and got everyone back safely."],
+     ["What is the main lesson of the story?","Watch the weather and change plans to stay safe",["Always go fishing far out","Rain is fun"],"The captain says a good captain watches the weather and changes the plan when needed."]]],
+  ["Gus the Gator","🐊","Gus the alligator lived in a quiet Florida pond. Every afternoon he floated with only his eyes and nose above the water, soaking up the warm sun. Gus was cold-blooded, so the sun helped warm his body. One day a group of kids came to the pond on a nature walk. Their guide reminded them to stay at least thirty feet away and never feed an alligator. \"Feeding them teaches them to come close to people,\" she said. The kids watched quietly, took pictures from far away, and counted fourteen turtles sunning on a log next to Gus.",
+    [["Why did Gus float in the sun?","To warm his body",["To find his friends","To take a bath"],"Gus was cold-blooded, so the sun helped warm his body."],
+     ["How far away did the guide say to stay?","At least thirty feet",["Three feet","One foot"],"Their guide reminded them to stay at least thirty feet away."],
+     ["Why shouldn't people feed alligators?","It teaches them to come close to people",["They don't like snacks","They are always full"],"The guide said feeding them teaches them to come close to people."],
+     ["How many turtles did the kids count?","Fourteen",["Four","Forty"],"They counted fourteen turtles sunning on a log."]]],
+  ["The Dairy-Free Birthday Cake","🎂","Noah's best friend Zoe can't have dairy, so Noah wanted to bake a birthday cake that she could eat. He and his mom read the recipe together. Instead of milk, they used oat milk. Instead of butter, they used a plant-based spread. They checked every label to make sure there was no milk, cheese, butter or whey. At the party, Zoe took a big bite and grinned. \"It's the best cake I've ever had,\" she said, \"and I didn't have to skip dessert!\"",
+    [["Why did Noah bake a special cake?","So Zoe could eat it",["Because he lost the recipe","Because it was his birthday"],"Zoe can't have dairy, so Noah wanted a cake she could eat."],
+     ["What did they use instead of milk?","Oat milk",["Water","Cream"],"Instead of milk, they used oat milk."],
+     ["Why did they check every label?","To make sure there was no dairy",["To find the price","To read a joke"],"They checked labels to make sure there was no milk, cheese, butter or whey."],
+     ["What word best describes Noah?","Thoughtful",["Grumpy","Forgetful"],"He planned a cake so his friend wouldn't miss out. That's thoughtful."]]],
+  ["Ranger Rita and the Burrow","🏜️","Ranger Rita knelt beside a wide, half-moon-shaped hole in the sandy ground. \"This is a gopher tortoise burrow,\" she told the class. \"It can be more than forty feet long!\" She explained that over three hundred and fifty kinds of animals, like frogs, mice and snakes, use these burrows to hide from fires and hot weather. \"That's why the gopher tortoise is called a keystone species,\" she said. \"If the tortoises disappeared, many other animals would lose their homes too.\"",
+    [["What shape is the burrow's opening?","A half-moon",["A square","A star"],"Rita knelt beside a wide, half-moon-shaped hole."],
+     ["About how many kinds of animals use the burrows?","Over 350",["About 3","Exactly 10"],"Over three hundred and fifty kinds of animals use the burrows."],
+     ["What is a keystone species?","An animal many others depend on",["The fastest animal","An animal that lives on keys"],"If it disappeared, many other animals would lose their homes. Lots of others depend on it."]]]
+];
+Game.modes.push({ id:"read", name:"Read & Answer", icon:"📖",
+  blurb:() => HARD ? "Longer stories with why, how and word-meaning questions" : "Short stories read out loud, with easy questions",
+  setup(){
+    const bank = HARD ? HARDS : EASY;
+    const n = Math.min(bank.length, 2 + Game.stage);
+    Game.storyDeck = shuffle(bank.slice(0, n)).map(s => ({ s, qs:shuffle(s[3]).slice(0, HARD ? 4 : 3) }));
+    Game.storyAt = 0; Game.storyQ = 0;
+  },
+  next(){
+    if (Game.storyAt >= Game.storyDeck.length) this.setup();
+    const cur = Game.storyDeck[Game.storyAt], [title, em, text] = cur.s, q = cur.qs[Game.storyQ];
+    const firstQ = Game.storyQ === 0;
+    if (++Game.storyQ >= cur.qs.length){ Game.storyAt++; Game.storyQ = 0; }
+    const book = `<div class="book"><h3><span>${em}</span>${esc(title)}</h3><p>${esc(text)}</p><button class="btn small read" type="button">🔊 Read the story to me</button></div>`;
+    Game.ask({ prompt:`<span class="qnum">${esc(title)}</span><br>${esc(q[0])}`, say: firstQ ? `${title}. ${text} ... ${q[0]}` : q[0],
+      answer:q[1], choices:shuffle([q[1], ...q[2]]).map(v => ({ v, label:esc(v) })), explain:q[3], replay:true, stage:book,
+      onShow(st){ st.querySelector(".read").onclick = () => H.say(`${title}. ${text}`, { rate:.88 }); } });
+  } });
+
+
+/* ---- boot ---- */
+if (!P){
+  $("#dialog").innerHTML = `<h2>Who's playing?</h2><p>Pick a player on the home page first.</p><div class="row"><button class="btn go" id="toHub">Go to the home page</button></div>`;
+  $("#overlay").hidden = false; $("#toHub").onclick = () => { location.href = H.homeUrl; };
+} else {
+  document.documentElement.dataset.style = H.style(P);
+  $("#title").textContent = H.titleOf(LESSON, P); document.title = H.titleOf(LESSON, P);
+  const lvl = LESSON.levels.find(l => l.id === LEVEL);
+  $("#who").textContent = `${H.first(P)} · ${lvl ? lvl.name : ""} level`;
+  H.mountWallet($("#wallet"), P);
+  chooser();
+}
+})();
+</script>
+</body>
+</html>

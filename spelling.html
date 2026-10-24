@@ -143,7 +143,7 @@ const EXTRA = { starter:0, super:2, champion:3 }[LEVEL];
 const CHEERS = GIRL ? ["Purr-fect!","Go team!","You spelled it!","Gimme a YAY!"] : ["Bee-autiful!","Bug-tastic!","You spelled it!","Checkmate!"];
 
 let R = null;
-function renderDots(){ $("#dots").innerHTML = Array.from({length:ROUND}, (_, i) => `<i class="${i < R.n ? "done" : i === R.n ? "now" : ""}"></i>`).join(""); }
+function renderDots(){ $("#dots").innerHTML = Array.from({length:R.deck ? R.deck.length : ROUND}, (_, i) => `<i class="${i < R.n ? "done" : i === R.n ? "now" : ""}"></i>`).join(""); }
 function sayWord(){
   const w = R.w;
   if (LEVEL === "starter") H.say(`Spell ${w[0]}.`, { rate:.8 });
@@ -160,8 +160,8 @@ function newRound(){
   nextWord();
 }
 function nextWord(){
-  if (R.n >= ROUND) return endRound();
-  R.w = R.deck[R.n]; R.tries = 0; R.hints = 0;
+  if (R.n >= R.deck.length) return endRound();
+  R.w = R.deck[R.n]; R.tries = 0; R.hints = 0; R.again = !!(R.retried && R.retried.has(R.n));
   const word = R.w[0];
   const letters = word.split("");
   const alphabet = "abcdefghijklmnoprstuwy";
@@ -198,8 +198,9 @@ function check(){
   const word = R.w[0];
   const guess = R.slots.map(s => R.tiles[s].ch).join("");
   if (guess === word){
-    const pts = R.tries === 0 && R.hints === 0 ? PTS : Math.ceil(PTS / 2);
-    if (R.tries === 0 && R.hints === 0) R.firstTry++;
+    const clean = R.tries === 0 && R.hints === 0 && !R.again;
+    const pts = clean ? PTS : Math.ceil(PTS / 2);
+    if (clean) R.firstTry++;
     R.pts += pts; R.n++;
     R.locked = R.locked.map(() => true); render();
     const cheer = pick(CHEERS);
@@ -217,10 +218,10 @@ function check(){
     if (R.tiles[s].ch === word[i]) R.locked[i] = true;
     else { els[i].classList.add("wrong"); }
   });
-  $("#msg").textContent = R.tries >= 3 ? "Here's how it's spelled" : "Almost! Try again"; $("#msg").className = "msg no";
-  H.say(R.tries >= 3 ? `It's spelled ${word.split("").join(", ")}.` : "Almost! The green letters are right. Try again.");
+  $("#msg").textContent = R.tries >= 2 ? "Let's learn it! Here's how it's spelled. We'll try it again soon." : "Almost! Try once more"; $("#msg").className = "msg no";
+  H.say(R.tries >= 2 ? `Let's learn it. ${word} is spelled ${word.split("").join(", ")}. ${word}.` : "Almost! The green letters are right. Try once more.");
   setTimeout(() => {
-    if (R.tries >= 3){ reveal(); return; }
+    if (R.tries >= 2){ reveal(); return; }
     R.slots = R.slots.map((s, i) => { if (R.locked[i]) return s; R.tiles[s].used = false; return null; });
     render();
   }, 900);
@@ -232,7 +233,9 @@ function reveal(){
   R.slots = word.split("").map(ch => { const t = R.tiles.find(x => !x.used && x.ch === ch); t.used = true; return t.id; });
   R.locked = R.locked.map(() => true); render();
   R.n++;
-  setTimeout(nextWord, 3200);
+  /* the word comes back two words later so they can spell it themselves */
+  if (!R.again){ const at = Math.min(R.deck.length, R.n + 2); R.deck.splice(at, 0, R.w); R.retried = R.retried || new Set(); R.retried = new Set([...R.retried].map(i => i >= at ? i + 1 : i)); R.retried.add(at); }
+  setTimeout(nextWord, 4200);
 }
 function hint(){
   if (!R || !R.w) return;
