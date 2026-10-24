@@ -46,6 +46,7 @@ Personal home pages for each kid, kept separate from the Den's lessons and bank.
 - No real names are in these files. Tap **Change my name** at the bottom of the page to type a name on each computer.
 - Chores, stars, added links and the name are saved in that browser only. They never touch the Den's points or money.
 - The big **Learning Den** button at the top of each hub opens the Den. On the Den's home page, **◀ Back to CV-1 / HV-1** goes back to the hub the kid came from.
+- **Today's Weather** shows the weather for St. Augustine (from Open-Meteo, free, no account) with picture picks for what to wear. HV-1 can read it out loud.
 - **Full screen** at the top of each hub turns full screen on or off. Browsers drop full screen when the page changes, so if it was on, the first tap on the next hub or Den page turns it back on.
 
 ## Adding a new lesson later

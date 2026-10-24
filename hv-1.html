@@ -43,6 +43,20 @@ a{color:inherit}
 .denBig .go{margin-left:auto;font-size:40px;line-height:1}
 .fsBtn{min-height:84px!important;font-size:18px!important;display:flex;align-items:center;justify-content:center;gap:10px;background:var(--card)!important;color:var(--ink)!important;border:2px solid var(--line)!important}
 .fsBtn .fi{font-size:26px;line-height:1}
+/* weather */
+.wx{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:18px;align-items:center}
+@media (max-width:720px){.wx{grid-template-columns:1fr}}
+.wxNow{display:flex;align-items:center;gap:16px}
+.wxNow .big{font-size:64px;line-height:1}
+.wxNow .t{font-family:var(--display);font-size:46px;line-height:1;font-variant-numeric:tabular-nums}
+.wxNow .d{font-size:16px;color:var(--muted)}
+.wxNow .d b{color:var(--ink);font-weight:600}
+.wear h3{font-family:var(--display);font-size:20px;margin:0 0 8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.wearList{display:flex;flex-wrap:wrap;gap:10px}
+.wearList span{display:flex;align-items:center;gap:8px;background:var(--soft);border:2px solid var(--line);border-radius:14px;padding:8px 14px;font-size:17px;font-weight:500}
+.wearList span i{font-style:normal;font-size:28px;line-height:1}
+.wxNote{font-size:14px;color:var(--muted)}
+.wxSay{min-height:44px!important;padding:6px 14px!important;font-size:15px!important}
 /* sections */
 h2{font-family:var(--display);font-size:24px;margin:0 0 10px;line-height:1.2;display:flex;align-items:center;gap:10px}
 h2 .tag{font-family:var(--body);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;background:var(--chip);color:var(--chipInk);padding:3px 10px;border-radius:99px}
@@ -158,6 +172,18 @@ a,button,input,select,label{touch-action:manipulation;-webkit-tap-highlight-colo
     <button class="btn fsBtn" id="fsBtn" type="button"><span class="fi" aria-hidden="true">⛶</span><span id="fsLabel">Full screen</span></button>
   </nav>
 
+  <section class="panel wx" aria-labelledby="wxH">
+    <div>
+      <h2 id="wxH" style="margin-bottom:8px">Today's Weather</h2>
+      <div class="wxNow" id="wxNow"><span class="big" aria-hidden="true">🌤️</span><div><div class="t">--°</div><div class="d">Checking the sky…</div></div></div>
+    </div>
+    <div class="wear">
+      <h3>What to wear <button class="btn ghost wxSay" id="wxSay" type="button" hidden>🔊 Read it</button></h3>
+      <div class="wearList" id="wearList"></div>
+      <p class="wxNote" id="wxNote"></p>
+    </div>
+  </section>
+
   <div class="row">
     <section class="panel" aria-labelledby="chH">
       <h2 id="chH">Today's Chores <span class="tag" id="starTag">0 stars</span></h2>
@@ -224,7 +250,7 @@ a,button,input,select,label{touch-action:manipulation;-webkit-tap-highlight-colo
 </div>
 
 <script>
-const CFG = {"id": "hv1", "name": "Commander", "chores": [{"t": "Make my bed", "i": "\ud83d\udecf\ufe0f"}, {"t": "Brush teeth", "i": "\ud83e\udea5"}, {"t": "Feed Poppi", "i": "\ud83e\udd94\ud83c\udf7d\ufe0f"}, {"t": "Check Poppi's water", "i": "\ud83e\udd94\ud83d\udca7"}, {"t": "Check on Donnie", "i": "\ud83d\udc22"}, {"t": "Put toys away", "i": "\ud83e\uddf8"}, {"t": "Read with Mom or Dad", "i": "\ud83d\udcd6"}, {"t": "Evening: feed Aspyn & fill her water", "i": "\ud83d\udc15\ud83c\udf19"}], "cheers": ["Blast off!", "Shark attack of awesome!", "Checkmate!", "Gator power!", "Mission complete!", "Speedy as a\u2026 not a sloth!"], "allDone": "All missions complete, Commander! Free time unlocked.", "facts": [{"i": "\ud83d\udef0\ufe0f", "t": "The Space Station zooms around Earth about every 90 minutes, so astronauts see around 16 sunrises a day."}, {"i": "\ud83e\ude90", "t": "A day on Venus is longer than a year on Venus."}, {"i": "\ud83e\ude90", "t": "Jupiter's Great Red Spot is a giant storm bigger than the whole Earth."}, {"i": "\ud83e\udd88", "t": "Sharks were around before trees. Sharks are about 450 million years old; trees are about 385 million."}, {"i": "\ud83e\uddb7", "t": "Sharks lose and regrow teeth their whole lives. Some go through thousands."}, {"i": "\ud83e\udda5", "t": "Sloths can hold their breath for up to 40 minutes. That's longer than dolphins!"}, {"i": "\ud83c\udf44", "t": "Some mushrooms glow in the dark. People call it foxfire."}, {"i": "\ud83e\udeb0", "t": "Dragonflies catch their food about 95 out of 100 times. They're the best hunters in the bug world."}, {"i": "\ud83d\udc0d", "t": "Snakes smell with their tongues. Flick, flick, sniff!"}, {"i": "\ud83d\udc0a", "t": "Alligators can live more than 50 years."}, {"i": "\u265f\ufe0f", "t": "There are more possible chess games than atoms in the whole universe."}, {"i": "\ud83d\udc22", "t": "Florida gopher tortoises dig burrows that more than 350 other kinds of animals use as homes."}, {"i": "\u2728", "t": "Fireflies make their own light with chemicals inside their bodies."}], "tiles": [{"name": "YouTube Kids", "kind": "Watch", "url": "https://www.youtubekids.com", "color": "#1e6fd9", "icon": "\u25b6\ufe0f"}, {"name": "YouTube", "kind": "Watch", "url": "https://www.youtube.com", "color": "#14a37f", "icon": "\ud83d\udcfa"}, {"name": "Disney+", "kind": "Watch", "url": "https://www.disneyplus.com", "color": "#2b8bd6", "icon": "\ud83c\udff0"}, {"name": "Netflix", "kind": "Watch", "url": "https://www.netflix.com", "color": "#0f8a6a", "icon": "\ud83c\udf7f"}, {"name": "Hulu", "kind": "Watch", "url": "https://www.hulu.com", "color": "#3b5bdb", "icon": "\ud83d\udcfa"}, {"name": "Roblox", "kind": "Play", "url": "https://www.roblox.com", "color": "#119da4", "icon": "\ud83c\udfae"}, {"name": "PBS Kids", "kind": "Play", "url": "https://pbskids.org/games", "color": "#2f9e44", "icon": "\ud83e\udde9"}, {"name": "The Learning Den", "kind": "Learn", "url": "./index.html", "color": "#1864ab", "icon": "\ud83d\udc3a"}], "groups": [{"title": "Space Mission Control", "icon": "\ud83d\ude80", "color": "#7fd8ff", "links": [["NASA Space Place", "https://spaceplace.nasa.gov", "Games & facts", "\ud83e\ude90"], ["NASA Kids Club", "https://www.nasa.gov/kidsclub", "NASA", "\ud83d\udc69\u200d\ud83d\ude80"], ["Spot the Station", "https://spotthestation.nasa.gov", "See the ISS fly over", "\ud83d\udef0\ufe0f"], ["Rocket Launches", "https://www.kennedyspacecenter.com/launches-and-events", "Kennedy Space Center", "\ud83d\ude80"]]}, {"title": "Sharks & Ocean", "icon": "\ud83e\udd88", "color": "#2b8bd6", "links": [["Shark Tracker", "https://www.ocearch.org/tracker/", "Real sharks, live", "\ud83d\uddfa\ufe0f"], ["Aquarium Live Cams", "https://www.montereybayaquarium.org/animals/live-cams", "Monterey Bay", "\ud83d\udc20"], ["Marineland", "https://marineland.net", "Dolphins nearby", "\ud83d\udc2c"]]}, {"title": "Reptiles & Gators", "icon": "\ud83d\udc0a", "color": "#33e0a1", "links": [["Alligator Farm", "https://www.alligatorfarm.com", "St. Augustine", "\ud83d\udc0a"], ["Reptile Facts", "https://kids.nationalgeographic.com/animals/reptiles", "Nat Geo Kids", "\ud83e\udd8e"], ["Live Animal Cams", "https://explore.org/livecams", "Sloths, bears & more", "\ud83e\udda5"]]}, {"title": "Bugs, Trees & Mushrooms", "icon": "\ud83d\udc1b", "color": "#94d82d", "links": [["Bug Facts", "https://kids.nationalgeographic.com/animals/invertebrates", "Nat Geo Kids", "\ud83d\udc1e"], ["Seek Nature App", "https://www.inaturalist.org/pages/seek_app", "Identify bugs & plants", "\ud83d\udd0d"], ["Nature Videos", "https://www.youtube.com/results?search_query=bugs+for+kids", "YouTube", "\ud83c\udf44"]]}, {"title": "Fishing", "icon": "\ud83c\udfa3", "color": "#119da4", "links": [["Take Me Fishing", "https://www.takemefishing.org", "Learn to fish", "\ud83c\udfa3"], ["Florida Fishing", "https://myfwc.com/fishing/", "FWC", "\ud83d\udc1f"], ["Fish ID Videos", "https://www.youtube.com/results?search_query=florida+fish+for+kids", "YouTube", "\ud83d\udc21"]]}, {"title": "Chess & Brain Games", "icon": "\u265f\ufe0f", "color": "#ffd43b", "links": [["ChessKid", "https://www.chesskid.com", "Play & learn chess", "\u265f\ufe0f"], ["The Learning Den", "./index.html", "Our games", "\ud83d\udc3a"], ["PBS Kids Games", "https://pbskids.org/games", "PBS", "\ud83e\udde9"]]}, {"title": "Sports", "icon": "\ud83c\udfd2", "color": "#ff8787", "links": [["NHL", "https://www.nhl.com", "Hockey scores", "\ud83c\udfd2"], ["Jacksonville Icemen", "https://www.jacksonvilleicemen.com", "Local hockey", "\ud83e\udd45"], ["Jaguars", "https://www.jaguars.com", "Jacksonville football", "\ud83c\udfc8"]]}], "fx": {"kind": "star", "count": 60, "color": "#9ff7ff"}, "readAloud": true, "denSameTab": true, "logo": "HV-1"};
+const CFG = {"id": "hv1", "name": "Commander", "chores": [{"t": "Make my bed", "i": "\ud83d\udecf\ufe0f"}, {"t": "Brush teeth", "i": "\ud83e\udea5"}, {"t": "Feed Poppi", "i": "\ud83e\udd94\ud83c\udf7d\ufe0f"}, {"t": "Check Poppi's water", "i": "\ud83e\udd94\ud83d\udca7"}, {"t": "Check on Donnie", "i": "\ud83d\udc22"}, {"t": "Put toys away", "i": "\ud83e\uddf8"}, {"t": "Read with Mom or Dad", "i": "\ud83d\udcd6"}, {"t": "Evening: feed Aspyn & fill her water", "i": "\ud83d\udc15\ud83c\udf19"}], "cheers": ["Blast off!", "Shark attack of awesome!", "Checkmate!", "Gator power!", "Mission complete!", "Speedy as a\u2026 not a sloth!"], "allDone": "All missions complete, Commander! Free time unlocked.", "facts": [{"i": "\ud83d\udef0\ufe0f", "t": "The Space Station zooms around Earth about every 90 minutes, so astronauts see around 16 sunrises a day."}, {"i": "\ud83e\ude90", "t": "A day on Venus is longer than a year on Venus."}, {"i": "\ud83e\ude90", "t": "Jupiter's Great Red Spot is a giant storm bigger than the whole Earth."}, {"i": "\ud83e\udd88", "t": "Sharks were around before trees. Sharks are about 450 million years old; trees are about 385 million."}, {"i": "\ud83e\uddb7", "t": "Sharks lose and regrow teeth their whole lives. Some go through thousands."}, {"i": "\ud83e\udda5", "t": "Sloths can hold their breath for up to 40 minutes. That's longer than dolphins!"}, {"i": "\ud83c\udf44", "t": "Some mushrooms glow in the dark. People call it foxfire."}, {"i": "\ud83e\udeb0", "t": "Dragonflies catch their food about 95 out of 100 times. They're the best hunters in the bug world."}, {"i": "\ud83d\udc0d", "t": "Snakes smell with their tongues. Flick, flick, sniff!"}, {"i": "\ud83d\udc0a", "t": "Alligators can live more than 50 years."}, {"i": "\u265f\ufe0f", "t": "There are more possible chess games than atoms in the whole universe."}, {"i": "\ud83d\udc22", "t": "Florida gopher tortoises dig burrows that more than 350 other kinds of animals use as homes."}, {"i": "\u2728", "t": "Fireflies make their own light with chemicals inside their bodies."}], "tiles": [{"name": "YouTube Kids", "kind": "Watch", "url": "https://www.youtubekids.com", "color": "#1e6fd9", "icon": "\u25b6\ufe0f"}, {"name": "YouTube", "kind": "Watch", "url": "https://www.youtube.com", "color": "#14a37f", "icon": "\ud83d\udcfa"}, {"name": "Disney+", "kind": "Watch", "url": "https://www.disneyplus.com", "color": "#2b8bd6", "icon": "\ud83c\udff0"}, {"name": "Netflix", "kind": "Watch", "url": "https://www.netflix.com", "color": "#0f8a6a", "icon": "\ud83c\udf7f"}, {"name": "Hulu", "kind": "Watch", "url": "https://www.hulu.com", "color": "#3b5bdb", "icon": "\ud83d\udcfa"}, {"name": "Roblox", "kind": "Play", "url": "https://www.roblox.com", "color": "#119da4", "icon": "\ud83c\udfae"}, {"name": "PBS Kids", "kind": "Play", "url": "https://pbskids.org/games", "color": "#2f9e44", "icon": "\ud83e\udde9"}, {"name": "The Learning Den", "kind": "Learn", "url": "./index.html", "color": "#1864ab", "icon": "\ud83d\udc3a"}], "groups": [{"title": "Space Mission Control", "icon": "\ud83d\ude80", "color": "#7fd8ff", "links": [["NASA Space Place", "https://spaceplace.nasa.gov", "Games & facts", "\ud83e\ude90"], ["NASA Kids Club", "https://www.nasa.gov/kidsclub", "NASA", "\ud83d\udc69\u200d\ud83d\ude80"], ["Spot the Station", "https://spotthestation.nasa.gov", "See the ISS fly over", "\ud83d\udef0\ufe0f"], ["Rocket Launches", "https://www.kennedyspacecenter.com/launches-and-events", "Kennedy Space Center", "\ud83d\ude80"]]}, {"title": "Sharks & Ocean", "icon": "\ud83e\udd88", "color": "#2b8bd6", "links": [["Shark Tracker", "https://www.ocearch.org/tracker/", "Real sharks, live", "\ud83d\uddfa\ufe0f"], ["Aquarium Live Cams", "https://www.montereybayaquarium.org/animals/live-cams", "Monterey Bay", "\ud83d\udc20"], ["Marineland", "https://marineland.net", "Dolphins nearby", "\ud83d\udc2c"]]}, {"title": "Reptiles & Gators", "icon": "\ud83d\udc0a", "color": "#33e0a1", "links": [["Alligator Farm", "https://www.alligatorfarm.com", "St. Augustine", "\ud83d\udc0a"], ["Reptile Facts", "https://kids.nationalgeographic.com/animals/reptiles", "Nat Geo Kids", "\ud83e\udd8e"], ["Live Animal Cams", "https://explore.org/livecams", "Sloths, bears & more", "\ud83e\udda5"]]}, {"title": "Bugs, Trees & Mushrooms", "icon": "\ud83d\udc1b", "color": "#94d82d", "links": [["Bug Facts", "https://kids.nationalgeographic.com/animals/invertebrates", "Nat Geo Kids", "\ud83d\udc1e"], ["Seek Nature App", "https://www.inaturalist.org/pages/seek_app", "Identify bugs & plants", "\ud83d\udd0d"], ["Nature Videos", "https://www.youtube.com/results?search_query=bugs+for+kids", "YouTube", "\ud83c\udf44"]]}, {"title": "Fishing", "icon": "\ud83c\udfa3", "color": "#119da4", "links": [["Take Me Fishing", "https://www.takemefishing.org", "Learn to fish", "\ud83c\udfa3"], ["Florida Fishing", "https://myfwc.com/fishing/", "FWC", "\ud83d\udc1f"], ["Fish ID Videos", "https://www.youtube.com/results?search_query=florida+fish+for+kids", "YouTube", "\ud83d\udc21"]]}, {"title": "Chess & Brain Games", "icon": "\u265f\ufe0f", "color": "#ffd43b", "links": [["ChessKid", "https://www.chesskid.com", "Play & learn chess", "\u265f\ufe0f"], ["The Learning Den", "./index.html", "Our games", "\ud83d\udc3a"], ["PBS Kids Games", "https://pbskids.org/games", "PBS", "\ud83e\udde9"]]}, {"title": "Sports", "icon": "\ud83c\udfd2", "color": "#ff8787", "links": [["NHL", "https://www.nhl.com", "Hockey scores", "\ud83c\udfd2"], ["Jacksonville Icemen", "https://www.jacksonvilleicemen.com", "Local hockey", "\ud83e\udd45"], ["Jaguars", "https://www.jaguars.com", "Jacksonville football", "\ud83c\udfc8"]]}], "fx": {"kind": "star", "count": 60, "color": "#9ff7ff"}, "readAloud": true, "denSameTab": true, "logo": "HV-1", "wx": {"lat": 29.89, "lon": -81.31, "place": "St. Augustine"}};
 const KEY = CFG.id;
 const store = {
   get(k, d){ try{ const v = localStorage.getItem(KEY+":"+k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
@@ -530,6 +556,62 @@ else {
   document.addEventListener("pointerdown", e => { if (fsWanted() && !isFS() && !fsBtn.contains(e.target)) enterFS(); }, true);
   fsUI();
 }
+
+/* weather + what to wear (Open-Meteo, no account needed) */
+const WX_CODES = {0:["☀️","Sunny"],1:["🌤️","Mostly sunny"],2:["⛅","Partly cloudy"],3:["☁️","Cloudy"],45:["🌫️","Foggy"],48:["🌫️","Foggy"],
+  51:["🌦️","Drizzle"],53:["🌦️","Drizzle"],55:["🌧️","Drizzle"],61:["🌦️","Light rain"],63:["🌧️","Rain"],65:["🌧️","Heavy rain"],
+  66:["🌧️","Icy rain"],67:["🌧️","Icy rain"],71:["🌨️","Snow"],73:["🌨️","Snow"],75:["❄️","Heavy snow"],80:["🌦️","Showers"],81:["🌧️","Showers"],
+  82:["⛈️","Big showers"],95:["⛈️","Thunderstorms"],96:["⛈️","Thunderstorms"],99:["⛈️","Thunderstorms"]};
+function wearFor(hi, lo, rain, uv, code){
+  const w = [];
+  if (hi >= 80) w.push(["👕","T-shirt"], ["🩳","Shorts"]);
+  else if (hi >= 70) w.push(["👕","T-shirt"], ["🩳","Shorts or light pants"]);
+  else if (hi >= 60) w.push(["👕","Long sleeves"], ["👖","Pants"]);
+  else w.push(["🧥","Warm jacket"], ["👖","Pants"]);
+  if (lo < 50 && hi >= 60) w.push(["🧥","Jacket for the morning"]);
+  else if (lo < 62 && hi >= 60) w.push(["🧶","Hoodie for the morning"]);
+  if (hi < 50) w.push(["🧤","Hat & gloves"]);
+  if (rain >= 50 || [63,65,81,82,95,96,99].includes(code)) w.push(["☔","Rain jacket"]);
+  else if (rain >= 30) w.push(["🌂","Maybe an umbrella"]);
+  if (uv >= 6) w.push(["🧴","Sunscreen"], ["🧢","Hat"]);
+  else if (uv >= 3) w.push(["🧴","Sunscreen"]);
+  if (rain < 30 && hi >= 75) w.push(["💧","Water bottle"]);
+  w.push(["👟","Sneakers"]);
+  return w;
+}
+let wxSpeech = "";
+function showWx(d){
+  const c = d.current, day = d.daily;
+  const hi = Math.round(day.temperature_2m_max[0]), lo = Math.round(day.temperature_2m_min[0]);
+  const rain = day.precipitation_probability_max[0] || 0, uv = day.uv_index_max[0] || 0, code = c.weather_code;
+  const [icon, words] = WX_CODES[code] || ["🌤️","Nice out"];
+  const now = Math.round(c.temperature_2m), feels = Math.round(c.apparent_temperature);
+  document.getElementById("wxNow").innerHTML = `<span class="big" aria-hidden="true"></span><div><div class="t"></div><div class="d"></div></div>`;
+  document.querySelector("#wxNow .big").textContent = icon;
+  document.querySelector("#wxNow .t").textContent = now + "°";
+  document.querySelector("#wxNow .d").innerHTML = `<b></b><br>High ${hi}° · Low ${lo}°<br>Rain chance ${rain}%${Math.abs(feels-now) >= 4 ? " · Feels like " + feels + "°" : ""}`;
+  document.querySelector("#wxNow .d b").textContent = words;
+  const list = wearFor(hi, lo, rain, uv, code), box = document.getElementById("wearList");
+  box.innerHTML = "";
+  list.forEach(([i, t]) => { const sp = document.createElement("span"); sp.innerHTML = `<i aria-hidden="true"></i><em></em>`; sp.querySelector("i").textContent = i; sp.querySelector("em").textContent = t; sp.querySelector("em").style.fontStyle = "normal"; box.appendChild(sp); });
+  document.getElementById("wxNote").textContent = CFG.wx.place + " · updated " + new Date(d.got).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+  wxSpeech = `It's ${words.toLowerCase()} and ${now} degrees. Today's high is ${hi}. Wear: ` + list.map(x => x[1].toLowerCase()).join(", ") + ".";
+  const sb = document.getElementById("wxSay"); if (canSpeak) sb.hidden = false;
+}
+async function loadWx(){
+  const cached = store.get("wx", null);
+  if (cached && Date.now() - cached.got < 30*60*1000){ showWx(cached); return; }
+  try {
+    const u = `https://api.open-meteo.com/v1/forecast?latitude=${CFG.wx.lat}&longitude=${CFG.wx.lon}&current=temperature_2m,apparent_temperature,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max&temperature_unit=fahrenheit&timezone=auto&forecast_days=1`;
+    const r = await fetch(u); if (!r.ok) throw new Error(r.status);
+    const d = await r.json(); d.got = Date.now(); store.set("wx", d); showWx(d);
+  } catch(e){
+    if (cached){ showWx(cached); return; }
+    document.querySelector("#wxNow .d").textContent = "Weather couldn't load here. It works when this page is opened from the website or the computer.";
+  }
+}
+document.getElementById("wxSay").addEventListener("click", () => { if (wxSpeech) sayText(wxSpeech); });
+loadWx(); setInterval(loadWx, 30*60*1000);
 
 /* banner effect */
 const cv = document.getElementById("fx"), ctx = cv.getContext("2d");
