@@ -32,6 +32,17 @@ a{color:inherit}
 .clock b{display:block;font-size:clamp(36px,6vw,56px);line-height:1}
 .clock span{font-size:15px;opacity:.9}
 
+/* quick bar: Learning Den + full screen */
+.quick{display:grid;grid-template-columns:1fr auto;gap:14px}
+@media (max-width:560px){.quick{grid-template-columns:1fr}}
+.denBig{display:flex;align-items:center;gap:16px;min-height:84px;padding:14px 20px;border-radius:var(--r);background:var(--accent);color:var(--onAccent);text-decoration:none;box-shadow:0 5px 0 rgba(0,0,0,.2);transition:transform .08s,box-shadow .08s;min-width:0}
+.denBig:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(0,0,0,.2)}
+.denBig .ti{font-size:46px;line-height:1}
+.denBig b{display:block;font-family:var(--display);font-size:clamp(22px,3.4vw,30px);line-height:1.1}
+.denBig small{font-size:14px;opacity:.9}
+.denBig .go{margin-left:auto;font-size:40px;line-height:1}
+.fsBtn{min-height:84px!important;font-size:18px!important;display:flex;align-items:center;justify-content:center;gap:10px;background:var(--card)!important;color:var(--ink)!important;border:2px solid var(--line)!important}
+.fsBtn .fi{font-size:26px;line-height:1}
 /* sections */
 h2{font-family:var(--display);font-size:24px;margin:0 0 10px;line-height:1.2;display:flex;align-items:center;gap:10px}
 h2 .tag{font-family:var(--body);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;background:var(--chip);color:var(--chipInk);padding:3px 10px;border-radius:99px}
@@ -138,6 +149,15 @@ a,button,input,select,label{touch-action:manipulation;-webkit-tap-highlight-colo
     <div class="clock"><b id="time">--:--</b><span id="date"></span></div>
   </header>
 
+  <nav class="quick" aria-label="Quick buttons">
+    <a class="denBig" id="denBig" href="#">
+      <span class="ti" aria-hidden="true">🐺</span>
+      <span><b>The Learning Den</b><small>Games, lessons &amp; points</small></span>
+      <span class="go" aria-hidden="true">›</span>
+    </a>
+    <button class="btn fsBtn" id="fsBtn" type="button"><span class="fi" aria-hidden="true">⛶</span><span id="fsLabel">Full screen</span></button>
+  </nav>
+
   <div class="row">
     <section class="panel" aria-labelledby="chH">
       <h2 id="chH">Today's Chores <span class="tag" id="starTag">0 stars</span></h2>
@@ -204,7 +224,7 @@ a,button,input,select,label{touch-action:manipulation;-webkit-tap-highlight-colo
 </div>
 
 <script>
-const CFG = {"id": "hv1", "name": "Commander", "chores": [{"t": "Make my bed", "i": "\ud83d\udecf\ufe0f"}, {"t": "Brush teeth", "i": "\ud83e\udea5"}, {"t": "Feed Poppi", "i": "\ud83e\udd94\ud83c\udf7d\ufe0f"}, {"t": "Check Poppi's water", "i": "\ud83e\udd94\ud83d\udca7"}, {"t": "Check on Donnie", "i": "\ud83d\udc22"}, {"t": "Put toys away", "i": "\ud83e\uddf8"}, {"t": "Read with Mom or Dad", "i": "\ud83d\udcd6"}, {"t": "Evening: feed Aspyn & fill her water", "i": "\ud83d\udc15\ud83c\udf19"}], "cheers": ["Blast off!", "Shark attack of awesome!", "Checkmate!", "Gator power!", "Mission complete!", "Speedy as a\u2026 not a sloth!"], "allDone": "All missions complete, Commander! Free time unlocked.", "facts": [{"i": "\ud83d\udef0\ufe0f", "t": "The Space Station zooms around Earth about every 90 minutes, so astronauts see around 16 sunrises a day."}, {"i": "\ud83e\ude90", "t": "A day on Venus is longer than a year on Venus."}, {"i": "\ud83e\ude90", "t": "Jupiter's Great Red Spot is a giant storm bigger than the whole Earth."}, {"i": "\ud83e\udd88", "t": "Sharks were around before trees. Sharks are about 450 million years old; trees are about 385 million."}, {"i": "\ud83e\uddb7", "t": "Sharks lose and regrow teeth their whole lives. Some go through thousands."}, {"i": "\ud83e\udda5", "t": "Sloths can hold their breath for up to 40 minutes. That's longer than dolphins!"}, {"i": "\ud83c\udf44", "t": "Some mushrooms glow in the dark. People call it foxfire."}, {"i": "\ud83e\udeb0", "t": "Dragonflies catch their food about 95 out of 100 times. They're the best hunters in the bug world."}, {"i": "\ud83d\udc0d", "t": "Snakes smell with their tongues. Flick, flick, sniff!"}, {"i": "\ud83d\udc0a", "t": "Alligators can live more than 50 years."}, {"i": "\u265f\ufe0f", "t": "There are more possible chess games than atoms in the whole universe."}, {"i": "\ud83d\udc22", "t": "Florida gopher tortoises dig burrows that more than 350 other kinds of animals use as homes."}, {"i": "\u2728", "t": "Fireflies make their own light with chemicals inside their bodies."}], "tiles": [{"name": "YouTube Kids", "kind": "Watch", "url": "https://www.youtubekids.com", "color": "#1e6fd9", "icon": "\u25b6\ufe0f"}, {"name": "YouTube", "kind": "Watch", "url": "https://www.youtube.com", "color": "#14a37f", "icon": "\ud83d\udcfa"}, {"name": "Disney+", "kind": "Watch", "url": "https://www.disneyplus.com", "color": "#2b8bd6", "icon": "\ud83c\udff0"}, {"name": "Netflix", "kind": "Watch", "url": "https://www.netflix.com", "color": "#0f8a6a", "icon": "\ud83c\udf7f"}, {"name": "Hulu", "kind": "Watch", "url": "https://www.hulu.com", "color": "#3b5bdb", "icon": "\ud83d\udcfa"}, {"name": "Roblox", "kind": "Play", "url": "https://www.roblox.com", "color": "#119da4", "icon": "\ud83c\udfae"}, {"name": "PBS Kids", "kind": "Play", "url": "https://pbskids.org/games", "color": "#2f9e44", "icon": "\ud83e\udde9"}, {"name": "The Learning Den", "kind": "Learn", "url": "./index.html", "color": "#1864ab", "icon": "\ud83d\udc3a"}], "groups": [{"title": "Space Mission Control", "icon": "\ud83d\ude80", "color": "#7fd8ff", "links": [["NASA Space Place", "https://spaceplace.nasa.gov", "Games & facts", "\ud83e\ude90"], ["NASA Kids Club", "https://www.nasa.gov/kidsclub", "NASA", "\ud83d\udc69\u200d\ud83d\ude80"], ["Spot the Station", "https://spotthestation.nasa.gov", "See the ISS fly over", "\ud83d\udef0\ufe0f"], ["Rocket Launches", "https://www.kennedyspacecenter.com/launches-and-events", "Kennedy Space Center", "\ud83d\ude80"]]}, {"title": "Sharks & Ocean", "icon": "\ud83e\udd88", "color": "#2b8bd6", "links": [["Shark Tracker", "https://www.ocearch.org/tracker/", "Real sharks, live", "\ud83d\uddfa\ufe0f"], ["Aquarium Live Cams", "https://www.montereybayaquarium.org/animals/live-cams", "Monterey Bay", "\ud83d\udc20"], ["Marineland", "https://marineland.net", "Dolphins nearby", "\ud83d\udc2c"]]}, {"title": "Reptiles & Gators", "icon": "\ud83d\udc0a", "color": "#33e0a1", "links": [["Alligator Farm", "https://www.alligatorfarm.com", "St. Augustine", "\ud83d\udc0a"], ["Reptile Facts", "https://kids.nationalgeographic.com/animals/reptiles", "Nat Geo Kids", "\ud83e\udd8e"], ["Live Animal Cams", "https://explore.org/livecams", "Sloths, bears & more", "\ud83e\udda5"]]}, {"title": "Bugs, Trees & Mushrooms", "icon": "\ud83d\udc1b", "color": "#94d82d", "links": [["Bug Facts", "https://kids.nationalgeographic.com/animals/invertebrates", "Nat Geo Kids", "\ud83d\udc1e"], ["Seek Nature App", "https://www.inaturalist.org/pages/seek_app", "Identify bugs & plants", "\ud83d\udd0d"], ["Nature Videos", "https://www.youtube.com/results?search_query=bugs+for+kids", "YouTube", "\ud83c\udf44"]]}, {"title": "Fishing", "icon": "\ud83c\udfa3", "color": "#119da4", "links": [["Take Me Fishing", "https://www.takemefishing.org", "Learn to fish", "\ud83c\udfa3"], ["Florida Fishing", "https://myfwc.com/fishing/", "FWC", "\ud83d\udc1f"], ["Fish ID Videos", "https://www.youtube.com/results?search_query=florida+fish+for+kids", "YouTube", "\ud83d\udc21"]]}, {"title": "Chess & Brain Games", "icon": "\u265f\ufe0f", "color": "#ffd43b", "links": [["ChessKid", "https://www.chesskid.com", "Play & learn chess", "\u265f\ufe0f"], ["The Learning Den", "./index.html", "Our games", "\ud83d\udc3a"], ["PBS Kids Games", "https://pbskids.org/games", "PBS", "\ud83e\udde9"]]}, {"title": "Sports", "icon": "\ud83c\udfd2", "color": "#ff8787", "links": [["NHL", "https://www.nhl.com", "Hockey scores", "\ud83c\udfd2"], ["Jacksonville Icemen", "https://www.jacksonvilleicemen.com", "Local hockey", "\ud83e\udd45"], ["Jaguars", "https://www.jaguars.com", "Jacksonville football", "\ud83c\udfc8"]]}], "fx": {"kind": "star", "count": 60, "color": "#9ff7ff"}, "readAloud": true};
+const CFG = {"id": "hv1", "name": "Commander", "chores": [{"t": "Make my bed", "i": "\ud83d\udecf\ufe0f"}, {"t": "Brush teeth", "i": "\ud83e\udea5"}, {"t": "Feed Poppi", "i": "\ud83e\udd94\ud83c\udf7d\ufe0f"}, {"t": "Check Poppi's water", "i": "\ud83e\udd94\ud83d\udca7"}, {"t": "Check on Donnie", "i": "\ud83d\udc22"}, {"t": "Put toys away", "i": "\ud83e\uddf8"}, {"t": "Read with Mom or Dad", "i": "\ud83d\udcd6"}, {"t": "Evening: feed Aspyn & fill her water", "i": "\ud83d\udc15\ud83c\udf19"}], "cheers": ["Blast off!", "Shark attack of awesome!", "Checkmate!", "Gator power!", "Mission complete!", "Speedy as a\u2026 not a sloth!"], "allDone": "All missions complete, Commander! Free time unlocked.", "facts": [{"i": "\ud83d\udef0\ufe0f", "t": "The Space Station zooms around Earth about every 90 minutes, so astronauts see around 16 sunrises a day."}, {"i": "\ud83e\ude90", "t": "A day on Venus is longer than a year on Venus."}, {"i": "\ud83e\ude90", "t": "Jupiter's Great Red Spot is a giant storm bigger than the whole Earth."}, {"i": "\ud83e\udd88", "t": "Sharks were around before trees. Sharks are about 450 million years old; trees are about 385 million."}, {"i": "\ud83e\uddb7", "t": "Sharks lose and regrow teeth their whole lives. Some go through thousands."}, {"i": "\ud83e\udda5", "t": "Sloths can hold their breath for up to 40 minutes. That's longer than dolphins!"}, {"i": "\ud83c\udf44", "t": "Some mushrooms glow in the dark. People call it foxfire."}, {"i": "\ud83e\udeb0", "t": "Dragonflies catch their food about 95 out of 100 times. They're the best hunters in the bug world."}, {"i": "\ud83d\udc0d", "t": "Snakes smell with their tongues. Flick, flick, sniff!"}, {"i": "\ud83d\udc0a", "t": "Alligators can live more than 50 years."}, {"i": "\u265f\ufe0f", "t": "There are more possible chess games than atoms in the whole universe."}, {"i": "\ud83d\udc22", "t": "Florida gopher tortoises dig burrows that more than 350 other kinds of animals use as homes."}, {"i": "\u2728", "t": "Fireflies make their own light with chemicals inside their bodies."}], "tiles": [{"name": "YouTube Kids", "kind": "Watch", "url": "https://www.youtubekids.com", "color": "#1e6fd9", "icon": "\u25b6\ufe0f"}, {"name": "YouTube", "kind": "Watch", "url": "https://www.youtube.com", "color": "#14a37f", "icon": "\ud83d\udcfa"}, {"name": "Disney+", "kind": "Watch", "url": "https://www.disneyplus.com", "color": "#2b8bd6", "icon": "\ud83c\udff0"}, {"name": "Netflix", "kind": "Watch", "url": "https://www.netflix.com", "color": "#0f8a6a", "icon": "\ud83c\udf7f"}, {"name": "Hulu", "kind": "Watch", "url": "https://www.hulu.com", "color": "#3b5bdb", "icon": "\ud83d\udcfa"}, {"name": "Roblox", "kind": "Play", "url": "https://www.roblox.com", "color": "#119da4", "icon": "\ud83c\udfae"}, {"name": "PBS Kids", "kind": "Play", "url": "https://pbskids.org/games", "color": "#2f9e44", "icon": "\ud83e\udde9"}, {"name": "The Learning Den", "kind": "Learn", "url": "./index.html", "color": "#1864ab", "icon": "\ud83d\udc3a"}], "groups": [{"title": "Space Mission Control", "icon": "\ud83d\ude80", "color": "#7fd8ff", "links": [["NASA Space Place", "https://spaceplace.nasa.gov", "Games & facts", "\ud83e\ude90"], ["NASA Kids Club", "https://www.nasa.gov/kidsclub", "NASA", "\ud83d\udc69\u200d\ud83d\ude80"], ["Spot the Station", "https://spotthestation.nasa.gov", "See the ISS fly over", "\ud83d\udef0\ufe0f"], ["Rocket Launches", "https://www.kennedyspacecenter.com/launches-and-events", "Kennedy Space Center", "\ud83d\ude80"]]}, {"title": "Sharks & Ocean", "icon": "\ud83e\udd88", "color": "#2b8bd6", "links": [["Shark Tracker", "https://www.ocearch.org/tracker/", "Real sharks, live", "\ud83d\uddfa\ufe0f"], ["Aquarium Live Cams", "https://www.montereybayaquarium.org/animals/live-cams", "Monterey Bay", "\ud83d\udc20"], ["Marineland", "https://marineland.net", "Dolphins nearby", "\ud83d\udc2c"]]}, {"title": "Reptiles & Gators", "icon": "\ud83d\udc0a", "color": "#33e0a1", "links": [["Alligator Farm", "https://www.alligatorfarm.com", "St. Augustine", "\ud83d\udc0a"], ["Reptile Facts", "https://kids.nationalgeographic.com/animals/reptiles", "Nat Geo Kids", "\ud83e\udd8e"], ["Live Animal Cams", "https://explore.org/livecams", "Sloths, bears & more", "\ud83e\udda5"]]}, {"title": "Bugs, Trees & Mushrooms", "icon": "\ud83d\udc1b", "color": "#94d82d", "links": [["Bug Facts", "https://kids.nationalgeographic.com/animals/invertebrates", "Nat Geo Kids", "\ud83d\udc1e"], ["Seek Nature App", "https://www.inaturalist.org/pages/seek_app", "Identify bugs & plants", "\ud83d\udd0d"], ["Nature Videos", "https://www.youtube.com/results?search_query=bugs+for+kids", "YouTube", "\ud83c\udf44"]]}, {"title": "Fishing", "icon": "\ud83c\udfa3", "color": "#119da4", "links": [["Take Me Fishing", "https://www.takemefishing.org", "Learn to fish", "\ud83c\udfa3"], ["Florida Fishing", "https://myfwc.com/fishing/", "FWC", "\ud83d\udc1f"], ["Fish ID Videos", "https://www.youtube.com/results?search_query=florida+fish+for+kids", "YouTube", "\ud83d\udc21"]]}, {"title": "Chess & Brain Games", "icon": "\u265f\ufe0f", "color": "#ffd43b", "links": [["ChessKid", "https://www.chesskid.com", "Play & learn chess", "\u265f\ufe0f"], ["The Learning Den", "./index.html", "Our games", "\ud83d\udc3a"], ["PBS Kids Games", "https://pbskids.org/games", "PBS", "\ud83e\udde9"]]}, {"title": "Sports", "icon": "\ud83c\udfd2", "color": "#ff8787", "links": [["NHL", "https://www.nhl.com", "Hockey scores", "\ud83c\udfd2"], ["Jacksonville Icemen", "https://www.jacksonvilleicemen.com", "Local hockey", "\ud83e\udd45"], ["Jaguars", "https://www.jaguars.com", "Jacksonville football", "\ud83c\udfc8"]]}], "fx": {"kind": "star", "count": 60, "color": "#9ff7ff"}, "readAloud": true, "denSameTab": true, "logo": "HV-1"};
 const KEY = CFG.id;
 const store = {
   get(k, d){ try{ const v = localStorage.getItem(KEY+":"+k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
@@ -444,7 +464,17 @@ document.getElementById("denEdit").addEventListener("click", () => {
   denForm.hidden = !denForm.hidden;
   if (!denForm.hidden){ denUrl.value = store.get("denUrl", DEN_DEFAULT) || ""; denUrl.focus(); }
 });
-function setDen(u, msg){ const t = document.getElementById("denTile"); if (t) t.href = u; note.textContent = msg; denForm.hidden = true; }
+const denBig = document.getElementById("denBig");
+function wireDen(a, u){
+  a.href = u;
+  if (CFG.denSameTab){ a.removeAttribute("target"); } else { a.target = "_blank"; a.rel = "noopener"; }
+}
+wireDen(denBig, store.get("denUrl", DEN_DEFAULT));
+/* Tell the Den which hub to come back to (works when both live on the same website). */
+function markReturn(){ try { localStorage.setItem("kid-hub-return", JSON.stringify({ url: location.href.split("#")[0], label: CFG.logo })); } catch(e){} }
+denBig.addEventListener("click", markReturn);
+{ const t = document.getElementById("denTile"); if (t){ wireDen(t, t.href); t.addEventListener("click", markReturn); } }
+function setDen(u, msg){ const t = document.getElementById("denTile"); if (t) t.href = u; denBig.href = u; note.textContent = msg; denForm.hidden = true; }
 denForm.addEventListener("submit", e => {
   e.preventDefault();
   const url = fixUrl(denUrl.value);
@@ -477,6 +507,29 @@ CFG.groups.forEach(g => {
   });
   groups.appendChild(s);
 });
+
+/* full screen: the button turns it on or off and remembers the choice.
+   Browsers leave full screen when you go to another page, so if it was on, the first tap here turns it back on. */
+const fsBtn = document.getElementById("fsBtn"), fsLabel = document.getElementById("fsLabel");
+const root = document.documentElement;
+const fsReq = root.requestFullscreen || root.webkitRequestFullscreen;
+const fsExit = document.exitFullscreen || document.webkitExitFullscreen;
+const isFS = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+const fsWanted = () => { try { return localStorage.getItem("kid-hub-fs") === "1"; } catch(e){ return false; } };
+const setWanted = v => { try { localStorage.setItem("kid-hub-fs", v ? "1" : "0"); } catch(e){} };
+function fsUI(){ fsLabel.textContent = isFS() ? "Exit full screen" : "Full screen"; }
+function enterFS(){ try { const r = fsReq.call(root); if (r && r.catch) r.catch(() => {}); } catch(e){} }
+if (!fsReq){ fsBtn.hidden = true; document.querySelector(".quick").style.gridTemplateColumns = "1fr"; }
+else {
+  fsBtn.addEventListener("click", () => {
+    if (isFS()){ setWanted(false); try { const r = fsExit.call(document); if (r && r.catch) r.catch(() => {}); } catch(e){} }
+    else { setWanted(true); enterFS(); }
+  });
+  document.addEventListener("fullscreenchange", fsUI);
+  document.addEventListener("webkitfullscreenchange", fsUI);
+  document.addEventListener("pointerdown", e => { if (fsWanted() && !isFS() && !fsBtn.contains(e.target)) enterFS(); }, true);
+  fsUI();
+}
 
 /* banner effect */
 const cv = document.getElementById("fx"), ctx = cv.getContext("2d");

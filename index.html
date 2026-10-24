@@ -46,6 +46,8 @@ h2{font-family:var(--display);font-weight:400;font-size:24px}
 .btn.danger{border-color:var(--bad);color:var(--bad)}
 .btn.small{padding:6px 12px;font-size:14px;border-bottom-width:4px}
 .btn[disabled]{opacity:.45;pointer-events:none}
+.topRight{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn.hubBack{font-size:18px;padding:12px 18px;min-height:52px}
 .screen{display:flex;flex-direction:column;gap:18px}
 
 /* player picker */
@@ -148,7 +150,10 @@ h2{font-family:var(--display);font-weight:400;font-size:24px}
 <div id="app">
   <header class="top">
     <button class="logo" id="homeBtn"><svg class="wolf" viewBox="0 0 64 64" aria-hidden="true"><polygon points="9,3 25,21 7,27" fill="#3e4f6b"/><polygon points="55,3 39,21 57,27" fill="#3e4f6b"/><polygon points="12,9 21,20 11,23" fill="#f3b7a6"/><polygon points="52,9 43,20 53,23" fill="#f3b7a6"/><polygon points="7,23 32,14 57,23 53,41 32,61 11,41" fill="#566b8c"/><polygon points="20,31 32,24 44,31 40,47 32,57 24,47" fill="#e3e9f2"/><polygon points="17,29 27,32 20,35" fill="#ffcf3f"/><polygon points="47,29 37,32 44,35" fill="#ffcf3f"/><polygon points="27,47 37,47 32,53" fill="#1c2340"/></svg>The Learning Den</button>
-    <button class="btn small" id="parentBtn">Parent settings</button>
+    <div class="topRight">
+      <a class="btn primary hubBack" id="hubBack" href="#" hidden>◀ Back to <span id="hubBackName">my hub</span></a>
+      <button class="btn small" id="parentBtn">Parent settings</button>
+    </div>
   </header>
   <section class="screen" id="who"></section>
   <section class="screen" id="board" hidden></section>
@@ -541,6 +546,34 @@ if (act && sessionStorage && (() => { try { return sessionStorage.getItem("hub-r
   try { sessionStorage.removeItem("hub-return"); } catch(e){}
   openBoard();
 } else renderWho();
+})();
+</script>
+<script>
+/* Back to my hub: a button to return to the kid's CV-1 or HV-1 page.
+   It uses the hub the kid came from; if they opened the Den directly, it picks by the current player. */
+(function(){
+  const btn = document.getElementById("hubBack"), nameEl = document.getElementById("hubBackName");
+  if (!btn) return;
+  function target(){
+    try { const r = JSON.parse(localStorage.getItem("kid-hub-return") || "null"); if (r && r.url) return r; } catch(e){}
+    const H = window.Hub, p = H && H.active && H.active();
+    if (p && !p.guest) return H.style(p) === "boy" ? { url:"./hv-1.html", label:"HV-1" } : { url:"./cv-1.html", label:"CV-1" };
+    return null;
+  }
+  function show(){
+    const t = target();
+    btn.hidden = !t;
+    if (t){ btn.href = t.url; nameEl.textContent = t.label || "my hub"; }
+  }
+  show();
+  document.addEventListener("click", () => setTimeout(show, 50));
+  /* If the kid turned on full screen in their hub, the first tap here turns it back on. */
+  const root = document.documentElement, req = root.requestFullscreen || root.webkitRequestFullscreen;
+  document.addEventListener("pointerdown", e => {
+    let want = false; try { want = localStorage.getItem("kid-hub-fs") === "1"; } catch(err){}
+    if (!want || !req || document.fullscreenElement || document.webkitFullscreenElement || btn.contains(e.target)) return;
+    try { const r = req.call(root); if (r && r.catch) r.catch(() => {}); } catch(err){}
+  }, true);
 })();
 </script>
 </body>
