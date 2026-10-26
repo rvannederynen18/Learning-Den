@@ -42,20 +42,26 @@ a{color:inherit}
 .denBig .go{margin-left:auto;font-size:40px;line-height:1}
 .fsBtn{min-height:84px!important;font-size:18px!important;display:flex;align-items:center;justify-content:center;gap:10px;background:var(--card)!important;color:var(--ink)!important;border:2px solid var(--line)!important}
 .fsBtn .fi{font-size:26px;line-height:1}
-/* weather */
-.wx{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:18px;align-items:center}
-@media (max-width:720px){.wx{grid-template-columns:1fr}}
+/* weather: today + tomorrow, each with what to wear */
+.wxDays{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:760px){.wxDays{grid-template-columns:1fr}}
+.wxDay{background:var(--card);border:2px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.wxDay.next{border-color:var(--accent);box-shadow:0 0 0 3px var(--chip)}
+.wxHead{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.wxHead h3{font-family:var(--display);font-size:24px;margin:0;line-height:1.1}
+.wxHead .when{font-size:15px;color:var(--muted);font-weight:500}
+.layout{background:var(--accent);color:var(--onAccent);font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:99px}
 .wxNow{display:flex;align-items:center;gap:16px}
-.wxNow .big{font-size:64px;line-height:1}
-.wxNow .t{font-family:var(--display);font-size:46px;line-height:1;font-variant-numeric:tabular-nums}
-.wxNow .d{font-size:16px;color:var(--muted)}
+.wxNow .big{font-size:60px;line-height:1}
+.wxNow .t{font-family:var(--display);font-size:42px;line-height:1;font-variant-numeric:tabular-nums}
+.wxNow .d{font-size:16px;color:var(--muted);font-variant-numeric:tabular-nums}
 .wxNow .d b{color:var(--ink);font-weight:600}
-.wear h3{font-family:var(--display);font-size:20px;margin:0 0 8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.wearList{display:flex;flex-wrap:wrap;gap:10px}
-.wearList span{display:flex;align-items:center;gap:8px;background:var(--soft);border:2px solid var(--line);border-radius:14px;padding:8px 14px;font-size:17px;font-weight:500}
+.wear h4{font-family:var(--display);font-size:18px;margin:0 0 8px}
+.wearList{display:flex;flex-wrap:wrap;gap:8px}
+.wearList span{display:flex;align-items:center;gap:8px;background:var(--soft);border:2px solid var(--line);border-radius:14px;padding:8px 12px;font-size:17px;font-weight:500}
 .wearList span i{font-style:normal;font-size:28px;line-height:1}
-.wxNote{font-size:14px;color:var(--muted)}
-.wxSay{min-height:44px!important;padding:6px 14px!important;font-size:15px!important}
+.wxNote{font-size:14px;color:var(--muted);margin:10px 0 0}
+.wxSay{min-height:48px!important;padding:6px 14px!important;font-size:15px!important;align-self:flex-start}
 /* sections */
 h2{font-family:var(--display);font-size:24px;margin:0 0 10px;line-height:1.2;display:flex;align-items:center;gap:10px}
 h2 .tag{font-family:var(--body);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;background:var(--chip);color:var(--chipInk);padding:3px 10px;border-radius:99px}
@@ -171,16 +177,23 @@ a,button,input,select,label{touch-action:manipulation;-webkit-tap-highlight-colo
     <button class="btn fsBtn" id="fsBtn" type="button"><span class="fi" aria-hidden="true">⛶</span><span id="fsLabel">Full screen</span></button>
   </nav>
 
-  <section class="panel wx" aria-labelledby="wxH">
-    <div>
-      <h2 id="wxH" style="margin-bottom:8px">Today's Weather</h2>
-      <div class="wxNow" id="wxNow"><span class="big" aria-hidden="true">🌤️</span><div><div class="t">--°</div><div class="d">Checking the sky…</div></div></div>
+  <section class="panel" aria-labelledby="wxH">
+    <h2 id="wxH">Weather &amp; What to Wear</h2>
+    <div class="wxDays">
+      <article class="wxDay" id="wxToday">
+        <div class="wxHead"><h3>Today</h3><span class="when"></span></div>
+        <div class="wxNow"><span class="big" aria-hidden="true">🌤️</span><div><div class="t">--°</div><div class="d">Checking the sky…</div></div></div>
+        <div class="wear"><h4>Wear today</h4><div class="wearList"></div></div>
+        <button class="btn ghost wxSay" type="button" hidden>🔊 Read it</button>
+      </article>
+      <article class="wxDay" id="wxTomorrow">
+        <div class="wxHead"><h3>Tomorrow</h3><span class="when"></span></div>
+        <div class="wxNow"><span class="big" aria-hidden="true">🌤️</span><div><div class="t">--°</div><div class="d">Checking the sky…</div></div></div>
+        <div class="wear"><h4>Wear tomorrow</h4><div class="wearList"></div></div>
+        <button class="btn ghost wxSay" type="button" hidden>🔊 Read it</button>
+      </article>
     </div>
-    <div class="wear">
-      <h3>What to wear <button class="btn ghost wxSay" id="wxSay" type="button" hidden>🔊 Read it</button></h3>
-      <div class="wearList" id="wearList"></div>
-      <p class="wxNote" id="wxNote"></p>
-    </div>
+    <p class="wxNote" id="wxNote"></p>
   </section>
 
   <div class="row">
@@ -578,38 +591,60 @@ function wearFor(hi, lo, rain, uv, code){
   w.push(["👟","Sneakers"]);
   return w;
 }
-let wxSpeech = "";
-function showWx(d){
-  const c = d.current, day = d.daily;
-  const hi = Math.round(day.temperature_2m_max[0]), lo = Math.round(day.temperature_2m_min[0]);
-  const rain = day.precipitation_probability_max[0] || 0, uv = day.uv_index_max[0] || 0, code = c.weather_code;
+const wxSpeech = {};
+function fillDay(id, d, k){
+  const card = document.getElementById(id), day = d.daily;
+  const hi = Math.round(day.temperature_2m_max[k]), lo = Math.round(day.temperature_2m_min[k]);
+  const rain = day.precipitation_probability_max[k] || 0, uv = day.uv_index_max[k] || 0;
+  const code = k === 0 && d.current ? d.current.weather_code : day.weather_code[k];
   const [icon, words] = WX_CODES[code] || ["🌤️","Nice out"];
-  const now = Math.round(c.temperature_2m), feels = Math.round(c.apparent_temperature);
-  document.getElementById("wxNow").innerHTML = `<span class="big" aria-hidden="true"></span><div><div class="t"></div><div class="d"></div></div>`;
-  document.querySelector("#wxNow .big").textContent = icon;
-  document.querySelector("#wxNow .t").textContent = now + "°";
-  document.querySelector("#wxNow .d").innerHTML = `<b></b><br>High ${hi}° · Low ${lo}°<br>Rain chance ${rain}%${Math.abs(feels-now) >= 4 ? " · Feels like " + feels + "°" : ""}`;
-  document.querySelector("#wxNow .d b").textContent = words;
-  const list = wearFor(hi, lo, rain, uv, code), box = document.getElementById("wearList");
+  const date = new Date(day.time[k] + "T12:00:00");
+  card.querySelector(".when").textContent = date.toLocaleDateString([], {weekday:"long"});
+  card.querySelector(".big").textContent = icon;
+  const t = card.querySelector(".t"), dd = card.querySelector(".d");
+  let say;
+  if (k === 0 && d.current){
+    const now = Math.round(d.current.temperature_2m), feels = Math.round(d.current.apparent_temperature);
+    t.textContent = now + "°";
+    dd.innerHTML = `<b></b><br>High ${hi}° · Low ${lo}°<br>Rain chance ${rain}%${Math.abs(feels-now) >= 4 ? " · Feels like " + feels + "°" : ""}`;
+    say = `Today it's ${words.toLowerCase()} and ${now} degrees, with a high of ${hi}.`;
+  } else {
+    t.textContent = hi + "°";
+    dd.innerHTML = `<b></b><br>High ${hi}° · Low ${lo}°<br>Rain chance ${rain}%`;
+    say = `Tomorrow, ${date.toLocaleDateString([], {weekday:"long"})}, will be ${words.toLowerCase()}, with a high of ${hi} and a low of ${lo}.`;
+  }
+  dd.querySelector("b").textContent = words;
+  const list = wearFor(hi, lo, rain, uv, code), box = card.querySelector(".wearList");
   box.innerHTML = "";
-  list.forEach(([i, t]) => { const sp = document.createElement("span"); sp.innerHTML = `<i aria-hidden="true"></i><em></em>`; sp.querySelector("i").textContent = i; sp.querySelector("em").textContent = t; sp.querySelector("em").style.fontStyle = "normal"; box.appendChild(sp); });
+  list.forEach(([i, txt]) => { const sp = document.createElement("span"); sp.innerHTML = `<i aria-hidden="true"></i><em style="font-style:normal"></em>`; sp.querySelector("i").textContent = i; sp.querySelector("em").textContent = txt; box.appendChild(sp); });
+  wxSpeech[id] = say + " Wear: " + list.map(x => x[1].toLowerCase()).join(", ") + ".";
+  const sb = card.querySelector(".wxSay"); if (canSpeak) sb.hidden = false;
+}
+function showWx(d){
+  fillDay("wxToday", d, 0);
+  fillDay("wxTomorrow", d, 1);
+  /* After 3 PM, point at tomorrow so clothes can be laid out the night before. */
+  const evening = new Date().getHours() >= 15, tm = document.getElementById("wxTomorrow");
+  tm.classList.toggle("next", evening);
+  const head = tm.querySelector(".wxHead"); let tag = head.querySelector(".layout");
+  if (evening && !tag){ tag = document.createElement("span"); tag.className = "layout"; tag.textContent = "Lay out tonight"; head.appendChild(tag); }
+  if (!evening && tag) tag.remove();
   document.getElementById("wxNote").textContent = CFG.wx.place + " · updated " + new Date(d.got).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
-  wxSpeech = `It's ${words.toLowerCase()} and ${now} degrees. Today's high is ${hi}. Wear: ` + list.map(x => x[1].toLowerCase()).join(", ") + ".";
-  const sb = document.getElementById("wxSay"); if (canSpeak) sb.hidden = false;
 }
 async function loadWx(){
-  const cached = store.get("wx", null);
-  if (cached && Date.now() - cached.got < 30*60*1000){ showWx(cached); return; }
+  const cached = store.get("wx2", null);
+  const today = new Date().toLocaleDateString("en-CA");
+  if (cached && Date.now() - cached.got < 30*60*1000 && cached.daily.time[0] === today){ showWx(cached); return; }
   try {
-    const u = `https://api.open-meteo.com/v1/forecast?latitude=${CFG.wx.lat}&longitude=${CFG.wx.lon}&current=temperature_2m,apparent_temperature,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max&temperature_unit=fahrenheit&timezone=auto&forecast_days=1`;
+    const u = `https://api.open-meteo.com/v1/forecast?latitude=${CFG.wx.lat}&longitude=${CFG.wx.lon}&current=temperature_2m,apparent_temperature,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max&temperature_unit=fahrenheit&timezone=auto&forecast_days=2`;
     const r = await fetch(u); if (!r.ok) throw new Error(r.status);
-    const d = await r.json(); d.got = Date.now(); store.set("wx", d); showWx(d);
+    const d = await r.json(); d.got = Date.now(); store.set("wx2", d); showWx(d);
   } catch(e){
-    if (cached){ showWx(cached); return; }
-    document.querySelector("#wxNow .d").textContent = "Weather couldn't load here. It works when this page is opened from the website or the computer.";
+    if (cached && cached.daily.time[0] === today){ showWx(cached); return; }
+    document.querySelectorAll(".wxDay .d").forEach(el => el.textContent = "Weather couldn't load here. It works when this page is opened from the website.");
   }
 }
-document.getElementById("wxSay").addEventListener("click", () => { if (wxSpeech) sayText(wxSpeech); });
+document.querySelectorAll(".wxDay").forEach(card => card.querySelector(".wxSay").addEventListener("click", () => { if (wxSpeech[card.id]) sayText(wxSpeech[card.id]); }));
 loadWx(); setInterval(loadWx, 30*60*1000);
 
 /* banner effect */
